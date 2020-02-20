@@ -35,5 +35,10 @@ steps:
 - task: CopyFiles@2
   inputs:
     SourceFolder: '$(agent.builddirectory)'
-    Contents: '**\build\**'
+    Contents: '**\build\*.dll'
     TargetFolder: '$(build.artifactstagingdirectory)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
