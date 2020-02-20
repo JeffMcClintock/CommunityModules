@@ -36,5 +36,5 @@ steps:
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)'
-    Contents: '**/out/build/$(BuildConfiguration)/(*.dylib|*.dll)'
+    Contents: '**/$(BuildConfiguration)/(*.dylib|*.dll)'
     TargetFolder: '$(build.artifactstagingdirectory)'
