@@ -1,4 +1,4 @@
-#include ".\db_to_voltage.h"
+#include "./db_to_voltage.h"
 //by Xhun Audio
 #include <math.h>
 
