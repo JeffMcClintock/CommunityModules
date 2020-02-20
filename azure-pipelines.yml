@@ -38,3 +38,9 @@ steps:
     SourceFolder: '$(system.defaultworkingdirectory)'
     Contents: '**/$(BuildConfiguration)/(*.dylib|*.dll)'
     TargetFolder: '$(build.artifactstagingdirectory)'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(agent.builddirectory)'
+    Contents: '**'
+    TargetFolder: '$(build.artifactstagingdirectory)'
