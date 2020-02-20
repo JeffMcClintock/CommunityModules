@@ -15,18 +15,11 @@ set(srcs
     module.rc
     )
 
-set(srcs
-    db_to_voltage.cpp
-    module.rc
-    )
-
 include_directories(
     ${sdk_folder}
     )
 
 include (GenerateExportHeader)
-
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 add_library(${PROJECT_NAME} SHARED ${sdk_srcs} ${srcs})
 
