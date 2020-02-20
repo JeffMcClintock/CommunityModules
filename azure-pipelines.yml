@@ -33,14 +33,7 @@ steps:
     cmakeArgs: '--build . --config Release'
 
 - task: CopyFiles@2
-  displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
-  inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)'
-    Contents: '**/$(BuildConfiguration)/(*.dylib|*.dll)'
-    TargetFolder: '$(build.artifactstagingdirectory)'
-
-- task: CopyFiles@2
   inputs:
     SourceFolder: '$(agent.builddirectory)'
-    Contents: '**'
+    Contents: 'build\**'
     TargetFolder: '$(build.artifactstagingdirectory)'
