@@ -40,10 +40,10 @@ steps:
     flattenFolders: true
 
 - task: CmdLine@2
-    inputs:
+  inputs:
     script: |
-        echo REnaming dlls
-        ren *.dll *.sem
+      echo REnaming dlls
+      ren *.dll *.sem
     workingDirectory: '$(build.artifactstagingdirectory)'
 
 - task: PublishBuildArtifacts@1
