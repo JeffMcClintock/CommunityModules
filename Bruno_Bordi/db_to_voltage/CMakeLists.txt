@@ -23,3 +23,6 @@ include (GenerateExportHeader)
 
 add_library(${PROJECT_NAME} SHARED ${sdk_srcs} ${srcs})
 
+set_property(TARGET ${PROJECT_NAME} PROPERTY
+  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
