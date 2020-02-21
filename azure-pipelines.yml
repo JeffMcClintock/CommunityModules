@@ -34,8 +34,8 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)'
-    Contents: '**/out/build/$(BuildConfiguration)/*.dll'
+    SourceFolder: '$(agent.builddirectory)'
+    Contents: '**\build\**\*.dll'
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
 
@@ -44,4 +44,3 @@ steps:
   inputs:
     PathtoPublish: '$(build.artifactstagingdirectory)'
     ArtifactName: 'Windows Modules'
-    publishLocation: 'Container'
