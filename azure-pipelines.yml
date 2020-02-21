@@ -34,14 +34,20 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(system.defaultworkingdirectory)'
-    Contents: '**/out/build/$(BuildConfiguration)/*.dll'
+    SourceFolder: '$(agent.builddirectory)'
+    Contents: '**\build\**\*.dll'
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
+
+- task: CmdLine@2
+  inputs:
+    script: |
+      echo REnaming dlls
+      ren *.dll *.sem
+    workingDirectory: '$(build.artifactstagingdirectory)'
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact'
   inputs:
     PathtoPublish: '$(build.artifactstagingdirectory)'
     ArtifactName: 'Windows Modules'
-    publishLocation: 'Container'
