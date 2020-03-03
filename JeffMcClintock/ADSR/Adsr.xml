@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<PluginList>
+  <Plugin id="SE ADSR4" name="ADSR" category="Experimental">
+    <Audio>
+      <Pin name="Trigger" datatype="bool" default="1" />
+      <Pin name="Gate" datatype="bool" default="1" />
+      <Pin name="Attack" datatype="float" rate="audio" default="0.075" />
+      <Pin name="Decay" datatype="float" rate="audio" default="0.5" />
+      <Pin name="Sustain" datatype="float" rate="audio" default="0.7" />
+      <Pin name="Release" datatype="float" rate="audio" default="0.4" />
+      <Pin name="Attack Curve" datatype="float" rate="audio" default="0.3" metadata=",,5,-5" />
+      <Pin name="Decay Curve" datatype="float" rate="audio" default="0" metadata=",,5,-5" />
+      <Pin name="Release Curve" datatype="float" rate="audio" default="0" metadata=",,5,-5" />
+      <Pin name="Signal Out" datatype="float" rate="audio" direction="out" />
+      <Pin name="VoiceReset" datatype="float" private="true" isPolyphonic="true" hostConnect="Voice/Active" />
+    </Audio>
+  </Plugin>
+</PluginList>

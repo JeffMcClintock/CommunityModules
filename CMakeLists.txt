@@ -8,3 +8,4 @@ if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 add_subdirectory(Bruno_Bordi)
+add_subdirectory(JeffMcClintock)
