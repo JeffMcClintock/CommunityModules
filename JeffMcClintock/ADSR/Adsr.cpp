@@ -1,4 +1,5 @@
 #include <math.h>
+#include <algorithm>
 
 #include "../se_sdk3/mp_sdk_audio.h"
 
@@ -147,7 +148,7 @@ public:
 
 		// prevent divide-by-zero;
 		const float smallNumber = 0.001;
-		timeConstants = max(timeConstants, smallNumber); // Prevent divide-by-zero.
+		timeConstants = (std::max)(timeConstants, smallNumber); // Prevent divide-by-zero.
 
 		float deltaT = deltaY * getSampleRate() * VoltageToTime(rate * 10.f);
 		deltaT = (std::max)(deltaT, 1.0f); // prevent divide-by-zero.
