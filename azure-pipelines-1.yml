@@ -18,7 +18,7 @@ steps:
   inputs:
     cmakeArgs: '--build . --config Release'
 
-    - task: CopyFiles@2
+- task: CopyFiles@2
   inputs:
     SourceFolder: '$(agent.builddirectory)'
     Contents: '**\build\**\*.dylib'
