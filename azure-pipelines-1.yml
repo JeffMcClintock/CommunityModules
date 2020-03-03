@@ -17,3 +17,10 @@ steps:
 - task: CMake@1
   inputs:
     cmakeArgs: '--build . --config Release'
+
+    - task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(agent.builddirectory)'
+    Contents: '**\build\**\*.dylib'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+    flattenFolders: true
