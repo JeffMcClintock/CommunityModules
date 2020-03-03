@@ -21,6 +21,6 @@ steps:
 - task: CopyFiles@2
   inputs:
     SourceFolder: '$(agent.builddirectory)'
-    Contents: '**\build\**\*.dylib'
+    Contents: '**\*.dylib'
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
