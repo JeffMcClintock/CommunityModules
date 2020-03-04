@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 project(CommunityModules)
 
+set(sdk_folder
+    se_sdk3
+    )
+
+include_directories(
+    ${sdk_folder}
+    )
+
 set(CMAKE_CXX_STANDARD 17)
 
 if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
