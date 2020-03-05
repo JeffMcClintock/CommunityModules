@@ -15,11 +15,10 @@ include (GenerateExportHeader)
 
 add_library(${PROJECT_NAME} SHARED ${sdk_srcs} ${srcs})
 
-  set_target_properties(${target} PROPERTIES PREFIX "")
 if(MAC)
-  set_target_properties(${target} PROPERTIES BUNDLE TRUE)
+  set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+  set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
 elseif(WIN)
-  set_target_properties(${target} PROPERTIES SUFFIX ".sem")
   set_property(TARGET ${PROJECT_NAME} PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
