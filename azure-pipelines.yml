@@ -39,13 +39,6 @@ steps:
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
 
-- task: CmdLine@2
-  inputs:
-    script: |
-      echo REnaming dlls
-      ren *.dll *.sem
-    workingDirectory: '$(build.artifactstagingdirectory)'
-
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact'
   inputs:
