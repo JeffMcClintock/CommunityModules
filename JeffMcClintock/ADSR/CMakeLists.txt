@@ -22,8 +22,6 @@ if(MAC)
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
 elseif(WIN)
   set_property(TARGET ${PROJECT_NAME} PROPERTY
+  set_target_properties(${target} PROPERTIES SUFFIX ".sem")
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
-
-set_property(TARGET ${PROJECT_NAME} PROPERTY
-  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
