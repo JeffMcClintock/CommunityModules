@@ -23,6 +23,6 @@ if(MAC)
 elseif(WIN)
   set_property(TARGET ${PROJECT_NAME} PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
-endif()
 
+endif()
+set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
