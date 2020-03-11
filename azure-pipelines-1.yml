@@ -28,7 +28,7 @@ steps:
 - task: CopyFiles@2
   inputs:
     SourceFolder: '$(agent.builddirectory)'
-    Contents: '**/*.bundle'
+    Contents: '**/build/**/*.sem/**'
     TargetFolder: '$(build.artifactstagingdirectory)'
 
 - task: CopyFiles@2
