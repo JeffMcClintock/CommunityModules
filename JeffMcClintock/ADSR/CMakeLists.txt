@@ -15,7 +15,7 @@ include_directories(
 ${sdk_folder}
 )
 include (GenerateExportHeader)
-add_library(${PROJECT_NAME} SHARED ${sdk_srcs} ${srcs})
+add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
 
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
