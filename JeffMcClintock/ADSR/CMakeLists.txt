@@ -25,7 +25,7 @@ if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE_EXTENSION "sem")
 
-  # Attempt: Place ADSR.xml in bundle 'Resources' folder.
+  # Place ADSR.xml in bundle 'Resources' folder.
   set(xml_path "ADSR.xml")
   target_sources(${PROJECT_NAME} PUBLIC ${xml_path})
   set_source_files_properties(${xml_path} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)

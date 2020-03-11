@@ -31,12 +31,6 @@ steps:
     Contents: '**/build/**/*.sem/**'
     TargetFolder: '$(build.artifactstagingdirectory)'
 
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: '$(agent.builddirectory)'
-    Contents: '**/*.sem'
-    TargetFolder: '$(build.artifactstagingdirectory)'
-
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifacts'
   inputs:
