@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
+
+include(Bundle)
+
 project(ADSR)
 set(sdk_folder
 ../../se_sdk3
@@ -20,6 +23,8 @@ add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
+  set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE_EXTENSION "sem")
+  smtg_set_bundle(${PROJECT_NAME} INFOPLIST "mac/Info.plist" PREPROCESS)
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
