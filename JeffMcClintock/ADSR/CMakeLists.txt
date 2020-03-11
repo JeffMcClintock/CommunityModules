@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-include(Bundle)
+# Steinberg only include(Bundle)
 
 project(ADSR)
 set(sdk_folder
@@ -24,7 +24,25 @@ if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE_EXTENSION "sem")
-  smtg_set_bundle(${PROJECT_NAME} INFOPLIST "mac/Info.plist" PREPROCESS)
+
+# things to try from VST3
+#  smtg_set_bundle(${PROJECT_NAME} INFOPLIST "mac/Info.plist" PREPROCESS)
+#        if(XCODE)
+#            set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_WRAPPER_EXTENSION ${ARG_EXTENSION})
+#        else()
+#            set_target_properties(${target} PROPERTIES BUNDLE_EXTENSION ${ARG_EXTENSION})
+#        endif()
+# set_source_files_properties(${ARG_RESOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+#        if(XCODE)
+#            set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_FILE "${ARG_INFOPLIST}")
+#            if(ARG_PREPROCESS)
+#                set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS "YES")
+#            endif()
+#            if(ARG_PREPROCESSOR_FLAGS)
+#                set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_INFOPLIST_OTHER_PREPROCESSOR_FLAGS "${ARG_PREPROCESSOR_FLAGS}")
+#            endif()
+#        endif()
+
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
