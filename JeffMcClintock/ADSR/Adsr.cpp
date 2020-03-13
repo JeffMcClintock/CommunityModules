@@ -143,12 +143,20 @@ public:
 
 		deltaY = fabsf(deltaY);
 
+		const float deltaYMin{0.000001f};
+		if (deltaY < deltaYMin)
+		{
+			level_ = target;
+			next_segment();
+			return;
+		}
+
 		// By using more or less of the curve we control straight/curved mix.
 		float timeConstants = 10.0f * fabsf(curveAmmount);
 
 		// prevent divide-by-zero;
-		const float smallNumber = 0.001;
-		timeConstants = (std::max)(timeConstants, smallNumber); // Prevent divide-by-zero.
+		const float timeConstantsMin{ 0.001f };
+		timeConstants = (std::max)(timeConstants, timeConstantsMin); // Prevent divide-by-zero.
 
 		float deltaT = deltaY * getSampleRate() * VoltageToTime(rate * 10.f);
 		deltaT = (std::max)(deltaT, 1.0f); // prevent divide-by-zero.
@@ -204,6 +212,14 @@ public:
 			pinSignalOut.setStreaming(false); // first time.
 		}
 
+		// Always handle voice reset first, as it can occur in tandem with trigger. (trigger takes precedence)
+		if (pinVoiceReset.isUpdated() && pinVoiceReset == 1.0f) // forcedReset
+		{
+			// _RPT1(_CRT_WARN, "Envelope:: Hard Reset. %d\n", (int) pinVoiceReset  );
+			cur_segment = 3;
+			next_segment();
+		}
+
 		// Check which pins are updated.
 		if( pinTrigger.isUpdated() && pinTrigger.getValue() && pinGate.getValue())
 		{
@@ -233,13 +249,6 @@ public:
 				cur_segment = 2;
 				next_segment();
 			}
-		}
-
-		if (pinVoiceReset.isUpdated() && pinVoiceReset == 1.0f) // forcedReset
-		{
-			// _RPT1(_CRT_WARN, "Envelope:: Hard Reset. %d\n", (int) pinVoiceReset  );
-			cur_segment = 3;
-			next_segment();
 		}
 	}
 };
