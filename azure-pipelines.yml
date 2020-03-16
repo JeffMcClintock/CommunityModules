@@ -26,7 +26,7 @@ steps:
 
 - task: CMake@1
   inputs:
- # nope: (use vmImage)   cmakeArgs: '-G "Visual Studio 15 2017 Win64" $(build.repository.localPath)'
+    cmakeArgs: '..'  # nope: (use vmImage)   -G "Visual Studio 15 2017 Win64" $(build.repository.localPath)'
 
 - task: CMake@1
   inputs:
