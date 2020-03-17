@@ -4,18 +4,15 @@
 #include "../se_sdk3/mp_sdk_audio.h"
 #include "Adsr.h"
 
-// New. 0v = 0.001s, 10V = 10s
+// 0v = 0.001s, 10V = 10s
 float VoltageToTime(float v) { return powf(10.0f, ((v) * 0.4f) - 3.0f); }
 
 using namespace gmpi;
-
-#define SCHEME2 1
 
 std::tuple<double, double, double> CalculateCurve(const double level_, const double sampleRate, double rate, const double target, const double curveAmmount)
 {
 	double legalLow{};
 	double curveRate{};
-	double CurveTarget{};
 
 	rate = (std::min)(2.0, rate);
 
@@ -55,7 +52,7 @@ std::tuple<double, double, double> CalculateCurve(const double level_, const dou
 
 	// what level does the curve reach after x timeconstants. (We will scale curve to reach 1.0 at this time)
 	double valueAtTime1 = 1.0 - exp(-timeConstants);
-	CurveTarget = deltaY / valueAtTime1; // level curve 'aims' for.
+	auto CurveTarget = deltaY / valueAtTime1; // level curve 'aims' for.
 
 	CurveTarget -= deltaY; // relative to end-level.
 	assert(CurveTarget > 0.0);
@@ -83,7 +80,7 @@ std::tuple<double, double, double> CalculateCurve(const double level_, const dou
 		CurveTarget = level_ - CurveTarget; // no, not instantaneous level, as subject to modulation, and other weirdness.
 	}
 
-	return { legalLow, curveRate , CurveTarget };
+	return { legalLow, curveRate, CurveTarget };
 }
 
 class Adsr : public MpBase2
@@ -177,88 +174,12 @@ public:
 
 	void calcCurve(double rate, double curveAmmount, double target)
 	{
+		target_ = target;
 		pinSignalOut.setStreaming(true);
 
-		target_ = target;
-#if 1
-		auto a = CalculateCurve(level_, getSampleRate(), rate, target, curveAmmount);
-/*
-		rate = (std::min)(2.0, rate);
-
-		double deltaY = target - level_;
-
-		deltaY = fabs(deltaY);
-
-		const double deltaYMin{ 0.000001f };
-		if (deltaY < deltaYMin)
-		{
-			level_ = target;
-			next_segment();
-			return;
-		}
-
-		// By using more or less of the curve we control straight/curved mix.
-		double timeConstants = 10.0 * fabs(curveAmmount);
-
-		// prevent divide-by-zero;
-		const double timeConstantsMin{ 0.001f };
-		timeConstants = (std::max)(timeConstants, timeConstantsMin); // Prevent divide-by-zero.
-
-		double deltaT = deltaY * getSampleRate() * VoltageToTime(rate * 10.f);
-		deltaT = (std::max)(deltaT, 1.0); // prevent divide-by-zero.
-
-		double stepSize = timeConstants / deltaT;
-		if (curveAmmount > 0.0)
-		{
-			// first step.
-			curveRate_ = 1.0 - exp(-stepSize);
-		}
-		else
-		{
-			// 1 before first step.
-			curveRate_ = exp(stepSize) - 1.0;
-		}
-
-		// what level does the curve reach after x timeconstants. (We will scale curve to reach 1.0 at this time)
-		double valueAtTime1 = 1.0 - exp(-timeConstants);
-		CurveTarget_ = deltaY / valueAtTime1; // level curve 'aims' for.
-
-		CurveTarget_ -= deltaY; // relative to end-level.
-		assert(CurveTarget_ > 0.0);
-
-		if (target_ <= level_)
-		{
-			legalLow = target_;
-			CurveTarget_ = -CurveTarget_;
-		}
-		else
-		{
-			legalLow = 0.0;
-		}
-
-		if (curveAmmount >= 0) // normal curve.
-		{
-			// make target relative to segment end level.
-			CurveTarget_ = target_ + CurveTarget_;
-		}
-		else // inverted curve.
-		{
-			curveRate_ = -curveRate_;
-
-			// make target relative to segment start level.
-			CurveTarget_ = level_ - CurveTarget_; // no, not instantaneous level, as subject to modulation, and other weirdness.
-		}
-		assert(std::get<0>(a) == legalLow);
-		assert(std::get<1>(a) == curveRate_);
-		assert(std::get<2>(a) == CurveTarget_);
-*/
-		legalLow = std::get<0>(a);
-		curveRate_ = std::get<1>(a);
-		CurveTarget_ = std::get<2>(a);
-#else
-		auto [legalLow, curveRate_, CurveTarget_] = CalculateCurve(level_, getSampleRate(), rate, target, curveAmmount);
-#endif
+		std::tie(legalLow, curveRate_, CurveTarget_) = CalculateCurve(level_, getSampleRate(), rate, target, curveAmmount);
 	}
+
 	void onSetPins(void) override
 	{
 		if (&Adsr::subProcess != getSubProcess())
