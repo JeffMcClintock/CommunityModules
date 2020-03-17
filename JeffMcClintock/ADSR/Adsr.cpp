@@ -2,7 +2,6 @@
 #include <algorithm>
 
 #include "../se_sdk3/mp_sdk_audio.h"
-#include "Adsr.h"
 
 // 0v = 0.001s, 10V = 10s
 float VoltageToTime(float v) { return powf(10.0f, ((v) * 0.4f) - 3.0f); }
