@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
-# Steinberg only include(Bundle)
+add_subdirectory(tests)
+
+# Steinberg only: include(Bundle)
 
 project(ADSR)
 set(sdk_folder

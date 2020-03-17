@@ -1,5 +1,6 @@
 #include <math.h>
 #include <algorithm>
+#include <tuple>
 
 #include "../se_sdk3/mp_sdk_audio.h"
 
@@ -82,6 +83,11 @@ std::tuple<double, double, double> CalculateCurve(const double level_, const dou
 	return { legalLow, curveRate, CurveTarget };
 }
 
+std::tuple<double, double, double> CalculateSteadyState(const double target)
+{
+	return { target - 1.0, 0.0, 0.0 };
+}
+
 class Adsr : public MpBase2
 {
 	BoolInPin pinTrigger;
@@ -142,11 +148,13 @@ public:
 	void next_segment() // Called when envelope section ends
 	{
 		++cur_segment;
+		const double endLevel = 0.0;
+		const double attackPeakLevel = 1.0;
 
 		switch (cur_segment)
 		{
 		case 0:
-			calcCurve(pinAttack, pinAttackCurve, 1.0);
+			calcCurve(pinAttack, pinAttackCurve, attackPeakLevel);
 			break;
 
 		case 1:
@@ -154,19 +162,16 @@ public:
 			break;
 
 		case 2:
-			curveRate_ = CurveTarget_ = 0.0;
-			legalLow = level_ - 1.0;
-			pinSignalOut.setStreaming(false);
+			calcSteadyState(pinSustain);
 			break;
 
 		case 3:
-			calcCurve(pinRelease, pinReleaseCurve, 0.0);
+			calcCurve(pinRelease, pinReleaseCurve, endLevel);
 			break;
 
 		default:
 			cur_segment = -1;
-			level_ = curveRate_ = CurveTarget_ = 0.0;
-			pinSignalOut.setStreaming(false);
+			calcSteadyState(endLevel);
 			break;
 		};
 	}
@@ -177,6 +182,14 @@ public:
 		pinSignalOut.setStreaming(true);
 
 		std::tie(legalLow, curveRate_, CurveTarget_) = CalculateCurve(level_, getSampleRate(), rate, target, curveAmmount);
+	}
+
+	void calcSteadyState(double target)
+	{
+		target_ = target;
+		pinSignalOut.setStreaming(false);
+
+		std::tie(legalLow, curveRate_, CurveTarget_) = CalculateSteadyState(target);
 	}
 
 	void onSetPins(void) override
