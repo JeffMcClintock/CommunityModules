@@ -37,7 +37,7 @@ steps:
   inputs:
     script: |
       dir
-      ctest --verbose -C $(BuildType)
+      ctest --verbose -C Release
     workingDirectory: build
 
 - task: CmdLine@2
