@@ -33,8 +33,11 @@ steps:
     cmakeArgs: '--build . --config Release'
 
 - task: CmdLine@2
+  displayName: 'Run Unit Tests'
   inputs:
-    script: 'ctest --verbose -C Release .'
+    script: |
+      dir
+      ctest --verbose -C Release .
     workingDirectory: '$(agent.builddirectory)'
 
 - task: CopyFiles@2
