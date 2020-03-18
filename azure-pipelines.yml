@@ -58,5 +58,5 @@ steps:
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'CTest'
-    testResultsFiles: '**/TEST-*.xml'
+    testResultsFiles: 'build/Testing/*/Test.xml'
 
