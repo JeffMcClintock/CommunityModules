@@ -32,6 +32,11 @@ steps:
   inputs:
     cmakeArgs: '--build . --config Release'
 
+- task: CmdLine@2
+  inputs:
+    script: 'ctest'
+    workingDirectory: '$(agent.builddirectory)'
+
 - task: CopyFiles@2
   inputs:
     SourceFolder: '$(agent.builddirectory)'
