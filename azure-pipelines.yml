@@ -42,7 +42,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(agent.builddirectory)'
+    SourceFolder: '$(build.binariesdirectory)'
     Contents: '**\build\**\*.sem'
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
