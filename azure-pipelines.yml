@@ -37,7 +37,7 @@ steps:
   inputs:
     script: |
       dir
-      ctest --verbose -S ../CTestScript.cmake -C $(BuildType)
+      ctest --verbose -C $(BuildType)
     workingDirectory: build
 
 - task: CmdLine@2
@@ -55,8 +55,15 @@ steps:
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
 
+- task: CopyFiles@2
+  inputs:
+    Contents: '**/*.cmake'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+
+
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact'
   inputs:
     PathtoPublish: '$(build.artifactstagingdirectory)'
     ArtifactName: 'Windows Modules'
+
