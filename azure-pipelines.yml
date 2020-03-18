@@ -37,7 +37,7 @@ steps:
   inputs:
     script: |
       dir
-      ctest -j 4 --output-on-failure -C $(BuildType)
+      ctest --verbose -S ../CTestScript.cmake -C $(BuildType)
     workingDirectory: build
 
 - task: CmdLine@2
