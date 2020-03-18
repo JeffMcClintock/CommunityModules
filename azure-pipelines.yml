@@ -38,7 +38,7 @@ steps:
     script: |
       dir
       ctest --verbose -C Release .
-    workingDirectory: '$(agent.builddirectory)'
+    workingDirectory: '$(agent.builddirectory)/s/build'
 
 - task: CopyFiles@2
   inputs:
