@@ -34,7 +34,7 @@ steps:
 
 - task: CmdLine@2
   inputs:
-    script: 'ctest -C Release .'
+    script: 'ctest --verbose -C Release .'
     workingDirectory: '$(agent.builddirectory)'
 
 - task: CopyFiles@2
