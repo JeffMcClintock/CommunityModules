@@ -37,7 +37,7 @@ steps:
 - task: CmdLine@2
   displayName: 'Run Unit Tests'
   inputs:
-    script: 'ctest --verbose -C Release'
+    script: 'ctest --verbose -C Release -T UnitTests'
     workingDirectory: 'build'
 
 - task: CopyFiles@2
