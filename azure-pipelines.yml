@@ -33,19 +33,37 @@ steps:
     cmakeArgs: '--build . --config Release'
 
 - task: CmdLine@2
+  displayName: 'Run Unit Tests'
   inputs:
-    script: 'ctest'
-    workingDirectory: '$(agent.builddirectory)'
+    script: |
+      dir
+      ctest --verbose -C $(BuildType)
+    workingDirectory: build
+
+- task: CmdLine@2
+  displayName: 'Run Unit Tests2'
+  inputs:
+    script: |
+      dir
+      ctest --verbose -C Release .
+    workingDirectory: '$(agent.builddirectory)/s/build'
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(agent.builddirectory)'
+    SourceFolder: '$(build.binariesdirectory)'
     Contents: '**\build\**\*.sem'
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
+
+- task: CopyFiles@2
+  inputs:
+    Contents: '**/*.cmake'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact'
   inputs:
     PathtoPublish: '$(build.artifactstagingdirectory)'
     ArtifactName: 'Windows Modules'
+
