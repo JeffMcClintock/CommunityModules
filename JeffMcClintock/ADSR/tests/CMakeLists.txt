@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.15)
 
 project(test_ADSR)
 
-enable_testing()
-
 set(sdk_folder
 ../../../se_sdk3
 )
@@ -27,5 +25,5 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME} "--gtest_output=xml:GTest.xml")
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME} "")
 
