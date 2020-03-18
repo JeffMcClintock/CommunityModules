@@ -54,3 +54,9 @@ steps:
     PathtoPublish: '$(build.artifactstagingdirectory)'
     ArtifactName: 'Windows Modules'
 
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'CTest'
+    testResultsFiles: '**/TEST-*.xml'
+
