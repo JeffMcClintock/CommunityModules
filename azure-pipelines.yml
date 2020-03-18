@@ -37,6 +37,14 @@ steps:
   inputs:
     script: |
       dir
+      ctest -j 4 --output-on-failure -C $(BuildType)
+    workingDirectory: build
+
+- task: CmdLine@2
+  displayName: 'Run Unit Tests2'
+  inputs:
+    script: |
+      dir
       ctest --verbose -C Release .
     workingDirectory: '$(agent.builddirectory)/s/build'
 
