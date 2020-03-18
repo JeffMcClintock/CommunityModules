@@ -28,6 +28,8 @@ steps:
   inputs:
     cmakeArgs: '..'  # nope: (use vmImage)   -G "Visual Studio 15 2017 Win64" $(build.repository.localPath)'
 
+#TODO : some kind of variable for build type: Debug/Release
+
 - task: CMake@1
   inputs:
     cmakeArgs: '--build . --config Release'
@@ -35,18 +37,8 @@ steps:
 - task: CmdLine@2
   displayName: 'Run Unit Tests'
   inputs:
-    script: |
-      dir
-      ctest --verbose -C Release
-    workingDirectory: build
-
-- task: CmdLine@2
-  displayName: 'Run Unit Tests2'
-  inputs:
-    script: |
-      dir
-      ctest --verbose -C Release .
-    workingDirectory: '$(agent.builddirectory)/s/build'
+    script: 'ctest --verbose -C Release'
+    workingDirectory: 'build'
 
 - task: CopyFiles@2
   inputs:
@@ -54,11 +46,6 @@ steps:
     Contents: '**\build\**\*.sem'
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
-
-- task: CopyFiles@2
-  inputs:
-    Contents: '**/*.cmake'
-    TargetFolder: '$(build.artifactstagingdirectory)'
 
 
 - task: PublishBuildArtifacts@1
