@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommand>C:\SE\SE14\SynthEdit\bin\x64\Debug\SynthEdit.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>C:\SE\SE14\SynthEdit\bin\Debug</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Eyal Debug|x64'">
+    <LocalDebuggerCommand>C:\SE\SE14\SynthEdit\bin\x64\Debug\SynthEdit.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>C:\SE\SE14\SynthEdit\bin\Debug</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Eyal Release|x64'">
+    <LocalDebuggerCommand>C:\SE\SE14\SynthEdit\bin\x64\Debug\SynthEdit.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>C:\SE\SE14\SynthEdit\bin\Debug</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommand>C:\SE\SE14\SynthEdit\bin\x64\Debug\SynthEdit.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>C:\SE\SE14\SynthEdit\bin\Debug</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Slap Bass Only Debug|x64'">
+    <LocalDebuggerCommand>C:\SE\SE14\SynthEdit\bin\x64\Debug\SynthEdit.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>C:\SE\SE14\SynthEdit\bin\Debug</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Wavetable.cpp" />
+    <ClCompile Include="real_fft.cpp" />
+    <ClCompile Include="Oscillator.cpp" />
+    <ClCompile Include="..\..\se_sdk3\mp_sdk_audio.cpp">
+      <Filter>sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\se_sdk3\mp_sdk_common.cpp">
+      <Filter>sdk</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Wavetable.h" />
+    <ClInclude Include="real_fft.h" />
+    <ClInclude Include="OscMipmapPolicy.h" />
+    <ClInclude Include="Oscillator.h" />
+    <ClInclude Include="..\..\se_sdk3\mp_sdk_audio.h">
+      <Filter>sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\se_sdk3\mp_sdk_common.h">
+      <Filter>sdk</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="sdk">
+      <UniqueIdentifier>{96d5923e-a0b4-47b2-adc9-c859b35b97bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{4e566d03-7294-444b-b306-02877a51b69f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="Oscillator.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Oscillator.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
