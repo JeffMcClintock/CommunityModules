@@ -1,6 +1,7 @@
 // Copyright 2006 Jeff McClintock
-
 // MpPluginBase - implements the IMpPlugin2 interface.
+
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #include "mp_sdk_audio.h"
 #include <assert.h>

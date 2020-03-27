@@ -32,7 +32,94 @@ Oscillator::Oscillator() :
 	initializePin(pinVoiceActive);
 }
 
-#define PRINT_WAVETABLE_STATS 1
+void PrintMidiNoteStats(double sampleRate)
+{
+	const int width[] = { 4, 9, 9, 9, 9 };
+
+	const double nyquist = sampleRate * 0.5;
+	const double humanHearingMaxHz = 20000.0;
+	const double higestPlayableFrequency = nyquist * (humanHearingMaxHz / 22050); // Highest Hz possible without risk of aliasing. 90.7% of nyquist.
+	const double maxAudibleFreq = (std::min)(higestPlayableFrequency, humanHearingMaxHz);
+
+	std::ostringstream s;
+	s.precision(2);
+
+	s << "\n" << std::fixed << sampleRate << " Hz";
+	s << "\n------------------\n";
+	s << std::setw(width[0]) << std::right << "Key"
+		<< std::setw(width[1]) << std::right << "Hz"
+		<< std::setw(width[2]) << std::right << "Partials"
+		<< "\n";
+
+	const double middleA = 69.0;
+	const double octave = 12.0f;
+
+	std::map<int, int> patialsRequired;
+
+	int prevPartials = INT_MAX;
+	double prevHz = 0.0001;
+
+	for (int key = 0; key < 128; key++)
+	{
+		const auto Hz = 440.0 * pow(2.0, (key - middleA) / octave);
+		const auto halfBentHz = 440.0 * pow(2.f, (0.5 + key - middleA) / octave); // halfway to next semitone, to allow for modulation/bender without MIP switching.
+		const auto partials = static_cast<int>(maxAudibleFreq / halfBentHz);
+
+		// Can re recycle a lower MIP.
+		double transposeHighestPartialFreq = halfBentHz * static_cast<double>(prevPartials);
+		const bool canRecycle = transposeHighestPartialFreq <= higestPlayableFrequency;
+
+		s << std::setw(width[0]) << std::right << key
+			<< std::setw(width[1]) << std::right << std::fixed << Hz;
+		if (canRecycle)
+		{
+			s << std::setw(width[2]) << std::right << " \"\n";
+		}
+		else
+		{
+			s << std::setw(width[2]) << std::right << partials
+				<< "\n";
+
+			prevHz = Hz;
+			prevPartials = partials;
+		}
+		
+		patialsRequired[prevPartials]++;
+	}
+
+	_RPT1(_CRT_WARN, "%s\n", s.str().c_str());
+
+	std::ostringstream s2;
+	s2.precision(2);
+
+	s2 << "\n-----Partials Needed---------\n";
+	s2 << std::setw(width[0]) << std::right << "Partls"
+		<< std::setw(width[1]) << std::right << "Used by"
+		<< std::setw(width[2]) << std::right << "Max"
+		<< std::setw(width[3]) << std::right << "Note"
+		<< std::setw(width[4]) << std::right << "Switch"
+		<< "\n";
+
+	for (auto p : patialsRequired)
+	{
+		const double maxHz = maxAudibleFreq / p.first;
+		const double maxNote = octave * log(maxHz / 440.0) / log(2.0) + middleA;
+		const double mipSwitchNote = floor(maxNote - 0.5) + 0.5; // switch MIPs on half-semitone boundaries to minimize MIP-thrashing.
+
+		s2 << std::setw(width[0]) << std::right << p.first
+			<< std::setw(width[1]) << std::right << p.second
+			<< std::setw(width[2]) << std::right << std::fixed << maxHz
+			<< std::setw(width[3]) << std::right << std::fixed << maxNote
+			<< std::setw(width[4]) << std::right << std::fixed << mipSwitchNote
+			<< "\n";
+
+		_RPT1(_CRT_WARN, "%s", s2.str().c_str());
+		s2.str("");
+		s2.clear();
+	}
+}
+
+//#define PRINT_WAVETABLE_STATS 1
 void Oscillator::CalcWave(float* spectrum, float* pdest, const WavetableMipmapPolicy& pMipMapPolicy, const char* debug_waveshape_name)
 {
 #ifdef PRINT_WAVETABLE_STATS
@@ -161,6 +248,13 @@ int32_t Oscillator::open()
 		}
 
 		CalcWave(spectrum, waveSawtooth, mipMapPolicy, "Sawtooth");
+
+		const auto s = mipMapPolicy.PrintMips("Sawtooth");
+		_RPT1(_CRT_WARN, "%s\n", s.c_str() );
+
+		PrintMidiNoteStats(44100);
+		PrintMidiNoteStats(96000);
+		//_RPT1(_CRT_WARN, "%s\n", s2.c_str());
 	}
 
 	r = getHost()->allocateSharedMemory(L"JM:Oscillator:Tri", (void**)&waveTriangle, -1, totalMemoryBytes, needInit);

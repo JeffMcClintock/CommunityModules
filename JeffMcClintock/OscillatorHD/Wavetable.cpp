@@ -348,7 +348,7 @@ void WaveTable::GenerateWavetable( int wavetableNumber, int selectedFromSlot, in
 
 	if( harmonics.size() > 0 ) //shape != 7 ) // noise 
 	{
-		int totalHarmonics = harmonics.size();
+		int totalHarmonics = static_cast<int>(harmonics.size());
 
 		/* moved to mipmap
 		// windowing function to reduce gibbs phenomena (hamming). Reduced effectivness once mip-mapp truncates series anyhow.

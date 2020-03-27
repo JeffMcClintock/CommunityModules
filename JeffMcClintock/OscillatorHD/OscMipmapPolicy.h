@@ -6,6 +6,8 @@
 
 #include "Wavetable.h"
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 struct mipIndex
 {
@@ -15,13 +17,10 @@ struct mipIndex
 		, offset2(off2)
 		, partials(ppartials)
 	{
-//		maximumIncrement = (float)oversampleRatio / (float)waveSize;
-//		maximumIncrement = 0.5 / partials;
 	}
 	int SlotStorage;
 	int offset2; // when grouped by mip,wave,slot
 	int waveSize;
-//	double maximumIncrement; // helps decide when to shift down to a lower mip-level.
 	int partials;
 };
 
@@ -209,19 +208,6 @@ MIP   Sz   Partials
 --------------------
 */
 	}
-	/*
-	// With PSOLA window, need exactly twice the storage per wave.
-	void doubleSizes()
-	{
-		totalWaveMemorySize = 0;
-		for( int i = 0 ; i < (int) mips.size() ; ++i )
-		{
-			mips[i].offset = totalWaveMemorySize;
-			mips[i].waveSize *= 2;
-			totalWaveMemorySize += mips[i].waveSize;
-		}
-	}
-	*/
 
 	// with mips
 	int TotalMemoryRequired() const
@@ -229,13 +215,6 @@ MIP   Sz   Partials
 		return sizeof(WaveTable) + (totalWaveMemorySize * waveTableCount * slotCount - 1) * sizeof(float);
 	}
 
-	/*
-	// without mips.
-	inline static int CalcTotalMemoryRequired(int waveTableCount, int slotCount, int samplesPerSlot )
-	{
-		return sizeof(WaveTable) + (samplesPerSlot * waveTableCount * slotCount - 1) * sizeof(float);
-	}
-	*/
 	int WaveMemoryRequiredSamples() const
 	{
 		return sizeof(WaveTable) + (totalWaveMemorySize-1);
@@ -264,6 +243,33 @@ MIP   Sz   Partials
 	inline int getSlotCount()
 	{
 		return slotCount;
+	}
+
+	std::string PrintMips(std::string debug_waveshape_name)
+	{
+		int width[] = { 4, 9, 5 };
+
+		std::ostringstream s;
+		s << "\n" << debug_waveshape_name;
+		s << "\n------------------\n";
+
+		s << std::setw(width[0]) << std::right << "MIP"
+		  << std::setw(width[1]) << std::right << "Partials"
+		  << std::setw(width[2]) << std::right << "Size"
+		  << "\n";
+
+		int mipNumber = 0;
+		for (auto& mip : mips)
+		{
+			s << std::setw(width[0]) << std::right << mipNumber
+			  << std::setw(width[1]) << std::right << mip.partials
+			  << std::setw(width[2]) << std::right << mip.waveSize
+			  << "\n";
+
+			++mipNumber;
+		}
+
+		return s.str();
 	}
 };
 
