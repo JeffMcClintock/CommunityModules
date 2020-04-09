@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "../../../catch2/catch.hpp"
 
-#include "../ADSR.h"
+#include "../Adsr.h"
 
 TEST_CASE("Curve parameters are computed", "[CalculateCurve]")
 {
