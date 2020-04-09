@@ -11,7 +11,7 @@ ${sdk_folder}/mp_sdk_common.cpp
 ${sdk_folder}/mp_sdk_audio.cpp
 )
 set(srcs
-Adsr.rc
+${PROJECT_NAME}.rc
 DrawingTestGui.cpp
 DrawingTestLinesGui.cpp
 )
