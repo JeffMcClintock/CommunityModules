@@ -37,6 +37,9 @@ if(APPLE)
   # XCODE_ATTRIBUTE_INFOPLIST_FILE ${CMAKE_CURRENT_BINARY_DIR}/mac/Info.plist
   # MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/mac/Info.plist
 
+#if gui module only
+set(CMAKE_EXE_LINKER_FLAGS "-lobjc -framework CoreFoundation")
+
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
