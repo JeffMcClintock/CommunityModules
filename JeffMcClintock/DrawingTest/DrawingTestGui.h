@@ -13,7 +13,7 @@ class DrawingTestGui : public gmpi_gui::MpGuiGfxBase
 	BoolGuiPin pinApplyAlphaCorrection;
 	FloatGuiPin pinAdjust;
 
-	TestClient testClient;
+//	TestClient testClient;
 
 	void MyApplyGammaCorrection(GmpiDrawing::Bitmap& bitmap);
 
