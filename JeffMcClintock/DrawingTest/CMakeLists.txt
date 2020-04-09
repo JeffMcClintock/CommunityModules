@@ -19,8 +19,17 @@ DrawingTestLinesGui.cpp
 include_directories(
 ${sdk_folder}
 )
+
+if(APPLE)
+#GUI Modules Only
+FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation )
+MARK_AS_ADVANCED (COREFOUNDATION_LIBRARY)
+
+endif()
+
 include (GenerateExportHeader)
 add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
+TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${COREFOUNDATION_LIBRARY} )
 
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
@@ -38,7 +47,7 @@ if(APPLE)
   # MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/mac/Info.plist
 
 #if gui module only
-set(CMAKE_EXE_LINKER_FLAGS "-lobjc -framework CoreFoundation")
+#set(CMAKE_EXE_LINKER_FLAGS "-lobjc -framework CoreFoundation")
 
 endif()
 
