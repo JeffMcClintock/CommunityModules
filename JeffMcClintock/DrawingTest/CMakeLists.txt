@@ -8,7 +8,8 @@ set(sdk_folder
 )
 set(sdk_srcs
 ${sdk_folder}/mp_sdk_common.cpp
-${sdk_folder}/mp_sdk_audio.cpp
+${sdk_folder}/mp_sdk_gui.cpp
+${sdk_folder}/TimerManager.cpp
 )
 set(srcs
 ${PROJECT_NAME}.rc
