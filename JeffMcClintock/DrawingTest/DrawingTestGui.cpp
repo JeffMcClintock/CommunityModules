@@ -199,7 +199,7 @@ void DrawingTestGui::drawGammaTest(GmpiDrawing::Graphics& g)
 
 void DrawingTestGui::drawMacGraphicsTest(GmpiDrawing::Graphics& g)
 {
-	testClient.OnRender(g.Get());
+//	testClient.OnRender(g.Get());
 }
 
 void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
@@ -460,7 +460,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 	// Create font.
 	int font_size_ = 12;
-	char* fontFace = "Segoe UI";
+	const char* fontFace = "Segoe UI";
 	std::string text("Cat");
 	float dipFontSize = (font_size_ * 72.f) / 96.f; // Points to DIPs conversion. https://social.msdn.microsoft.com/forums/vstudio/en-US/dfbadc0b-2415-4f92-af91-11c78df435b3/hwndhost-gdi-vs-directwrite-font-size
 
@@ -731,7 +731,7 @@ int32_t DrawingTestGui::onPointerUp(int32_t flags, GmpiDrawing_API::MP1_POINT po
 {
 	if (pinTestType == 4)
 	{
-		return testClient.onPointerUp(flags, point);
+//		return testClient.onPointerUp(flags, point);
 	}
 	return gmpi::MP_OK;
 }
