@@ -2,6 +2,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <algorithm>
+#include <sstream>
+
 #include "../shared/fast_gamma.h"
 
 using namespace std;
@@ -411,41 +413,44 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		textRect.right = textRect.left + textSize.width;
 
 		// Textbox verical size is ascent + descent.
-		textRect.bottom = textRect.top + fontMetrics.descent + fontMetrics.ascent; // fontMetrics.lineGap + fontMetrics.descent + fontMetrics.ascent + 20;
+//		textRect.bottom = textRect.top + fontMetrics.descent + fontMetrics.ascent;
 
-		brush.SetColor(Color(0.7f, 0.7f, 0.7f));
+		brush.SetColor(Color(0.8f, 0.8f, 0.8f));
 		g.FillRectangle(textRect, brush);
 
 		auto baseline = textRect.bottom - fontMetrics.descent; // for bottom-aligned text.
+		const float lineWidth = 0.5f;
+		const float lineLeft = textRect.left - 2;
+		const float lineRight = textRect.right + 2;
 
 		// Ascent (light-blue)
 		// Ascent is the distance from the top of font character alignment box to the English baseline.
 		brush.SetColor(Color::LightBlue);
 		float y = baseline - fontMetrics.ascent;
-		g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
 		// cap-height. (green)
 		brush.SetColor(Color::Green);
 		y = baseline - fontMetrics.capHeight;
-		g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
 		// x-height. (blue)
 		brush.SetColor(Color::MediumBlue);
 		y = baseline - fontMetrics.xHeight;
-		g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
 		// Base-line. (orange)
 		brush.SetColor(Color::Coral);
 		y = baseline;
-		g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
 		// Descent/Bottom (light-blue)
 		brush.SetColor(Color::AliceBlue);
 		y = textRect.bottom;
-		g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
-		// Line-gap, (gray)
-		brush.SetColor(Color::Gray);
+		// Line-gap
+		brush.SetColor(Color::Yellow);
 		y = textRect.bottom + fontMetrics.lineGap;
 		g.DrawLine(Point((textRect.left + textRect.right) * 0.5f, y), Point(textRect.right + 3, y), brush);
 
@@ -456,15 +461,12 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		return gmpi::MP_OK;
 	}
 
-
-
 	// Create font.
 	int font_size_ = 12;
-	const char* fontFace = "Segoe UI";
 	std::string text("Cat");
 	float dipFontSize = (font_size_ * 72.f) / 96.f; // Points to DIPs conversion. https://social.msdn.microsoft.com/forums/vstudio/en-US/dfbadc0b-2415-4f92-af91-11c78df435b3/hwndhost-gdi-vs-directwrite-font-size
 
-	TextFormat dtextFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
+	TextFormat dtextFormat = g.GetFactory().CreateTextFormat(dipFontSize); // Default font face.
 
 	brush.SetColor(Color(0, 0, 0));
 
@@ -546,91 +548,274 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 	// Text Extents.
 	{
-		const char* words[] = { "cat", "White Noise", "the quick brown fox\njumped over the lazy dog" };
+		const char* words[] = { "cat", "White Noise", "the quick brown fox jumped over the lazy dog" };
+
+		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
+		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
+
 		float x = 10.5;
-		float y = 120.5;
-		Rect textRect;
-		textRect.top = y;
-		textRect.left = x;
-
-		float penWidth = 1.0f;
-		for (auto w : words)
+		for (int col = 0; col < 2; ++col)
 		{
-			auto textSize = dtextFormat.GetTextExtentU(w);
-			textRect.bottom = textRect.top + ceilf(textSize.height);
-			textRect.right = textRect.left + ceilf(textSize.width);
+			float penWidth = 1.0f;
+			float y = 120.5;
+			Rect textRect;
+			textRect.top = y;
+			textRect.left = x;
+			dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
+			const float maxWidth = 100.f;
+			int32_t clipOPtion{};
 
-			brush.SetColor(Color(0.0f, 0.0f, 1.0f));
-			Rect boxRect(textRect);
-			boxRect.Inflate(penWidth * 0.5f);
+			for (auto w : words)
+			{
+				auto textSize = dtextFormat.GetTextExtentU(w);
+				textRect.bottom = textRect.top + ceilf(textSize.height);
+				textRect.right = textRect.left + ceilf(textSize.width);
 
-			g.DrawRectangle(boxRect, brush, penWidth++);
-			g.DrawTextU(w, dtextFormat, textRect, brush);
+				if (textRect.getWidth() > maxWidth)
+				{
+					textRect.right = (std::min)(textRect.right, textRect.left + 100.f);
+					textRect.bottom = textRect.top + textRect.getHeight() * 2.0f;
+				}
 
-			textRect.top += 20;
+				brush.SetColor(Color(0.0f, 0.0f, 1.0f));
+				Rect boxRect(textRect);
+				boxRect.Inflate(ceilf(penWidth * 0.5f)); // Box must always end up on whole number plus 0.5 pixel boundaries.
+
+				g.DrawRectangle(boxRect, brush, penWidth);
+				g.DrawTextU(w, dtextFormat, textRect, brush, clipOPtion);
+
+				textRect.top += 20;
+				++penWidth;
+			}
+
+			dtextFormat.SetWordWrapping(WordWrapping::Wrap);
+			clipOPtion = (int32_t)DrawTextOptions::Clip;
+			x += 200;
 		}
 	}
 
 	// Fonts.
 	{
+		// Note: Segoe UI is not available on Mac and gets substituted.
 		const char* typefaces[] = { "Segoe UI", "Arial", "Courier New", "Times New Roman" };
-		float fontSizes[] = { 10, 14, 18 , 34, 72 };
+		float fontSizes[] = { 8, 9, 10, 11, 12, 13, 14, 18 , 34, 72 };
 
-		float x = 10.5;
+		float x = 10.0f;
 		Rect textRect;
 		textRect.left = x;
-
-		TextFormat dtextFormat;
+		const float noBlur = 0.5f;
+		const float lineWidth = 0.5f;
+		const bool snapBaseline = true;
 
 		for (auto fontFace : typefaces)
 		{
-			textRect.top = 200.5;
+			textRect.top = 200.0f;
 
 			for (auto dipFontSize : fontSizes)
 			{
-				dtextFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
+				auto textFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
+				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
+				textFormat.GetFontMetrics(&fontMetrics);
 
-				Size textSize = dtextFormat.GetTextExtentU(fontFace);
+				float yOffset{};
+				if (snapBaseline)
+				{
+					const float baseLine = textRect.top + fontMetrics.ascent;
+					yOffset = floorf(baseLine + 0.5f) - baseLine;
+				}
+
+				Size textSize = textFormat.GetTextExtentU(fontFace);
 				textRect.bottom = textRect.top + textSize.height;
-				textRect.right = textRect.left + textSize.width;
+				textRect.right = ceilf(textRect.left + textSize.width);
+				const float lineRight = textRect.right + 2;
+				const float lineLeft = textRect.left - 2;
 
 				brush.SetColor(Color::LightGray);
 				g.FillRectangle(textRect, brush);
 
-				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
-				dtextFormat.GetFontMetrics(&fontMetrics);
+				// Metrics measure from TOP of box not bottom.
+				const float baseLine = textRect.top + fontMetrics.ascent;
 
+				// Descent
 				brush.SetColor(Color::LightBlue);
-				float y = textRect.bottom - fontMetrics.descent - fontMetrics.ascent;
-				g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+				float y = textRect.top + fontMetrics.ascent + fontMetrics.descent;
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
+				// Baseline
 				brush.SetColor(Color::Coral);
-				y = textRect.bottom - fontMetrics.descent;
-				g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+				y = baseLine;
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
+				/* not relevant, should be same as Descent unless box deliberatly bigger than needed.
 				brush.SetColor(Color::OrangeRed);
 				y = textRect.bottom;
-				g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
-
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
+				*/
 
 				// cap-height.
 				brush.SetColor(Color::Green);
-				y = textRect.bottom - fontMetrics.descent - fontMetrics.capHeight;
-				g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+				y = baseLine - fontMetrics.capHeight;
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
 				// x-height.
 				brush.SetColor(Color::MediumBlue);
-				y = textRect.bottom - fontMetrics.descent - fontMetrics.xHeight;
-				g.DrawLine(Point(textRect.left - 3, y), Point(textRect.right + 3, y), brush);
+				y = baseLine - fontMetrics.xHeight;
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
 				brush.SetColor(Color::Black);
-				g.DrawTextU(fontFace, dtextFormat, textRect, brush);
+				Rect snappedRect = textRect;
+				snappedRect.Offset(0.0f, yOffset);
+				g.DrawTextU(fontFace, textFormat, snappedRect, brush);
 
-				textRect.top += dipFontSize * 2;
+				textRect.top += ceilf(dipFontSize * 1.4);
+
+				if ((fontFace[0] == 'T' || fontFace[0] == 'C') && dipFontSize == 9 )
+				{
+					auto textFormatSmall = g.GetFactory().CreateTextFormat(8);
+					Rect textRect2 (0,0,1000,20);
+					if (fontFace[0] == 'C')
+					{
+						textRect2.Offset(0, 9);
+					}
+
+					const char* metricNames[] = {
+						"asc",
+						"des",
+						"lineGap",
+						"capHeight",
+						"xHeight",
+						"ulPos",
+						"ulThc",
+						"stPos",
+						"stThc" };
+
+					float* metric = (float*)&fontMetrics;
+
+					std::stringstream s;
+					s << std::string(fontFace) << " " << dipFontSize << "px: ";
+
+					for (int i = 0; i < 6; ++i)
+					{
+						s << metricNames[i] << " "  << *metric++ << ", ";
+					}
+			
+//					s << "topgap: " << textSize.height - (fontMetrics.ascent + fontMetrics.descent);
+					s << "box: (" << textRect.getWidth() << ", " << textRect.getHeight() <<")";
+
+					g.DrawTextU(s.str(), textFormatSmall, textRect2, brush);
+				}
 			}
 
 			textRect.left += 120;
 		}
+
+		// Text Weight
+		{
+				float x = 10.0f;
+				for (int fontWeight = 100; fontWeight < 800 /*1000*/; fontWeight += 100)
+				{
+					// Arial draws top two font weights lower than the rest.
+					// Verdana, Times New Roman, and Trebuchet MS draws only two distinct weights.
+					auto textFormat = g.GetFactory().CreateTextFormat(28, "Arial", (GmpiDrawing_API::MP1_FONT_WEIGHT) fontWeight);
+					Rect textRect2 (x, 64, x + 23, 110);
+
+					brush.SetColor(Color::PapayaWhip);
+					g.FillRectangle(textRect2, brush);
+
+					brush.SetColor(Color::Black);
+					g.DrawTextU("A", textFormat, textRect2, brush);
+					x += 24;
+				}
+		}
+
+		// EEEEs
+		{
+			const auto str = "E";
+			const auto fontFace = "Courier New";
+			float fontSizes[] = { 8, 8.5, 9, 9.5, 10 };
+
+			float starty = 66.f;
+			GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
+
+			for (auto dipFontSize : fontSizes)
+			{
+				if (snapBaseline)
+				{
+					auto textFormatTest = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
+					textFormatTest.GetFontMetrics(&fontMetrics);
+
+					const auto snapY = fontMetrics.capHeight;
+					const auto scaleOffset = floorf(snapY + 0.5f) / snapY;
+					dipFontSize *= scaleOffset;
+				}
+
+				auto textFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
+				textFormat.GetFontMetrics(&fontMetrics);
+
+				Size textSize = textFormat.GetTextExtentU(str);
+
+				float x = 200.f;
+				float y = starty;
+				bool snapBaseline = true;
+
+				for (int i = 0; i < 50; ++i)
+				{
+					textRect.top = y;
+					textRect.left = x;
+					textRect.bottom = textRect.top + textSize.height;
+					textRect.right = ceilf(textRect.left + textSize.width);
+					const float lineRight = textRect.right + 2;
+					const float lineLeft = textRect.left - 2;
+
+					brush.SetColor(Color::LightGray);
+					//				g.FillRectangle(textRect, brush);
+					g.DrawLine(Point(textRect.left + 2, y), Point(textRect.right - 2, y), brush, 0.5);
+
+					float yOffset{};
+					if (snapBaseline)
+					{
+						const float baseLine = textRect.top + fontMetrics.ascent;
+						yOffset = floorf(baseLine + 0.5f) - baseLine;
+					}
+
+					brush.SetColor(Color::Black);
+					Rect snappedRect = textRect;
+					snappedRect.Offset(0.0f, yOffset);
+					g.DrawTextU(str, textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
+
+					x += 4.f;
+					y += 0.05f;
+				}
+
+				starty += 10.0f;
+			}
+
+		}
+
+		// Alignment cross hairs.
+		{
+			float crossSize = 6.0f;
+			float x1 = 8.5;
+			float y1 = 8.5;
+			g.DrawLine(x1 - crossSize, y1, x1 + crossSize, y1, brush); // criss
+			g.DrawLine(x1, y1 - crossSize, x1, y1 + crossSize, brush); // cross
+
+			x1 = r.right - x1;
+			y1 = r.bottom - y1;
+			brush.SetColor(Color::Black);
+			g.DrawLine(x1 - crossSize, y1, x1 + crossSize, y1, brush); // criss
+			g.DrawLine(x1, y1 - crossSize, x1, y1 + crossSize, brush); // cross
+		}
+
+		// Scale
+		{
+			brush.SetColor(Color::Lime);
+			for (float y = 0.5; y < r.getHeight(); y += 8)
+			{
+				g.DrawLine(0, y, 2, y, brush);
+			}
+		}
+
 #if 0
 		// determin relationship between font-size and bounding box.
 		for (auto fontFace : typefaces)
@@ -664,7 +849,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 #endif
 	}
 
-	// Arc test
+	// Figure test
 	{
 		auto geometry = g.GetFactory().CreatePathGeometry();
 		auto sink = geometry.Open();
@@ -715,8 +900,8 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 int32_t DrawingTestGui::measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize)
 {
-	returnDesiredSize->width = 540;
-	returnDesiredSize->height = 540;
+	returnDesiredSize->width = 544;
+	returnDesiredSize->height = 544;
 
 	return gmpi::MP_OK;
 }

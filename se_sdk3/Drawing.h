@@ -2054,7 +2054,7 @@ namespace GmpiDrawing
 			return temp;
 		}
 
-		inline TextFormat CreateTextFormat(float fontSize = 12, const char* TextFormatfontFamilyName = "Sans Serif", GmpiDrawing_API::MP1_FONT_WEIGHT fontWeight = GmpiDrawing_API::MP1_FONT_WEIGHT_NORMAL, GmpiDrawing_API::MP1_FONT_STYLE fontStyle = GmpiDrawing_API::MP1_FONT_STYLE_NORMAL, GmpiDrawing_API::MP1_FONT_STRETCH fontStretch = GmpiDrawing_API::MP1_FONT_STRETCH_NORMAL)
+		inline TextFormat CreateTextFormat(float fontSize = 12, const char* TextFormatfontFamilyName = "Arial", GmpiDrawing_API::MP1_FONT_WEIGHT fontWeight = GmpiDrawing_API::MP1_FONT_WEIGHT_NORMAL, GmpiDrawing_API::MP1_FONT_STYLE fontStyle = GmpiDrawing_API::MP1_FONT_STYLE_NORMAL, GmpiDrawing_API::MP1_FONT_STRETCH fontStretch = GmpiDrawing_API::MP1_FONT_STRETCH_NORMAL)
 		{
 			TextFormat temp;
 			Get()->CreateTextFormat(TextFormatfontFamilyName, nullptr /* fontCollection */, fontWeight, fontStyle, fontStretch, fontSize, nullptr /* localeName */, temp.GetAddressOf());

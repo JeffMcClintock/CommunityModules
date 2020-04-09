@@ -30,7 +30,7 @@ endif()
 include (GenerateExportHeader)
 add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
 TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${COREFOUNDATION_LIBRARY} )
-target_compile_definitions (TargetName PRIVATE -D_UNICODE -DUNICODE)
+target_compile_definitions (${PROJECT_NAME} PRIVATE -D_UNICODE -DUNICODE)
 
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")

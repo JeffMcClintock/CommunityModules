@@ -498,7 +498,7 @@ unsigned, can't handle negative points. not much practical use.
 	struct MP1_TEXTFORMAT_PROPERTIES 
 	{
 		float fontSize = 12;
-		const char* TextFormatfontFamilyName = "Sans Serif";
+		const char* TextFormatfontFamilyName = "Arial";
 		GmpiDrawing_API::MP1_FONT_WEIGHT fontWeight = GmpiDrawing_API::MP1_FONT_WEIGHT_NORMAL;
 		GmpiDrawing_API::MP1_FONT_STYLE fontStyle = GmpiDrawing_API::MP1_FONT_STYLE_NORMAL;
 		GmpiDrawing_API::MP1_FONT_STRETCH fontStretch = GmpiDrawing_API::MP1_FONT_STRETCH_NORMAL;
