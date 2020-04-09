@@ -30,6 +30,7 @@ endif()
 include (GenerateExportHeader)
 add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
 TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${COREFOUNDATION_LIBRARY} )
+target_compile_definitions (TargetName PRIVATE -D_UNICODE -DUNICODE)
 
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
@@ -45,9 +46,6 @@ if(APPLE)
   # Might not be needed because CMake places a default Info.plist file in bundle anyhow.
   # XCODE_ATTRIBUTE_INFOPLIST_FILE ${CMAKE_CURRENT_BINARY_DIR}/mac/Info.plist
   # MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_BINARY_DIR}/mac/Info.plist
-
-#if gui module only
-#set(CMAKE_EXE_LINKER_FLAGS "-lobjc -framework CoreFoundation")
 
 endif()
 

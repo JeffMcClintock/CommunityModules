@@ -43,9 +43,6 @@ public:
 	{
 		return gmpi::MP_OK;
 	}
-	int32_t MP_STDCALL onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
-	int32_t MP_STDCALL onPointerUp(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
-
 };
 
 #endif

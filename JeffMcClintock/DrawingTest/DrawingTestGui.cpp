@@ -721,17 +721,3 @@ int32_t DrawingTestGui::measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDra
 	return gmpi::MP_OK;
 }
 
-int32_t DrawingTestGui::onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point)
-{
-	setCapture();
-	return gmpi::MP_OK;
-}
-
-int32_t DrawingTestGui::onPointerUp(int32_t flags, GmpiDrawing_API::MP1_POINT point)
-{
-	if (pinTestType == 4)
-	{
-//		return testClient.onPointerUp(flags, point);
-	}
-	return gmpi::MP_OK;
-}
