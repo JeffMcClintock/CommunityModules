@@ -2,7 +2,7 @@
 #define DRAWINGTESTGUI_H_INCLUDED
 
 #include "../se_sdk3/mp_sdk_gui2.h"
-#include "../se_sdk3_hosting/MacGuiHost/GraphicsTest/GraphicsClientCodeTest.h"
+//#include "../se_sdk3_hosting/MacGuiHost/GraphicsTest/GraphicsClientCodeTest.h"
 
 class DrawingTestGui : public gmpi_gui::MpGuiGfxBase
 {
@@ -20,11 +20,11 @@ class DrawingTestGui : public gmpi_gui::MpGuiGfxBase
 public:
 	DrawingTestGui();
 
-	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override
-	{
-		testClient.setHost(host);
-		return gmpi_gui::MpGuiGfxBase::setHost(host);
-	}
+	//virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override
+	//{
+	//	testClient.setHost(host);
+	//	return gmpi_gui::MpGuiGfxBase::setHost(host);
+	//}
 
 	void refresh();
 	void drawGammaTest(GmpiDrawing::Graphics& g);
