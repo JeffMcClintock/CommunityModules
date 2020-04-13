@@ -777,10 +777,12 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				}
 
 				Size textSize = textFormat.GetTextExtentU(str);
+#if defined(_WIN32)
 
 				_RPT2(_CRT_WARN, "%f, %f,", dipFontSize, textSize.height);
 				_RPT3(_CRT_WARN, "%f, %f, %f,", fontMetrics.ascent, fontMetrics.descent, fontMetrics.lineGap);
 				_RPT2(_CRT_WARN, "%f, %f\n", fontMetrics.capHeight, fontMetrics.xHeight);
+#endif
 
 #if !defined(_WIN32)
 				{
@@ -811,6 +813,13 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					brush.SetColor(Color::Black);
 					Rect snappedRect = textRect;
 					snappedRect.Offset(0.0f, yOffset + snapOffset);
+
+					if (i > 25)
+					{
+						snappedRect.bottom += 1.0f; // is box too tight when descent fraction > 0.5?
+					}
+
+
 					g.DrawTextU(str, textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
 
 					x += 4.f;
