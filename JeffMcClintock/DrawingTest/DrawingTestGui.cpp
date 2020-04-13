@@ -732,13 +732,13 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		{
 			const auto str = "E";
 			const auto fontFace = "Courier New";
-			float fontSizes[] = { 8, 8.5, 9, 9.5, 10 };
+			float fontSizes[] = { 8, 8.5, 9, 9.5, 10, 10.5 , 11, 11.5, 12 };
 
 			float starty = 66.f;
 
 			for (auto dipFontSize : fontSizes)
 			{
-				float x = 200.f;
+				float x = 280.f;
 				float y = starty;
 
 				auto textFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
