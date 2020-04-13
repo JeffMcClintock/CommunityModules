@@ -734,7 +734,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 			float starty = 66.f;
 
-			for (float dipFontSize = 6.0f ; dipFontSize < 14.0f ; dipFontSize += 0.16)
+			for (float dipFontSize = 6.0f ; dipFontSize < 14.0f ; dipFontSize += 0.2)
 			{
 				float x = 280.f;
 				float y = starty;
@@ -790,7 +790,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 #endif
 #endif
 
-				for (int i = 0; i < 50; ++i)
+				for (int i = 0; i < 20; ++i)
 				{
 					textRect.top = y;
 					textRect.left = x;
@@ -801,19 +801,66 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 					brush.SetColor(Color::LightGray);
 					//				g.FillRectangle(textRect, brush);
-					g.DrawLine(Point(textRect.left + 2, y), Point(textRect.right - 2, y), brush, 0.5);
+					g.DrawLine(Point(textRect.left + 1, y), Point(textRect.right - 2, y), brush, 0.5);
 
-					float snapOffset{};
-					if (snapBaseline)
-					{
-						const float baseLine = textRect.top + fontMetrics.ascent;
-						snapOffset = floorf(baseLine + 0.5f) - baseLine;
-					}
+
+					Rect snappedRect = textRect;
+					//float snapOffset{};
+					//if (snapBaseline)
+					//{
+					//	const float baseLine = textRect.top + fontMetrics.ascent;
+					//	snapOffset = floorf(baseLine + 0.5f) - baseLine;
+					//}
 
 					brush.SetColor(Color::Black);
-					Rect snappedRect = textRect;
-//					snappedRect.Offset(0.0f, /*yOffset +*/ snapOffset);
+#if 0
+					// testing
+//					float cc = 0.25f;
+					float winSnapY = snappedRect.top + fontMetrics.ascent;
+					float macSnapY = snappedRect.bottom;
 
+					float macOffset = floor(macSnapY) - macSnapY;
+					float winOffset = floor(winSnapY + 0.5) - winSnapY;
+
+					float totalOffset = macOffset - winOffset;
+
+					if (totalOffset < -0.5)
+					{
+							brush.SetColor(Color::Red);
+					}
+					else
+					{
+						if (totalOffset < -0.25)
+						{
+							brush.SetColor(Color::Lime);
+						}
+					}
+
+/*
+					float winSnap = ((winSnapY - floor(winSnapY)) > 0.5f) ? -0.5f : 0.0f;
+					float macSnap = ((macSnapY - floor(macSnapY)) > 0.5f) ? -0.5f : 0.0f;
+
+					if (winSnap != macSnap)
+					{
+						if (winSnap > macSnap)
+						{
+							brush.SetColor(Color::Red);
+
+						}
+						else
+						{
+							brush.SetColor(Color::Lime);
+						}
+					}
+*/
+//					float gg = snappedRect.bottom; // fontMetrics.descent;
+					float gg = snappedRect.top + fontMetrics.ascent + fontMetrics.descent;
+					if ((gg - floor(gg)) < 0.5f)
+					{
+//						brush.SetColor(Color::Red);
+//						snappedRect.Offset(0.0f, -0.5f);
+					}
+#endif
 					//if (i > 25)
 					//{
 					//	snappedRect.bottom += 1.0f; // is box too tight when descent fraction > 0.5?
@@ -821,8 +868,16 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 					g.DrawTextU(str, textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
 
+					{
+						float predictedBaseLine = textRect.top + fontMetrics.ascent - 0.25;
+						float pixelScale = 2.0f;
+						predictedBaseLine = floorf(predictedBaseLine * pixelScale) / pixelScale;
+						brush.SetColor(Color::Lime);
+						g.DrawLine(Point(textRect.left, predictedBaseLine + 0.25f), Point(textRect.left + 2, predictedBaseLine + 0.25f), brush, 0.5);
+					}
+
 					x += 4.f;
-					y += 0.05f;
+					y += 0.1f;
 				}
 
 				starty += floor(dipFontSize * 0.8f) + 2.0f;
