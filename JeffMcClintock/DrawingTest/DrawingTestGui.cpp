@@ -593,7 +593,6 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 			x += 200;
 		}
 	}
-
 	// Fonts.
 	{
 		// Note: Segoe UI is not available on Mac and gets substituted.
@@ -727,12 +726,15 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					x += 24;
 				}
 		}
-
 		// EEEEs
 		{
 			const auto str = "E";
 			const auto fontFace = "Courier New";
 //			float fontSizes[] = { 8, 8.5, 9, 9.5, 10, 10.5 , 11, 11.5, 12 };
+		Rect textRect;
+		const float noBlur = 0.5f;
+		const float lineWidth = 0.5f;
+		const bool snapBaseline = true;
 
 			float starty = 66.f;
 
@@ -784,7 +786,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				_RPT2(_CRT_WARN, "%f, %f\n", fontMetrics.capHeight, fontMetrics.xHeight);
 #endif
 
-#if !defined(_WIN32)
+#if 0//!defined(_WIN32)
 				{
 					yOffset = (fontMetrics.descent - floor(fontMetrics.descent)) < 0.5f ? 1.0f : 0.0f;
 				}
@@ -826,7 +828,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					y += 0.05f;
 				}
 
-				starty += 10.0f;
+				starty += floor(dipFontSize * 0.8f) + 2.0f;
 			}
 
 		}
