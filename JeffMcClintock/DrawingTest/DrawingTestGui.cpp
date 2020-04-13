@@ -757,7 +757,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					float ybl = OriginalBaselineSnapped;
 					g.DrawLine(Point(x - 3, ybl), Point(x - 2, ybl), brush, 0.5);
 
-
+#if 0 // snap Cap height (will result in different size font, probly will alter text length (unwanted)
 					const auto snapY = fontMetrics.capHeight;
 					const auto scaleOffset = floorf(snapY + 0.5f) / snapY;
 					const float snappedDipFontSize = dipFontSize * scaleOffset;
@@ -770,7 +770,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					yOffset = OriginalBaseline - NewBaseline;
 
 					textFormat.GetFontMetrics(&fontMetrics);
-
+#endif
 //					float baseLIneWillbe = fontMetrics.ascent + fontMetrics.descent + yOffset;
 				}
 
