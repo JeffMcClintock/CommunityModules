@@ -781,14 +781,14 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				Size textSize = textFormat.GetTextExtentU(str);
 #if defined(_WIN32)
 
-				_RPT2(_CRT_WARN, "%f, %f,", dipFontSize, textSize.height);
+				_RPT2(_CRT_WARN, "%f, %f,", dipFontSize, textRect.top);
 				_RPT3(_CRT_WARN, "%f, %f, %f,", fontMetrics.ascent, fontMetrics.descent, fontMetrics.lineGap);
 				_RPT2(_CRT_WARN, "%f, %f\n", fontMetrics.capHeight, fontMetrics.xHeight);
 #endif
 
-#if 0//!defined(_WIN32)
+#if !defined(_WIN32)
 				{
-					yOffset = (fontMetrics.descent - floor(fontMetrics.descent)) < 0.5f ? 1.0f : 0.0f;
+					yOffset = (fontMetrics.descent - floor(fontMetrics.descent)) < 0.5f ? 0.5f : 0.0f;
 				}
 #endif
 
