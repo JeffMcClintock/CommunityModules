@@ -808,7 +808,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					float snapOffset{};
 					if (snapBaseline)
 					{
-						const float baseLine = textRect.top + fontMetrics.ascent + yOffset;
+						const float baseLine = textRect.top + fontMetrics.ascent;// +yOffset;
 						snapOffset = floorf(baseLine + 0.5f) - baseLine;
 					}
 
