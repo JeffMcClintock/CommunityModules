@@ -868,6 +868,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 					g.DrawTextU(str, textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
 
+					if(false)
 					{
 						float predictedBaseLine = textRect.top + fontMetrics.ascent - 0.25;
 						float pixelScale = 2.0f;
