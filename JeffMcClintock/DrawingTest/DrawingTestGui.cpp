@@ -729,9 +729,10 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		// EEEEs
 		{
 			const auto str = "E";
-			const auto fontFace = "Courier New";
-//			float fontSizes[] = { 8, 8.5, 9, 9.5, 10, 10.5 , 11, 11.5, 12 };
-		Rect textRect;
+			//const auto fontFace = "Courier New";
+			const auto fontFace = "Times New Roman";
+
+			Rect textRect;
 		const float noBlur = 0.5f;
 		const float lineWidth = 0.5f;
 		const bool snapBaseline = true;
