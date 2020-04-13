@@ -616,16 +616,17 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
 				textFormat.GetFontMetrics(&fontMetrics);
 
-				float yOffset{};
-				if (snapBaseline)
-				{
-					const float baseLine = textRect.top + fontMetrics.ascent;
-					yOffset = floorf(baseLine + 0.5f) - baseLine;
-				}
-
 				Size textSize = textFormat.GetTextExtentU(fontFace);
 				textRect.bottom = textRect.top + textSize.height;
 				textRect.right = ceilf(textRect.left + textSize.width);
+/*
+				if (snapBaseline)
+				{
+					const float baseLine = textRect.top + fontMetrics.ascent;
+					const float yOffset = floorf(baseLine + 0.5f) - baseLine;
+					textRect.Offset(0.0f, yOffset);
+				}
+*/
 				const float lineRight = textRect.right + 2;
 				const float lineLeft = textRect.left - 2;
 
@@ -645,12 +646,6 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				y = baseLine;
 				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
-				/* not relevant, should be same as Descent unless box deliberatly bigger than needed.
-				brush.SetColor(Color::OrangeRed);
-				y = textRect.bottom;
-				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
-				*/
-
 				// cap-height.
 				brush.SetColor(Color::Green);
 				y = baseLine - fontMetrics.capHeight;
@@ -662,9 +657,9 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
 				brush.SetColor(Color::Black);
-				Rect snappedRect = textRect;
-				snappedRect.Offset(0.0f, yOffset);
-				g.DrawTextU(fontFace, textFormat, snappedRect, brush);
+				//Rect snappedRect = textRect;
+				//snappedRect.Offset(0.0f, yOffset);
+				g.DrawTextU(fontFace, textFormat, textRect, brush);
 
 				textRect.top += ceilf(dipFontSize * 1.4f);
 
@@ -746,12 +741,13 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 				auto textFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
 
-				float yOffset{};
+//				float yOffset{};
 
 				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
 				if (snapBaseline)
 				{
 					textFormat.GetFontMetrics(&fontMetrics);
+#if 0 // snap Cap height (will result in different size font, probly will alter text length (unwanted)
 
 					const float OriginalBaseline = fontMetrics.ascent;
 
@@ -762,7 +758,6 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 						g.DrawLine(Point(x - 3, ybl), Point(x - 2, ybl), brush, 0.5);
 					}
 
-#if 0 // snap Cap height (will result in different size font, probly will alter text length (unwanted)
 					const auto snapY = fontMetrics.capHeight;
 					const auto scaleOffset = floorf(snapY + 0.5f) / snapY;
 					const float snappedDipFontSize = dipFontSize * scaleOffset;
@@ -780,6 +775,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				}
 
 				Size textSize = textFormat.GetTextExtentU(str);
+#if 0
 #if defined(_WIN32)
 
 				_RPT2(_CRT_WARN, "%f, %f,", dipFontSize, textRect.top);
@@ -791,6 +787,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				{
 					yOffset = (fontMetrics.descent - floor(fontMetrics.descent)) < 0.5f ? 0.5f : 0.0f;
 				}
+#endif
 #endif
 
 				for (int i = 0; i < 50; ++i)
@@ -809,19 +806,18 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					float snapOffset{};
 					if (snapBaseline)
 					{
-						const float baseLine = textRect.top + fontMetrics.ascent;// +yOffset;
+						const float baseLine = textRect.top + fontMetrics.ascent;
 						snapOffset = floorf(baseLine + 0.5f) - baseLine;
 					}
 
 					brush.SetColor(Color::Black);
 					Rect snappedRect = textRect;
-					snappedRect.Offset(0.0f, yOffset + snapOffset);
+					snappedRect.Offset(0.0f, /*yOffset +*/ snapOffset);
 
-					if (i > 25)
-					{
-						snappedRect.bottom += 1.0f; // is box too tight when descent fraction > 0.5?
-					}
-
+					//if (i > 25)
+					//{
+					//	snappedRect.bottom += 1.0f; // is box too tight when descent fraction > 0.5?
+					//}
 
 					g.DrawTextU(str, textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
 
