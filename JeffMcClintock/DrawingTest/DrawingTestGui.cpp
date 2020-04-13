@@ -787,7 +787,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				_RPT2(_CRT_WARN, "%f, %f\n", fontMetrics.capHeight, fontMetrics.xHeight);
 #endif
 
-#if !defined(_WIN32)
+#if 0 //!defined(_WIN32)
 				{
 					yOffset = (fontMetrics.descent - floor(fontMetrics.descent)) < 0.5f ? 0.5f : 0.0f;
 				}
