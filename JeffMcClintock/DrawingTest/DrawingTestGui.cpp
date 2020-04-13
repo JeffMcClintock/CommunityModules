@@ -732,11 +732,11 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		{
 			const auto str = "E";
 			const auto fontFace = "Courier New";
-			float fontSizes[] = { 8, 8.5, 9, 9.5, 10, 10.5 , 11, 11.5, 12 };
+//			float fontSizes[] = { 8, 8.5, 9, 9.5, 10, 10.5 , 11, 11.5, 12 };
 
 			float starty = 66.f;
 
-			for (auto dipFontSize : fontSizes)
+			for (float dipFontSize = 6.0f ; dipFontSize < 14.0f ; dipFontSize += 0.16)
 			{
 				float x = 280.f;
 				float y = starty;
@@ -752,10 +752,12 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 					const float OriginalBaseline = fontMetrics.ascent;
 
-					const float OriginalBaselineSnapped = floorf(y + OriginalBaseline + 0.5f);
-					brush.SetColor(Color::Green);
-					float ybl = OriginalBaselineSnapped;
-					g.DrawLine(Point(x - 3, ybl), Point(x - 2, ybl), brush, 0.5);
+					{
+						const float OriginalBaselineSnapped = floorf(y + OriginalBaseline + 0.5f);
+						brush.SetColor(Color::Green);
+						float ybl = OriginalBaselineSnapped;
+						g.DrawLine(Point(x - 3, ybl), Point(x - 2, ybl), brush, 0.5);
+					}
 
 #if 0 // snap Cap height (will result in different size font, probly will alter text length (unwanted)
 					const auto snapY = fontMetrics.capHeight;
@@ -776,6 +778,15 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 				Size textSize = textFormat.GetTextExtentU(str);
 
+				_RPT2(_CRT_WARN, "%f, %f,", dipFontSize, textSize.height);
+				_RPT3(_CRT_WARN, "%f, %f, %f,", fontMetrics.ascent, fontMetrics.descent, fontMetrics.lineGap);
+				_RPT2(_CRT_WARN, "%f, %f\n", fontMetrics.capHeight, fontMetrics.xHeight);
+
+#if !defined(_WIN32)
+				{
+					yOffset = (fontMetrics.descent - floor(fontMetrics.descent)) < 0.5f ? 1.0f : 0.0f;
+				}
+#endif
 
 				for (int i = 0; i < 50; ++i)
 				{
