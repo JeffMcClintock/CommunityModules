@@ -759,7 +759,8 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					// TODO: don't bother if close enough.
 					textFormat = g.GetFactory().CreateTextFormat(snappedDipFontSize, fontFace);
 
-					yOffset = OriginalBaselineSnapped - NewBaseline;
+//					yOffset = OriginalBaselineSnapped - NewBaseline;
+					yOffset = OriginalBaseline - NewBaseline;
 
 					textFormat.GetFontMetrics(&fontMetrics);
 
@@ -788,7 +789,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					float snapOffset{};
 					if (snapBaseline)
 					{
-						const float baseLine = textRect.top + fontMetrics.ascent;
+						const float baseLine = textRect.top + fontMetrics.ascent + yOffset;
 						snapOffset = floorf(baseLine + 0.5f) - baseLine;
 					}
 
