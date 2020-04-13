@@ -738,6 +738,9 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 			for (auto dipFontSize : fontSizes)
 			{
+				float x = 200.f;
+				float y = starty;
+
 				auto textFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
 
 				float yOffset{};
@@ -747,8 +750,13 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				{
 					textFormat.GetFontMetrics(&fontMetrics);
 
-					const float OriginalBaseline = fontMetrics.ascent + fontMetrics.descent;
-					const float OriginalBaselineSnapped = floorf(OriginalBaseline + 0.5f);
+					const float OriginalBaseline = fontMetrics.ascent;
+
+					const float OriginalBaselineSnapped = floorf(y + OriginalBaseline + 0.5f);
+					brush.SetColor(Color::Green);
+					float ybl = OriginalBaselineSnapped;
+					g.DrawLine(Point(x - 3, ybl), Point(x - 2, ybl), brush, 0.5);
+
 
 					const auto snapY = fontMetrics.capHeight;
 					const auto scaleOffset = floorf(snapY + 0.5f) / snapY;
@@ -759,19 +767,15 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 					// TODO: don't bother if close enough.
 					textFormat = g.GetFactory().CreateTextFormat(snappedDipFontSize, fontFace);
 
-//					yOffset = OriginalBaselineSnapped - NewBaseline;
 					yOffset = OriginalBaseline - NewBaseline;
 
 					textFormat.GetFontMetrics(&fontMetrics);
 
-					float baseLIneWillbe = fontMetrics.ascent + fontMetrics.descent + yOffset;
-//					float captopWillbe = fontMetricsNew.capHeight .ascent + fontMetricsNew.descent + yOffset;
+//					float baseLIneWillbe = fontMetrics.ascent + fontMetrics.descent + yOffset;
 				}
 
 				Size textSize = textFormat.GetTextExtentU(str);
 
-				float x = 200.f;
-				float y = starty;
 
 				for (int i = 0; i < 50; ++i)
 				{
