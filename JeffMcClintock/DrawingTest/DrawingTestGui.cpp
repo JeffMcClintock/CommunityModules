@@ -619,14 +619,14 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				Size textSize = textFormat.GetTextExtentU(fontFace);
 				textRect.bottom = textRect.top + textSize.height;
 				textRect.right = ceilf(textRect.left + textSize.width);
-/*
+
 				if (snapBaseline)
 				{
 					const float baseLine = textRect.top + fontMetrics.ascent;
 					const float yOffset = floorf(baseLine + 0.5f) - baseLine;
 					textRect.Offset(0.0f, yOffset);
 				}
-*/
+
 				const float lineRight = textRect.right + 2;
 				const float lineLeft = textRect.left - 2;
 
@@ -724,8 +724,8 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		// EEEEs
 		{
 			const auto str = "E";
-			//const auto fontFace = "Courier New";
-			const auto fontFace = "Times New Roman";
+			const auto fontFace = "Courier New";
+			//const auto fontFace = "Times New Roman";
 
 			Rect textRect;
 		const float noBlur = 0.5f;
@@ -812,7 +812,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 					brush.SetColor(Color::Black);
 					Rect snappedRect = textRect;
-					snappedRect.Offset(0.0f, /*yOffset +*/ snapOffset);
+//					snappedRect.Offset(0.0f, /*yOffset +*/ snapOffset);
 
 					//if (i > 25)
 					//{
