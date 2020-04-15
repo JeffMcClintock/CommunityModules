@@ -553,6 +553,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
 		dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
+		int32_t clipOPtion{(int32_t)DrawTextOptions::Clip}; // Use clip OR wrap, but not both. Clip does nothing on wrapped text.
 
 		float x = 10.5;
 		for (int col = 0; col < 2; ++col)
@@ -563,7 +564,6 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 			textRect.top = y;
 			textRect.left = x;
 			const float maxWidth = 100.f;
-			int32_t clipOPtion{(int32_t)DrawTextOptions::Clip}; // Use clip OR wrap, but not both. Clip does nothing on wrapped text.
 
 			for (auto w : words)
 			{
