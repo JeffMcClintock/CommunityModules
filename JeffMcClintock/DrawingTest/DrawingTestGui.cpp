@@ -552,11 +552,9 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
-		dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
-		int32_t clipOPtion{(int32_t)DrawTextOptions::Clip}; // Use clip OR wrap, but not both. Clip does nothing on wrapped text.
 
 		float x = 10.5;
-		for (int col = 0; col < 2; ++col)
+		for (int col = 0; col < 3; ++col)
 		{
 			float penWidth = 1.0f;
 			float y = 120.5;
@@ -564,6 +562,23 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 			textRect.top = y;
 			textRect.left = x;
 			const float maxWidth = 100.f;
+
+			int32_t clipOPtion{}; // Use clip OR wrap, but not both. Clip does nothing on wrapped text.
+			switch (col)
+			{
+			case 0:
+				clipOPtion = (int32_t)DrawTextOptions::None;
+				dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
+				break;
+			case 1:
+				clipOPtion = (int32_t)DrawTextOptions::Clip;
+				dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
+				break;
+			case 2:
+				clipOPtion = (int32_t)DrawTextOptions::None;
+				dtextFormat.SetWordWrapping(WordWrapping::Wrap);
+				break;
+			}
 
 			for (auto w : words)
 			{
@@ -872,7 +887,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 					if(false)
 					{
-						float predictedBaseLine = textRect.top + fontMetrics.ascent - 0.25;
+						float predictedBaseLine = textRect.top + fontMetrics.ascent - 0.25f;
 						float pixelScale = 2.0f;
 						predictedBaseLine = floorf(predictedBaseLine * pixelScale) / pixelScale;
 						brush.SetColor(Color::Lime);
