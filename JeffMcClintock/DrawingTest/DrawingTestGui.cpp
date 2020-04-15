@@ -461,122 +461,134 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		return gmpi::MP_OK;
 	}
 
-	// Create font.
-	int font_size_ = 12;
-	std::string text("Cat");
-	float dipFontSize = (font_size_ * 72.f) / 96.f; // Points to DIPs conversion. https://social.msdn.microsoft.com/forums/vstudio/en-US/dfbadc0b-2415-4f92-af91-11c78df435b3/hwndhost-gdi-vs-directwrite-font-size
-
-	TextFormat dtextFormat = g.GetFactory().CreateTextFormat(dipFontSize); // Default font face.
-
-	brush.SetColor(Color(0, 0, 0));
-
-	// Paths.
-	float y = 20.5;
-	float w = 40;
-	int i = 0;
-
-	for (int i = 0; i < 9; ++i)
 	{
-		// Lines draw 'nice' at co-ord x.5
-		float x = 0.5f + 45.25f * (float) i;
-		float penWidth = 1;
+		// Create font.
+		int font_size_ = 12;
+		std::string text("Cat");
+		float dipFontSize = (font_size_ * 72.f) / 96.f; // Points to DIPs conversion. https://social.msdn.microsoft.com/forums/vstudio/en-US/dfbadc0b-2415-4f92-af91-11c78df435b3/hwndhost-gdi-vs-directwrite-font-size
 
-		Rect textRect;
-		textRect.bottom = y + w;
-		textRect.top = y;
-		textRect.left = x;
-		textRect.right = x + w;
+		TextFormat dtextFormat = g.GetFactory().CreateTextFormat(dipFontSize); // Default font face.
 
-		auto geometry = g.GetFactory().CreatePathGeometry();
-		auto sink = geometry.Open();
+		brush.SetColor(Color(0, 0, 0));
 
-		Point p(x, y);
+		// Paths.
+		float y = 20.5;
+		float w = 40;
+		int i = 0;
 
-		sink.BeginFigure(p);
-
-		sink.AddLine(Point(x+w, y));
-		sink.AddLine(Point(x+w, y + w));
-		sink.AddLine(Point(x, y+w));
-
-		switch (i & 1)
+		for (int i = 0; i < 9; ++i)
 		{
-		case 0:
-			sink.EndFigure();
-			break;
-		case 1:
-			sink.EndFigure(FigureEnd::Open);
-			break;
-		}
+			// Lines draw 'nice' at co-ord x.5
+			float x = 0.5f + 45.25f * (float)i;
+			float penWidth = 1;
 
-		sink.Close();
+			Rect textRect;
+			textRect.bottom = y + w;
+			textRect.top = y;
+			textRect.left = x;
+			textRect.right = x + w;
 
-		g.DrawGeometry(geometry, brush, penWidth);
+			auto geometry = g.GetFactory().CreatePathGeometry();
+			auto sink = geometry.Open();
 
-		if (i != 0) // first one show default.
-		{
-			// Text.
-			switch (i % 3)
+			Point p(x, y);
+
+			sink.BeginFigure(p);
+
+			sink.AddLine(Point(x + w, y));
+			sink.AddLine(Point(x + w, y + w));
+			sink.AddLine(Point(x, y + w));
+
+			switch (i & 1)
 			{
 			case 0:
-				dtextFormat.SetTextAlignment(TextAlignment::Leading);
+				sink.EndFigure();
 				break;
 			case 1:
-				dtextFormat.SetTextAlignment(TextAlignment::Center);
-				break;
-			case 2:
-				dtextFormat.SetTextAlignment(TextAlignment::Trailing);
-				++penWidth;
+				sink.EndFigure(FigureEnd::Open);
 				break;
 			}
 
-			switch ((i / 3) % 3)
-			{
-			case 0:
-				dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
-				break;
-			case 1:
-				dtextFormat.SetParagraphAlignment(ParagraphAlignment::Center); // Middle
-				break;
-			case 2:
-				dtextFormat.SetParagraphAlignment(ParagraphAlignment::Far); // Bottom
-				break;
-			}
-		}
+			sink.Close();
 
-		g.DrawTextU(text, dtextFormat, textRect, brush);
+			g.DrawGeometry(geometry, brush, penWidth);
+
+			if (i != 0) // first one show default.
+			{
+				// Text.
+				switch (i % 3)
+				{
+				case 0:
+					dtextFormat.SetTextAlignment(TextAlignment::Leading);
+					break;
+				case 1:
+					dtextFormat.SetTextAlignment(TextAlignment::Center);
+					break;
+				case 2:
+					dtextFormat.SetTextAlignment(TextAlignment::Trailing);
+					++penWidth;
+					break;
+				}
+
+				switch ((i / 3) % 3)
+				{
+				case 0:
+					dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
+					break;
+				case 1:
+					dtextFormat.SetParagraphAlignment(ParagraphAlignment::Center); // Middle
+					break;
+				case 2:
+					dtextFormat.SetParagraphAlignment(ParagraphAlignment::Far); // Bottom
+					break;
+				}
+			}
+
+			g.DrawTextU(text, dtextFormat, textRect, brush);
+		}
 	}
 
-	// Text Extents.
+	// Word Wrapping.
 	{
-		const char* words[] = { "cat", "White Noise", "the quick brown fox jumped over the lazy dog" };
+		const char* words[] = { /*"cat", "White Noise",*/ "the quick brown fox jumped over the lazy dog" };
 
+		TextFormat dtextFormat = g.GetFactory().CreateTextFormat(); // Default font face, Default Size.
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
 
 		float x = 10.5;
-		for (int col = 0; col < 3; ++col)
+
+		for (int col = 0; col < 4; ++col)
 		{
 			float penWidth = 1.0f;
-			float y = 120.5;
+			float y = 130.5;
+			Rect headingRect(x, y - 16, x+100, y);
 			Rect textRect;
 			textRect.top = y;
 			textRect.left = x;
 			const float maxWidth = 100.f;
+			const char* desc = "";
 
 			int32_t clipOPtion{}; // Use clip OR wrap, but not both. Clip does nothing on wrapped text.
 			switch (col)
 			{
-			case 0:
-				clipOPtion = (int32_t)DrawTextOptions::None;
-				dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
+			case 0: // test defaults
+				desc = "Default";
 				break;
 			case 1:
+				desc = "Clip";
 				clipOPtion = (int32_t)DrawTextOptions::Clip;
 				dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
 				break;
 			case 2:
+				desc = "Wrap";
 				clipOPtion = (int32_t)DrawTextOptions::None;
 				dtextFormat.SetWordWrapping(WordWrapping::Wrap);
+				break;
+			case 3:
+				desc = "No Clip/Wrap";
+				clipOPtion = (int32_t)DrawTextOptions::None;
+				dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
 				break;
 			}
 
@@ -599,13 +611,16 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				g.DrawRectangle(boxRect, brush, penWidth);
 				g.DrawTextU(w, dtextFormat, textRect, brush, clipOPtion);
 
+				g.DrawTextU(desc, dtextFormat, headingRect, brush); // heading
+
 				textRect.top += 20;
 				++penWidth;
 			}
 
 			dtextFormat.SetWordWrapping(WordWrapping::Wrap);
 			clipOPtion = (int32_t)DrawTextOptions::None;
-			x += 200;
+			x += 120;
+			headingRect.Offset(120, 0);
 		}
 	}
 	// Fonts.
