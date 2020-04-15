@@ -563,7 +563,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 			textRect.top = y;
 			textRect.left = x;
 			const float maxWidth = 100.f;
-			int32_t clipOPtion{(int32_t)DrawTextOptions::Clip};
+			int32_t clipOPtion{(int32_t)DrawTextOptions::Clip}; // Use clip OR wrap, but not both. Clip does nothing on wrapped text.
 
 			for (auto w : words)
 			{
