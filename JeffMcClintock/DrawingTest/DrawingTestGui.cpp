@@ -552,6 +552,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
+		dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
 
 		float x = 10.5;
 		for (int col = 0; col < 2; ++col)
@@ -561,9 +562,8 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 			Rect textRect;
 			textRect.top = y;
 			textRect.left = x;
-			dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
 			const float maxWidth = 100.f;
-			int32_t clipOPtion{};
+			int32_t clipOPtion{(int32_t)DrawTextOptions::Clip};
 
 			for (auto w : words)
 			{
@@ -589,7 +589,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 			}
 
 			dtextFormat.SetWordWrapping(WordWrapping::Wrap);
-			clipOPtion = (int32_t)DrawTextOptions::Clip;
+			clipOPtion = (int32_t)DrawTextOptions::None;
 			x += 200;
 		}
 	}
@@ -646,19 +646,22 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				y = baseLine;
 				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
-				// cap-height.
-				brush.SetColor(Color::Green);
-				y = baseLine - fontMetrics.capHeight;
-				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
-
 				// x-height.
 				brush.SetColor(Color::MediumBlue);
 				y = baseLine - fontMetrics.xHeight;
 				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
 
+				// cap-height.
+				brush.SetColor(Color::Green);
+				y = baseLine - fontMetrics.capHeight;
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
+
+				// Ascent. (should be same as top, unless in legacy mode).
+				brush.SetColor(Color::Azure);
+				y = baseLine - fontMetrics.ascent;
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
+
 				brush.SetColor(Color::Black);
-				//Rect snappedRect = textRect;
-				//snappedRect.Offset(0.0f, yOffset);
 				g.DrawTextU(fontFace, textFormat, textRect, brush);
 
 				textRect.top += ceilf(dipFontSize * 1.4f);
@@ -722,6 +725,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				}
 		}
 		// EEEEs
+		if(false)
 		{
 			const auto str = "E";
 			const auto fontFace = "Courier New";
@@ -740,8 +744,6 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 				float y = starty;
 
 				auto textFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
-
-//				float yOffset{};
 
 				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
 				if (snapBaseline)
