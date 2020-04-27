@@ -381,10 +381,13 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 {
+	auto factory = g.GetFactory();
+
 	// EEEEs
 	const auto str = "E";
 //	const auto fontFace = "Courier New";
 	const auto fontFace = "Arial";
+	const std::vector <std::string> fontStack = {fontFace};
 	//const auto fontFace = "Times New Roman";
 
 	Rect textRect;
@@ -397,13 +400,13 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 
 	float starty = 20.f;
 
-	for(float dipFontSize = 6.0f; dipFontSize < 24.0f; dipFontSize += 0.5)
+	for(float bodyHeight = 6.0f; bodyHeight < 24.0f; bodyHeight += 0.5)
 	{
 		float x = 32.f;
 		float y = starty;
 		float yinc = 0.01f;
 
-		auto textFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
+		auto textFormat = factory.CreateTextFormat2(fontStack, bodyHeight);
 
 		Size textSize = textFormat.GetTextExtentU(str);
 		GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
@@ -446,7 +449,7 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 			y += yinc;
 		}
 
-		starty += floor(dipFontSize * 0.8f) + 2.0f;
+		starty += floor(bodyHeight * 0.8f) + 2.0f;
 	}
 
 	DrawAlignmentCrossHairs(g);
@@ -1342,169 +1345,6 @@ void DrawingTestGui::drawTextTest(GmpiDrawing::Graphics& g)
 					g.DrawTextU("A", textFormat, textRect2, brush);
 					x += 24;
 				}
-		}
-		// EEEEs
-		if(false)
-		{
-			const auto str = "E";
-			const auto fontFace = "Courier New";
-			//const auto fontFace = "Times New Roman";
-
-			Rect textRect;
-		const float noBlur = 0.5f;
-		const float lineWidth = 0.5f;
-		const bool snapBaseline = true;
-
-			float starty = 66.f;
-
-			for (float dipFontSize = 6.0f ; dipFontSize < 14.0f ; dipFontSize += 0.2)
-			{
-				float x = 280.f;
-				float y = starty;
-
-				auto textFormat = g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
-
-				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
-				if (snapBaseline)
-				{
-					textFormat.GetFontMetrics(&fontMetrics);
-#if 0 // snap Cap height (will result in different size font, probly will alter text length (unwanted)
-
-					const float OriginalBaseline = fontMetrics.ascent;
-
-					{
-						const float OriginalBaselineSnapped = floorf(y + OriginalBaseline + 0.5f);
-						brush.SetColor(Color::Green);
-						float ybl = OriginalBaselineSnapped;
-						g.DrawLine(Point(x - 3, ybl), Point(x - 2, ybl), brush, 0.5);
-					}
-
-					const auto snapY = fontMetrics.capHeight;
-					const auto scaleOffset = floorf(snapY + 0.5f) / snapY;
-					const float snappedDipFontSize = dipFontSize * scaleOffset;
-
-					const float NewBaseline = OriginalBaseline * scaleOffset;
-
-					// TODO: don't bother if close enough.
-					textFormat = g.GetFactory().CreateTextFormat(snappedDipFontSize, fontFace);
-
-					yOffset = OriginalBaseline - NewBaseline;
-
-					textFormat.GetFontMetrics(&fontMetrics);
-#endif
-//					float baseLIneWillbe = fontMetrics.ascent + fontMetrics.descent + yOffset;
-				}
-
-				Size textSize = textFormat.GetTextExtentU(str);
-#if 0
-#if defined(_WIN32)
-
-				_RPT2(_CRT_WARN, "%f, %f,", dipFontSize, textRect.top);
-				_RPT3(_CRT_WARN, "%f, %f, %f,", fontMetrics.ascent, fontMetrics.descent, fontMetrics.lineGap);
-				_RPT2(_CRT_WARN, "%f, %f\n", fontMetrics.capHeight, fontMetrics.xHeight);
-#endif
-
-#if 0 //!defined(_WIN32)
-				{
-					yOffset = (fontMetrics.descent - floor(fontMetrics.descent)) < 0.5f ? 0.5f : 0.0f;
-				}
-#endif
-#endif
-
-				for (int i = 0; i < 20; ++i)
-				{
-					textRect.top = y;
-					textRect.left = x;
-					textRect.bottom = textRect.top + textSize.height;
-					textRect.right = ceilf(textRect.left + textSize.width);
-					const float lineRight = textRect.right + 2;
-					const float lineLeft = textRect.left - 2;
-
-					brush.SetColor(Color::LightGray);
-					//				g.FillRectangle(textRect, brush);
-					g.DrawLine(Point(textRect.left + 1, y), Point(textRect.right - 2, y), brush, 0.5);
-
-
-					Rect snappedRect = textRect;
-					//float snapOffset{};
-					//if (snapBaseline)
-					//{
-					//	const float baseLine = textRect.top + fontMetrics.ascent;
-					//	snapOffset = floorf(baseLine + 0.5f) - baseLine;
-					//}
-
-					brush.SetColor(Color::Black);
-#if 0
-					// testing
-//					float cc = 0.25f;
-					float winSnapY = snappedRect.top + fontMetrics.ascent;
-					float macSnapY = snappedRect.bottom;
-
-					float macOffset = floor(macSnapY) - macSnapY;
-					float winOffset = floor(winSnapY + 0.5) - winSnapY;
-
-					float totalOffset = macOffset - winOffset;
-
-					if (totalOffset < -0.5)
-					{
-							brush.SetColor(Color::Red);
-					}
-					else
-					{
-						if (totalOffset < -0.25)
-						{
-							brush.SetColor(Color::Lime);
-						}
-					}
-
-/*
-					float winSnap = ((winSnapY - floor(winSnapY)) > 0.5f) ? -0.5f : 0.0f;
-					float macSnap = ((macSnapY - floor(macSnapY)) > 0.5f) ? -0.5f : 0.0f;
-
-					if (winSnap != macSnap)
-					{
-						if (winSnap > macSnap)
-						{
-							brush.SetColor(Color::Red);
-
-						}
-						else
-						{
-							brush.SetColor(Color::Lime);
-						}
-					}
-*/
-//					float gg = snappedRect.bottom; // fontMetrics.descent;
-					float gg = snappedRect.top + fontMetrics.ascent + fontMetrics.descent;
-					if ((gg - floor(gg)) < 0.5f)
-					{
-//						brush.SetColor(Color::Red);
-//						snappedRect.Offset(0.0f, -0.5f);
-					}
-#endif
-					//if (i > 25)
-					//{
-					//	snappedRect.bottom += 1.0f; // is box too tight when descent fraction > 0.5?
-					//}
-
-					g.DrawTextU(str, textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
-
-					if(false)
-					{
-						float predictedBaseLine = textRect.top + fontMetrics.ascent - 0.25f;
-						float pixelScale = 2.0f;
-						predictedBaseLine = floorf(predictedBaseLine * pixelScale) / pixelScale;
-						brush.SetColor(Color::Lime);
-						g.DrawLine(Point(textRect.left, predictedBaseLine + 0.25f), Point(textRect.left + 2, predictedBaseLine + 0.25f), brush, 0.5);
-					}
-
-					x += 4.f;
-					y += 0.1f;
-				}
-
-				starty += floor(dipFontSize * 0.8f) + 2.0f;
-			}
-
 		}
 
 		// Alignment cross hairs.
