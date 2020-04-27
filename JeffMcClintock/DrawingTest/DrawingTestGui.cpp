@@ -448,6 +448,26 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 
 		starty += floor(dipFontSize * 0.8f) + 2.0f;
 	}
+
+	DrawAlignmentCrossHairs(g);
+}
+
+void DrawingTestGui::DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g)
+{
+	auto brush = g.CreateSolidColorBrush(Color::Black);
+	auto r = getRect();
+	// Alignment cross hairs.
+	float crossSize = 6.0f;
+	float x1 = 8.5;
+	float y1 = 8.5;
+	g.DrawLine(x1 - crossSize, y1, x1 + crossSize, y1, brush); // criss
+	g.DrawLine(x1, y1 - crossSize, x1, y1 + crossSize, brush); // cross
+
+	x1 = r.right - x1;
+	y1 = r.bottom - y1;
+	brush.SetColor(Color::Black);
+	g.DrawLine(x1 - crossSize, y1, x1 + crossSize, y1, brush); // criss
+	g.DrawLine(x1, y1 - crossSize, x1, y1 + crossSize, brush); // cross
 }
 
 // Draw using text body height (not point size). Should result in perfect cross-platform comptibility, even with font-fallback to differnt fonts ("Segoe UI").
@@ -847,20 +867,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 				}
 		}
 
-		// Alignment cross hairs.
-		{
-			float crossSize = 6.0f;
-			float x1 = 8.5;
-			float y1 = 8.5;
-			g.DrawLine(x1 - crossSize, y1, x1 + crossSize, y1, brush); // criss
-			g.DrawLine(x1, y1 - crossSize, x1, y1 + crossSize, brush); // cross
-
-			x1 = r.right - x1;
-			y1 = r.bottom - y1;
-			brush.SetColor(Color::Black);
-			g.DrawLine(x1 - crossSize, y1, x1 + crossSize, y1, brush); // criss
-			g.DrawLine(x1, y1 - crossSize, x1, y1 + crossSize, brush); // cross
-		}
+		DrawAlignmentCrossHairs(g);
 
 		// Scale
 		{

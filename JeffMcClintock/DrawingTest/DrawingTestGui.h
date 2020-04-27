@@ -38,6 +38,8 @@ public:
 
 	void drawTextVertAlign(GmpiDrawing::Graphics& g);
 
+	void DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g);
+
 	void drawTextTestFIXED(GmpiDrawing::Graphics& g);
 
 	void drawTextTest(GmpiDrawing::Graphics& g);
