@@ -372,7 +372,16 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		drawTextTestFIXED(g);
 		break;
 	case 6:
+	{
 		drawTextVertAlign(g);
+		auto bmRenderTarget = g.CreateCompatibleRenderTarget(Size(60, 60));
+		bmRenderTarget.BeginDraw();
+		bmRenderTarget.Clear(Color::Aquamarine);
+		auto bitmap = bmRenderTarget.GetBitmap();
+		bmRenderTarget.EndDraw();
+
+		auto pixels = bitmap.lockPixels();
+	}
 		break;
 	}
 
@@ -387,8 +396,8 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 	const auto str = "E";
 //	const auto fontFace = "Courier New";
 	const auto fontFace = "Arial";
-	const std::vector <std::string> fontStack = {fontFace};
 	//const auto fontFace = "Times New Roman";
+	const std::vector <std::string> fontStack = {fontFace};
 
 	Rect textRect;
 	const float noBlur = 0.5f;
@@ -429,18 +438,27 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 			Rect snappedRect = textRect;
 			if((i % 10) == 9)
 			{
-				g.DrawTextU("L", textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
+				g.DrawTextU("I", textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
 			}
 			else
 			{
-				g.DrawTextU(str, textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
+				g.DrawTextU("L", textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
 			}
 
 			if(true)
 			{
-				float predictedBaseLine = textRect.top + fontMetrics.ascent - 0.25f;
-				float pixelScale = 2.0f;
-				predictedBaseLine = floorf(predictedBaseLine * pixelScale) / pixelScale;
+				float predictedBaseLine = textRect.top + fontMetrics.ascent;
+				
+				// snap to pixel.
+				const float offsetMin = -0.25f;
+				const float offsetMax = -0.125f;
+				const float offset = bodyHeight < 10.0f ? offsetMin : offsetMax;
+
+				predictedBaseLine += offset;
+
+				const float scale = 0.5f;
+				predictedBaseLine = floorf(predictedBaseLine / scale) * scale;
+
 				brush.SetColor(Color::Lime);
 				g.DrawLine(Point(textRect.left, predictedBaseLine + 0.25f), Point(textRect.left + 2, predictedBaseLine + 0.25f), brush, 0.5);
 			}
