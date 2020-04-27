@@ -753,11 +753,10 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 				Size textSize = textFormat.GetTextExtentU(fontFace);
 
-				if(dipFontSize == 72.0f)
-				{
-					_RPT3(_CRT_WARN, "%s, BODYHEIGHT %f, BOUNDHEIGHT %f\n", fontFace, fontMetrics.bodyHeight(), textSize.height);
-				}
-
+				//if(dipFontSize == 72.0f)
+				//{
+				//	_RPT3(_CRT_WARN, "%s, BODYHEIGHT %f, BOUNDHEIGHT %f\n", fontFace, fontMetrics.bodyHeight(), textSize.height);
+				//}
 
 				textRect.bottom = textRect.top + textSize.height;
 				textRect.right = ceilf(textRect.left + textSize.width);
