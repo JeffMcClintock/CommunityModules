@@ -4,6 +4,7 @@
 #define MP_SDK_AUDIO_H_INCLUDED
 
 #include <map>
+#include <vector>
 #include <algorithm>
 #include <assert.h>
 #include "mp_sdk_common.h"
@@ -106,6 +107,63 @@ namespace GmpiSdk
 			return Get()->setLatency(latencySamples);
 		}
 		*/
+	};
+
+	class ProcessorPins
+	{
+		struct pindata
+		{
+			int32_t id;
+			int32_t direction;
+			int32_t datatype;
+		};
+		gmpi_sdk::mp_shared_ptr<gmpi::IMpPinIterator> it;
+		std::vector<pindata> pins;
+
+	public:
+		using iterator = std::vector<pindata>::iterator;
+
+		ProcessorPins(gmpi::IMpHost* dspHost)
+		{
+			auto result = dspHost->createPinIterator(it.getAddressOf());
+			assert(gmpi::MP_OK == result);
+
+			if (gmpi::MP_OK == result)
+			{
+				const auto pincount = size();
+				pins.reserve(pincount);
+
+				it->first();
+				for (size_t i = 0; i < pincount; ++i)
+				{
+					pindata p{};
+					it->getPinDatatype(p.datatype);
+					it->getPinDirection(p.direction);
+					it->getPinId(p.id);
+
+					pins.push_back(p);
+
+					it->next();
+				}
+			}
+		}
+
+		size_t size()
+		{
+			int32_t count = 0;
+			it->getCount(count);
+			return static_cast<size_t>(count);
+		}
+
+		iterator begin()
+		{
+			return pins.begin();
+		}
+
+		iterator end()
+		{
+			return pins.end();
+		}
 	};
 }
 

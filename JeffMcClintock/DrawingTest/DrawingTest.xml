@@ -12,7 +12,7 @@
   </Plugin>
   <Plugin id="SE Drawing Test" name="Drawing Test" category="Experimental/Sub-Controls" graphicsApi="GmpiGui">
     <GUI>
-      <Pin name="Test" direction="in" datatype="enum" isMinimised="true" metadata="1,2, Gamma, Gradient, MacTest"/>
+      <Pin name="Test" direction="in" datatype="enum" isMinimised="true" metadata="Text,2, Gamma, Gradient, MacTest, Text Fix, Text Vert Align"/>
       <Pin name="Fontface" direction="in" datatype="enum" isMinimised="true" metadata="Segoe UI,Arial,Courier New,Times New Roman,MS Sans Serif"/>
       <Pin name="Fontsize" direction="in" datatype="enum" isMinimised="true" default="10" metadata="10=10, 14=14, 18=18, 34=34, 72=72"/>
       <Pin name="Text" datatype="string" />

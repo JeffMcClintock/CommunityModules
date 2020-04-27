@@ -251,6 +251,9 @@ namespace gmpi_gui
 		// Ideally this would be in IMpGraphicsHostBase, but doing so would break ABI for existing modules.
 		virtual int32_t MP_STDCALL createOkCancelDialog(int32_t dialogType, gmpi_gui::IMpOkCancelDialog** returnDialog) = 0;
 
+        // TODO!! Should be able to have  agraphics object without paramter support. i.e. an independent setHost()
+        // virtual int32_t MP_STDCALL setHost( gmpi::IMpUnknown* host ) = 0;
+        
         static gmpi::MpGuid IID(){ return SE_IID_GRAPHICS_HOST; };
     };
 

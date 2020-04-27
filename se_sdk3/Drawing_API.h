@@ -519,6 +519,11 @@ unsigned, can't handle negative points. not much practical use.
 		float underlineThickness;		//
 		float strikethroughPosition;	// Strikethrough position is the position of strikethrough relative to the English baseline. The value is usually made positive in order to place the strikethrough above the baseline.
 		float strikethroughThickness;
+
+		inline float bodyHeight()
+		{
+			return ascent + descent;
+		}
 	};
 
 	class DECLSPEC_NOVTABLE IMpTextFormat : public gmpi::IMpUnknown
@@ -535,7 +540,11 @@ unsigned, can't handle negative points. not much practical use.
 		virtual int32_t MP_STDCALL GetFontMetrics(MP1_FONT_METRICS* returnFontMetrics) = 0;
 
 		// For the default method use lineSpacing=-1 (spacing depends solely on the content). For uniform spacing, the specified line height overrides the content.
+		// Can also be used to enable legacy-mode for cross-platform vertical font snapping by
+		// passing lineSpacing = GmpiDrawing_API::IMpTextFormat::LegacyVerticalBaselineSnapping
 		virtual int32_t MP_STDCALL SetLineSpacing(float lineSpacing, float baseline) = 0;
+
+		enum {ImprovedVerticalBaselineSnapping = -512};
 	};
 	// GUID for ITextFormat
 	// {ED903255-3FE0-4CE4-8CD1-97D72D51B7CB}
@@ -591,7 +600,8 @@ unsigned, can't handle negative points. not much practical use.
 		// Integer size.
 		virtual int32_t MP_STDCALL GetSize(MP1_SIZE_U* returnSize) = 0;
 
-		// Same as lock pixels but with option to avoid overhead of copying pixels back into image. See MP1_BITMAP_LOCK_FLAGS.
+		// Same as lockPixelsOld() but with option to avoid overhead of copying pixels back into image. See MP1_BITMAP_LOCK_FLAGS.
+		// Note: Not supported when Bitmap was created by IMpDeviceContext::CreateCompatibleRenderTarget()
 		virtual int32_t MP_STDCALL lockPixels(IMpBitmapPixels** returnPixels, int32_t flags) = 0;
 	};
 	// GUID for IBitmap
@@ -937,7 +947,6 @@ unsigned, can't handle negative points. not much practical use.
 		// test for winrt. perhaps uri could indicate if image is in resources, and could use stream internally if nesc (i.e. VST2 only.) or just write it to disk temp.
 		// LoadStreamImage would be private member, not on store apps.
 		virtual int32_t MP_STDCALL LoadImageU(const char* utf8Uri, GmpiDrawing_API::IMpBitmap** returnDiBitmap) = 0;
-//		virtual int32_t MP_STDCALL LoadStreamImage(gmpi::IMpUnknown* stream, void** returnDiBitmap) = 0; // DEPRECATED. TO BE REMOVED IN FINAL, USE LoadImage().
 		virtual int32_t MP_STDCALL CreateStrokeStyle(const GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES* strokeStyleProperties, float* dashes, int32_t dashesCount, GmpiDrawing_API::IMpStrokeStyle** returnValue) = 0;
 	};
 
@@ -946,10 +955,17 @@ unsigned, can't handle negative points. not much practical use.
 	static const gmpi::MpGuid SE_IID_FACTORY_MPGUI =
 	{ 0x481d4609, 0xe28b, 0x4698,{ 0xbb, 0x2d, 0x64, 0x80, 0x47, 0x5b, 0x8f, 0x31 } };
 
-	// GUID for GmpiDrawing_API::IMpFactory
-	// {F4F6ED95-CC5D-4DCE-AAA4-54A10AC9DA59}
-	//static const gmpi::MpGuid SE_IID_GRAPHICS_FACTORY =
-	//{ 0xf4f6ed95, 0xcc5d, 0x4dce,{ 0xaa, 0xa4, 0x54, 0xa1, 0xa, 0xc9, 0xda, 0x59 } };
+	class DECLSPEC_NOVTABLE IMpFactory2 : public IMpFactory
+	{
+	public:
+		virtual int32_t MP_STDCALL GetFontFamilyName(int32_t fontIndex, gmpi::IString* returnString) = 0;
+	};
+
+	// GUID for IMpFactory2
+	// {61568E7F-5256-49C6-95E6-10327EB33EC4}
+	static const gmpi::MpGuid SE_IID_FACTORY2_MPGUI =
+	{ 0x61568e7f, 0x5256, 0x49c6, { 0x95, 0xe6, 0x10, 0x32, 0x7e, 0xb3, 0x3e, 0xc4 } };
+
 } // namespace.
 
 #endif //include

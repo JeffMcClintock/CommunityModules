@@ -36,6 +36,12 @@ public:
 	void drawGradient(GmpiDrawing::Graphics & g);
 	virtual int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override;
 
+	void drawTextVertAlign(GmpiDrawing::Graphics& g);
+
+	void drawTextTestFIXED(GmpiDrawing::Graphics& g);
+
+	void drawTextTest(GmpiDrawing::Graphics& g);
+
 	// MP_OK = hit, MP_UNHANDLED/MP_FAIL = miss.
 // Default to MP_OK to allow user to select by clicking.
 // point will always be within bounding rect.

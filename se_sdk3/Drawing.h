@@ -40,12 +40,14 @@ using namespace GmpiDrawing;
 
 #include "Drawing_API.h"
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 #include <codecvt>
 #include <locale>
 #include "mp_interface_wrapper.h"
 #include "../shared/unicode_conversion2.h"
 #include "../shared/fast_gamma.h"
+#include "MpString.h"
 
 // Perhaps should be Gmpi::Drawing
 namespace GmpiDrawing
@@ -99,6 +101,8 @@ namespace GmpiDrawing
 		Leading = GmpiDrawing_API::MP1_TEXT_ALIGNMENT_LEADING		// Left
 		, Trailing = GmpiDrawing_API::MP1_TEXT_ALIGNMENT_TRAILING	// Right
 		, Center = GmpiDrawing_API::MP1_TEXT_ALIGNMENT_CENTER		// Centered
+		, Left = Leading
+		, Right = Trailing
 	};
 
 	enum class ParagraphAlignment
@@ -106,6 +110,8 @@ namespace GmpiDrawing
 		Near = GmpiDrawing_API::MP1_PARAGRAPH_ALIGNMENT_NEAR		// Top
 		, Far = GmpiDrawing_API::MP1_PARAGRAPH_ALIGNMENT_FAR		// Bottom
 		, Center = GmpiDrawing_API::MP1_PARAGRAPH_ALIGNMENT_CENTER	// Centered
+		, Top = Near
+		, Bottom = Far
 	};
 
 	enum class WordWrapping
@@ -520,10 +526,10 @@ namespace GmpiDrawing
 
 		inline void Intersect(typename Rect_traits<T>::BASE_TYPE r)
 		{
-			this->left = (std::max)(this->left, r.left);
-			this->top = (std::max)(this->top, r.top);
-			this->right = (std::min)(this->right, r.right);
-			this->bottom = (std::min)(this->bottom, r.bottom);
+			this->left   = (std::max)(this->left,   (std::min)(this->right,  r.left));
+			this->top    = (std::max)(this->top,    (std::min)(this->bottom, r.top));
+			this->right  = (std::min)(this->right,  (std::max)(this->left,   r.right));
+			this->bottom = (std::min)(this->bottom, (std::max)(this->top,    r.bottom));
 		}
 
 		inline void Union(typename Rect_traits<T>::BASE_TYPE r)
@@ -546,7 +552,7 @@ namespace GmpiDrawing
 
 		inline bool empty() const
 		{
-			return getWidth() == 0.0f || getHeight() == 0.0f;
+			return getWidth() <= (T)0 || getHeight() <= (T)0;
 		}
 	};
 
@@ -1563,6 +1569,11 @@ namespace GmpiDrawing
 		{
 			return Get()->SetLineSpacing(lineSpacing, baseline);
 		}
+
+		inline int32_t SetImprovedVerticalBaselineSnapping()
+		{
+			return Get()->SetLineSpacing(GmpiDrawing_API::IMpTextFormat::ImprovedVerticalBaselineSnapping, 0.0f);
+		}
 	};
 
 	class BitmapPixels : public GmpiSdk::Internal::Object
@@ -1666,6 +1677,7 @@ namespace GmpiDrawing
 			return temp;
 		}
 
+		// Note: Not supported when Bitmap was created by Graphics::CreateCompatibleRenderTarget()
 		inline BitmapPixels lockPixels(int32_t flags = GmpiDrawing_API::MP1_BITMAP_LOCK_READ)
 		{
 			BitmapPixels temp;
@@ -2022,28 +2034,11 @@ namespace GmpiDrawing
 		}
 	};
 
-	
-/*
-	class UpdateRegion : public GmpiSdk::Internal::Object
-	{
-	public:
-		GMPIGUISDK_DEFINE_CLASS(UpdateRegion, GmpiSdk::Internal::Object, GmpiDrawing_API::IUpdateRegion);
-
-		inline bool isVisible(GmpiDrawing_API::MP1_RECT* rect)
-		{
-			return Get()->isVisible(rect);
-		}
-		inline GmpiDrawing_API::MP1_RECT** getUpdateRects()
-		{
-			GmpiDrawing_API::MP1_RECT** rect;
-			Get()->getUpdateRects(&rect);
-			return rect;
-		}
-	};
-*/
-
 	class Factory : public GmpiSdk::Internal::Object
 	{
+		std::unordered_map<std::string, std::pair<float, float>> availableFonts; // font family name, body-size, cap-height.
+		gmpi_sdk::mp_shared_ptr<GmpiDrawing_API::IMpFactory2> factory2;
+
 	public:
 		GMPIGUISDK_DEFINE_CLASS(Factory, GmpiSdk::Internal::Object, GmpiDrawing_API::IMpFactory);
 
@@ -2065,6 +2060,123 @@ namespace GmpiDrawing
 		{
 			TextFormat temp;
 			Get()->CreateTextFormat(TextFormatfontFamilyName, nullptr /* fontCollection */, (GmpiDrawing_API::MP1_FONT_WEIGHT) fontWeight, (GmpiDrawing_API::MP1_FONT_STYLE) fontStyle, (GmpiDrawing_API::MP1_FONT_STRETCH) fontStretch, fontSize, nullptr /* localeName */, temp.GetAddressOf());
+			return temp;
+		}
+
+		template <typename ARRAY>
+		inline TextFormat CreateTextFormat2(
+			const ARRAY& fontStack,
+			float bodyHeight,
+			bool digitsOnly = false,
+			GmpiDrawing::FontWeight fontWeight = GmpiDrawing::FontWeight::Regular,
+			GmpiDrawing::FontStyle fontStyle = GmpiDrawing::FontStyle::Normal,
+			GmpiDrawing::FontStretch fontStretch = GmpiDrawing::FontStretch::Normal
+		)
+		{
+			// "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif (test each)
+			const char* fallBackFontFamilyName = "Arial";
+
+			if (!factory2)
+			{
+				if (gmpi::MP_OK == Get()->queryInterface(GmpiDrawing_API::SE_IID_FACTORY2_MPGUI, factory2.asIMpUnknownPtr()))
+				{
+					assert(availableFonts.empty());
+
+					availableFonts.insert(std::make_pair(fallBackFontFamilyName, std::make_pair(0.0f, 0.0f)));
+
+					for (int32_t i = 0; true; ++i)
+					{
+						gmpi_sdk::MpString fontFamilyName;
+						if (gmpi::MP_OK != factory2->GetFontFamilyName(i, &fontFamilyName))
+						{
+							break;
+						}
+
+						if (fontFamilyName.str() != fallBackFontFamilyName)
+						{
+							availableFonts.insert(std::make_pair(fontFamilyName.str(), std::make_pair(0.0f, 0.0f)));
+						}
+					}
+				}
+				else
+				{
+					// Legacy SE. We don't know what fonts are available.
+					// Fake it by putting font name on list, even though we have no idea what actual font host will return.
+					// This will achieve same behaviour as before.
+					std::string fontFamilyName(fontStack[0]);
+					availableFonts.insert(std::make_pair(fontFamilyName, std::make_pair(0.0f, 0.0f)));
+				}
+			}
+
+			const float referenceFontSize = 32.0f;
+
+			TextFormat temp;
+			for (const std::string& fontFamilyName : fontStack)
+			{
+				auto family_it = availableFonts.find(fontFamilyName);
+				if (family_it == availableFonts.end())
+				{
+					continue;
+				}
+
+				// Cache font scaling info.
+				if (family_it->second.first == 0.0f)
+				{
+					TextFormat referenceTextFormat;
+
+					Get()->CreateTextFormat(
+						fontFamilyName.c_str(),
+						nullptr /* fontCollection */,
+						(GmpiDrawing_API::MP1_FONT_WEIGHT) fontWeight,
+						(GmpiDrawing_API::MP1_FONT_STYLE) fontStyle,
+						(GmpiDrawing_API::MP1_FONT_STRETCH) fontStretch,
+						referenceFontSize,
+						nullptr /* localeName */,
+						referenceTextFormat.GetAddressOf()
+					);
+
+					GmpiDrawing_API::MP1_FONT_METRICS referenceMetrics;
+					referenceTextFormat.GetFontMetrics(&referenceMetrics);
+
+					family_it->second.first = referenceFontSize / referenceMetrics.bodyHeight();
+					family_it->second.second = referenceFontSize / referenceMetrics.capHeight;
+				}
+
+				const float& bodyHeightScale = family_it->second.first;
+				const float& capHeightScale = family_it->second.second;
+
+				// Scale cell height according to meterics
+				const float fontSize = bodyHeight * (digitsOnly ? capHeightScale : bodyHeightScale);
+
+				// Create actual textformat.
+				assert(fontSize > 0.0f);
+				Get()->CreateTextFormat(
+					fontFamilyName.c_str(),
+					nullptr /* fontCollection */,
+					(GmpiDrawing_API::MP1_FONT_WEIGHT) fontWeight,
+					(GmpiDrawing_API::MP1_FONT_STYLE) fontStyle,
+					(GmpiDrawing_API::MP1_FONT_STRETCH) fontStretch,
+					fontSize,
+					nullptr /* localeName */,
+					temp.GetAddressOf()
+				);
+
+				if(temp.isNull()) // should never happen unless font size is 0 (rogue module or global.txt style)
+				{
+					return temp; // return null font. Else get into fallback recursion loop.
+				}
+
+				break;
+			}
+
+			// Failure for any reason results in fallback.
+			if (temp.isNull())
+			{
+				const char* fonts[] = {fallBackFontFamilyName};
+				return CreateTextFormat2(fonts, bodyHeight, digitsOnly);
+			}
+
+			temp.SetImprovedVerticalBaselineSnapping();
 			return temp;
 		}
 
@@ -2613,7 +2725,7 @@ namespace GmpiDrawing
 	};
 
 	/*
-		Handy RIIA helper for clipping. Automatically restores original clip-rect on exit.
+		Handy RAII helper for clipping. Automatically restores original clip-rect on exit.
 		USEAGE:
 
 		Graphics g(drawingContext);

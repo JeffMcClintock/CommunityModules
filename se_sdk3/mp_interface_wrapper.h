@@ -98,16 +98,15 @@ namespace GmpiSdk
 			void Move(Object && other) { m_ptr = std::move(other.m_ptr); }
 
 		public:
-
-			//		operator Details::BoolType() const { return nullptr != m_ptr ? &Details::BoolStruct::Member : nullptr; }
-			//		auto Unknown() const -> const gmpi::IMpUnknown*&{ return m_ptr.get(); };
-			//		void Reset() { m_ptr.reset(); }
+			inline explicit operator bool()
+			{
+				return (!isNull());
+			}
 			gmpi::IMpUnknown*& Unknown() { return m_ptr.get(); };
 			inline bool isNull() const
 			{
 				auto nonConstThis = const_cast<Object*>(this);
 				return nonConstThis->m_ptr == nullptr;
-//				return m_ptr == nullptr;
 			}
 			void setNull() { m_ptr = nullptr; }
 		};
