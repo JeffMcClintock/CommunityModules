@@ -520,7 +520,7 @@ unsigned, can't handle negative points. not much practical use.
 		float strikethroughPosition;	// Strikethrough position is the position of strikethrough relative to the English baseline. The value is usually made positive in order to place the strikethrough above the baseline.
 		float strikethroughThickness;
 
-		inline float bodyHeight()
+		inline float bodyHeight() const
 		{
 			return ascent + descent;
 		}

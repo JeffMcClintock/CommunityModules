@@ -415,7 +415,7 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 		float y = starty;
 		float yinc = 0.01f;
 
-		auto textFormat = factory.CreateTextFormat2(fontStack, bodyHeight);
+		auto textFormat = factory.CreateTextFormat2(bodyHeight, fontStack);
 
 		Size textSize = textFormat.GetTextExtentU(str);
 		GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
@@ -512,7 +512,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 		const char* fontFace = typefaces[pinFontface];
 
-		TextFormat dtextFormat = g.GetFactory().CreateTextFormat((float)pinFontsize.getValue(), fontFace);
+		TextFormat dtextFormat = g.GetFactory().CreateTextFormat2((float)pinFontsize.getValue(), fontFace);
 
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Far);
@@ -591,7 +591,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 		std::string text("Cat");
 		float dipFontSize = (font_size_ * 72.f) / 96.f; // Points to DIPs conversion. https://social.msdn.microsoft.com/forums/vstudio/en-US/dfbadc0b-2415-4f92-af91-11c78df435b3/hwndhost-gdi-vs-directwrite-font-size
 
-		TextFormat dtextFormat = g.GetFactory().CreateTextFormat(dipFontSize); // Default font face.
+		TextFormat dtextFormat = g.GetFactory().CreateTextFormat2(dipFontSize); // Default font face.
 
 		brush.SetColor(Color(0, 0, 0));
 
@@ -676,7 +676,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 	{
 		const char* words[] = { /*"cat", "White Noise",*/ "the quick brown fox jumped over the lazy dog" };
 
-		TextFormat dtextFormat = g.GetFactory().CreateTextFormat(); // Default font face, Default Size.
+		TextFormat dtextFormat = g.GetFactory().CreateTextFormat2(); // Default font face, Default Size.
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
 
@@ -764,11 +764,10 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 		for (auto fontFace : typefaces)
 		{
 			textRect.top = 200.0f;
-			std::vector<std::string> fontStack{fontFace};
 
 			for (auto dipFontSize : fontSizes)
 			{
-				auto textFormat = factory.CreateTextFormat2(fontStack, dipFontSize);
+				auto textFormat = factory.CreateTextFormat2(dipFontSize, fontFace);
 				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
 				textFormat.GetFontMetrics(&fontMetrics);
 
@@ -830,7 +829,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 				if ((fontFace[0] == 'T' || fontFace[0] == 'C') && dipFontSize == 9 )
 				{
-					auto textFormatSmall = g.GetFactory().CreateTextFormat(8);
+					auto textFormatSmall = g.GetFactory().CreateTextFormat2(8);
 					Rect textRect2 (0,0,1000,20);
 					if (fontFace[0] == 'C')
 					{
@@ -875,7 +874,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 				{
 					// Arial draws top two font weights lower than the rest.
 					// Verdana, Times New Roman, and Trebuchet MS draws only two distinct weights.
-					auto textFormat = g.GetFactory().CreateTextFormat(28, "Arial", (GmpiDrawing_API::MP1_FONT_WEIGHT) fontWeight);
+					auto textFormat = g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight) fontWeight);
 					Rect textRect2 (x, 64, x + 23, 110);
 
 					brush.SetColor(Color::PapayaWhip);
@@ -909,7 +908,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 			for (int fontSize = 10; fontSize < 50; ++fontSize)
 			{
 				dtextFormat = nullptr;
-				getGuiHost()->CreateTextFormat(
+				getGuiHost()->CreateTextFormat2(
 					fontFace,
 					NULL,
 					gmpi_gui::Font::W_Regular,
@@ -998,7 +997,7 @@ void DrawingTestGui::drawTextTest(GmpiDrawing::Graphics& g)
 
 		const char* fontFace = typefaces[pinFontface];
 
-		TextFormat dtextFormat = g.GetFactory().CreateTextFormat((float)pinFontsize.getValue(), fontFace);
+		TextFormat dtextFormat = g.GetFactory().CreateTextFormat2((float)pinFontsize.getValue(), fontFace);
 
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Far);

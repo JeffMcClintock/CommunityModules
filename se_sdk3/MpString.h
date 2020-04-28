@@ -82,7 +82,7 @@ namespace gmpi_sdk
 			return cppString.c_str();
 		}
 
-		const std::string& str()
+		const std::string& str() const
 		{
 			return cppString;
 		}

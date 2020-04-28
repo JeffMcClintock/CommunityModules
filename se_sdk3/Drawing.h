@@ -1538,6 +1538,12 @@ namespace GmpiDrawing
 		{
 			Get()->GetFontMetrics(returnFontMetrics);
 		}
+		inline GmpiDrawing_API::MP1_FONT_METRICS GetFontMetrics()
+		{
+			GmpiDrawing_API::MP1_FONT_METRICS returnFontMetrics;
+			Get()->GetFontMetrics(&returnFontMetrics);
+			return returnFontMetrics;
+		}
 	};
 
 	class TextFormat : public TextFormat_readonly
@@ -2063,14 +2069,36 @@ namespace GmpiDrawing
 			return temp;
 		}
 
-		template <typename ARRAY>
+		struct FontStack
+		{
+			std::vector<const char*> fontFamilies_;
+
+			FontStack(const char* fontFamily = "")
+			{
+				fontFamilies_.push_back(fontFamily);
+			}
+
+			FontStack(const std::vector<const char*> fontFamilies) :
+				fontFamilies_(fontFamilies)
+			{
+			}
+
+			FontStack(const std::vector<std::string>& fontFamilies)
+			{
+				for(const auto& fontFamilyName : fontFamilies)
+				{
+					fontFamilies_.push_back(fontFamilyName.c_str());
+				}
+			}
+		};
+
 		inline TextFormat CreateTextFormat2(
-			const ARRAY& fontStack,
-			float bodyHeight,
-			bool digitsOnly = false,
+			float bodyHeight = 12.0f,
+			FontStack fontStack = {},
 			GmpiDrawing::FontWeight fontWeight = GmpiDrawing::FontWeight::Regular,
 			GmpiDrawing::FontStyle fontStyle = GmpiDrawing::FontStyle::Normal,
-			GmpiDrawing::FontStretch fontStretch = GmpiDrawing::FontStretch::Normal
+			GmpiDrawing::FontStretch fontStretch = GmpiDrawing::FontStretch::Normal,
+			bool digitsOnly = false
 		)
 		{
 			// "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif (test each)
@@ -2103,15 +2131,17 @@ namespace GmpiDrawing
 					// Legacy SE. We don't know what fonts are available.
 					// Fake it by putting font name on list, even though we have no idea what actual font host will return.
 					// This will achieve same behaviour as before.
-					std::string fontFamilyName(fontStack[0]);
-					availableFonts.insert(std::make_pair(fontFamilyName, std::make_pair(0.0f, 0.0f)));
+					if(!fontStack.fontFamilies_.empty())
+					{
+						availableFonts.insert(std::make_pair(fontStack.fontFamilies_[0], std::make_pair(0.0f, 0.0f)));
+					}
 				}
 			}
 
 			const float referenceFontSize = 32.0f;
 
 			TextFormat temp;
-			for (const std::string& fontFamilyName : fontStack)
+			for (const std::string& fontFamilyName : fontStack.fontFamilies_)
 			{
 				auto family_it = availableFonts.find(fontFamilyName);
 				if (family_it == availableFonts.end())
@@ -2172,8 +2202,7 @@ namespace GmpiDrawing
 			// Failure for any reason results in fallback.
 			if (temp.isNull())
 			{
-				const char* fonts[] = {fallBackFontFamilyName};
-				return CreateTextFormat2(fonts, bodyHeight, digitsOnly);
+				return CreateTextFormat2(bodyHeight, fallBackFontFamilyName, fontWeight, fontStyle, fontStretch, digitsOnly);
 			}
 
 			temp.SetImprovedVerticalBaselineSnapping();
