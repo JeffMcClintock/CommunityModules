@@ -438,11 +438,11 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 			Rect snappedRect = textRect;
 			if((i % 10) == 9)
 			{
-				g.DrawTextU("I", textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
+				g.DrawTextU("L", textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
 			}
 			else
 			{
-				g.DrawTextU("L", textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
+				g.DrawTextU(str, textFormat, snappedRect, brush, DrawTextOptions::NoSnap);
 			}
 
 			if(true)
