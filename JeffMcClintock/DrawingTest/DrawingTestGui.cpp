@@ -388,11 +388,11 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 	return MP_OK;
 }
 
+	// EEEEs
 void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 {
 	auto factory = g.GetFactory();
 
-	// EEEEs
 	const auto str = "E";
 //	const auto fontFace = "Courier New";
 	const auto fontFace = "Arial";
@@ -451,7 +451,9 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 				
 				// snap to pixel.
 				const float offsetMin = -0.25f;
-				const float offsetMax = -0.125f;
+//				const float offsetMax = -0.125f;
+				const float offsetMax = -0.25f;
+//				const float offsetMax = -0.0f;
 				const float offset = bodyHeight < 10.0f ? offsetMin : offsetMax;
 
 				predictedBaseLine += offset;
@@ -460,7 +462,7 @@ void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 				predictedBaseLine = floorf(predictedBaseLine / scale) * scale;
 
 				brush.SetColor(Color::Lime);
-				g.DrawLine(Point(textRect.left, predictedBaseLine + 0.25f), Point(textRect.left + 2, predictedBaseLine + 0.25f), brush, 0.5);
+				g.DrawLine(Point(textRect.left, predictedBaseLine + 0.25f), Point(textRect.left + 1, predictedBaseLine + 0.25f), brush, 0.5);
 			}
 
 			x += 4.f;
@@ -725,7 +727,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 				if (textRect.getWidth() > maxWidth)
 				{
 					textRect.right = (std::min)(textRect.right, textRect.left + 100.f);
-					textRect.bottom = textRect.top + textRect.getHeight() * 2.0f;
+					textRect.bottom += textRect.getHeight() * 3.0f; // Note text metrics do not include linegap, so 2x text height is not enough space for two rows of text.
 				}
 
 				brush.SetColor(Color(0.0f, 0.0f, 1.0f));
