@@ -1,5 +1,6 @@
 #include "./Oscillator.h"
 #include "real_fft.h"
+#include "OscMipmaps.h"
 
 using namespace gmpi;
 
@@ -32,92 +33,6 @@ Oscillator::Oscillator() :
 	initializePin(pinVoiceActive);
 }
 
-void PrintMidiNoteStats(double sampleRate)
-{
-	const int width[] = { 4, 9, 9, 9, 9 };
-
-	const double nyquist = sampleRate * 0.5;
-	const double humanHearingMaxHz = 20000.0;
-	const double higestPlayableFrequency = nyquist * (humanHearingMaxHz / 22050); // Highest Hz possible without risk of aliasing. 90.7% of nyquist.
-	const double maxAudibleFreq = (std::min)(higestPlayableFrequency, humanHearingMaxHz);
-
-	std::ostringstream s;
-	s.precision(2);
-
-	s << "\n" << std::fixed << sampleRate << " Hz";
-	s << "\n------------------\n";
-	s << std::setw(width[0]) << std::right << "Key"
-		<< std::setw(width[1]) << std::right << "Hz"
-		<< std::setw(width[2]) << std::right << "Partials"
-		<< "\n";
-
-	const double middleA = 69.0;
-	const double octave = 12.0f;
-
-	std::map<int, int> patialsRequired;
-
-	int prevPartials = INT_MAX;
-	double prevHz = 0.0001;
-
-	for (int key = 0; key < 128; key++)
-	{
-		const auto Hz = 440.0 * pow(2.0, (key - middleA) / octave);
-		const auto halfBentHz = 440.0 * pow(2.f, (0.5 + key - middleA) / octave); // halfway to next semitone, to allow for modulation/bender without MIP switching.
-		const auto partials = static_cast<int>(maxAudibleFreq / halfBentHz);
-
-		// Can re recycle a lower MIP.
-		double transposeHighestPartialFreq = halfBentHz * static_cast<double>(prevPartials);
-		const bool canRecycle = transposeHighestPartialFreq <= higestPlayableFrequency;
-
-		s << std::setw(width[0]) << std::right << key
-			<< std::setw(width[1]) << std::right << std::fixed << Hz;
-		if (canRecycle)
-		{
-			s << std::setw(width[2]) << std::right << " \"\n";
-		}
-		else
-		{
-			s << std::setw(width[2]) << std::right << partials
-				<< "\n";
-
-			prevHz = Hz;
-			prevPartials = partials;
-		}
-		
-		patialsRequired[prevPartials]++;
-	}
-
-	_RPT1(_CRT_WARN, "%s\n", s.str().c_str());
-
-	std::ostringstream s2;
-	s2.precision(2);
-
-	s2 << "\n-----Partials Needed---------\n";
-	s2 << std::setw(width[0]) << std::right << "Partls"
-		<< std::setw(width[1]) << std::right << "Used by"
-		<< std::setw(width[2]) << std::right << "Max"
-		<< std::setw(width[3]) << std::right << "Note"
-		<< std::setw(width[4]) << std::right << "Switch"
-		<< "\n";
-
-	for (auto p : patialsRequired)
-	{
-		const double maxHz = maxAudibleFreq / p.first;
-		const double maxNote = octave * log(maxHz / 440.0) / log(2.0) + middleA;
-		const double mipSwitchNote = floor(maxNote - 0.5) + 0.5; // switch MIPs on half-semitone boundaries to minimize MIP-thrashing.
-
-		s2 << std::setw(width[0]) << std::right << p.first
-			<< std::setw(width[1]) << std::right << p.second
-			<< std::setw(width[2]) << std::right << std::fixed << maxHz
-			<< std::setw(width[3]) << std::right << std::fixed << maxNote
-			<< std::setw(width[4]) << std::right << std::fixed << mipSwitchNote
-			<< "\n";
-
-		_RPT1(_CRT_WARN, "%s", s2.str().c_str());
-		s2.str("");
-		s2.clear();
-	}
-}
 
 //#define PRINT_WAVETABLE_STATS 1
 void Oscillator::CalcWave(float* spectrum, float* pdest, const WavetableMipmapPolicy& pMipMapPolicy, const char* debug_waveshape_name)
@@ -229,12 +144,42 @@ int32_t Oscillator::open()
 	mipMapPolicySine.initializeOsc(2, waveOversample, extraInterpolationPreSamples + extraInterpolationPostSamples, 512, maxWaveSz, spectrumFill);
 
 	// Init wavetable memory.
+
+	// Sawtooth
+	{
+		auto needAllocation = (MP_OK != getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, -1, -1, needInit));
+		if(needAllocation)
+		{
+			auto sawToothSpectrum = [](int partial) -> std::tuple<float, float> {
+				constexpr float scale = -1.0f / M_PI;
+				return { 0.0f, scale / partial };
+			};
+
+			const auto mips = MipMapCalculator::CalcMips(getSampleRate(), sawToothSpectrum);
+			MipMapCalculator::PrintMips(getSampleRate(), mips);
+
+			r = getHost()->allocateSharedMemory(
+				L"JM:HdOscillator:Saw",
+				(void**)&waveSawtooth,
+				-1,
+				static_cast<int32_t>(mips.GetTotalMemoryBytes()),
+				needInit
+			);
+
+			assert(needInit);
+			// TODO. if I put mip level info AND waveform in shared mem, don't need to recalc it for every osc.
+
+			// mips.writeOut(&waveSawtooth);
+		}
+	}
+
 	totalMemoryBytes = mipMapPolicy.GetTotalMipMapSize() * sizeof(float);
 	r = getHost()->allocateSharedMemory(L"JM:Oscillator:Saw", (void**)&waveSawtooth, -1, totalMemoryBytes, needInit);
 	if (needInit != 0)
 	{
 		const int maxSamples = 16384;
 		float spectrum[maxSamples + 2];
+
 
 		// Saw Wave.
 		int totalHarmonics = maxSamples / 2;
@@ -245,16 +190,16 @@ int32_t Oscillator::open()
 			spectrum[partial * 2] = 0.0f;
 			float level = scale * -0.5f / partial;
 			spectrum[partial * 2 + 1] = level;
+
+			//const auto test = sawToothSpectrum(partial);
+			//assert(std::get<0>(test) == spectrum[partial * 2]);
+			//assert(std::get<1>(test) == spectrum[partial * 2 + 1]);
 		}
 
 		CalcWave(spectrum, waveSawtooth, mipMapPolicy, "Sawtooth");
 
 		const auto s = mipMapPolicy.PrintMips("Sawtooth");
 		_RPT1(_CRT_WARN, "%s\n", s.c_str() );
-
-		PrintMidiNoteStats(44100);
-		PrintMidiNoteStats(96000);
-		//_RPT1(_CRT_WARN, "%s\n", s2.c_str());
 	}
 
 	r = getHost()->allocateSharedMemory(L"JM:Oscillator:Tri", (void**)&waveTriangle, -1, totalMemoryBytes, needInit);

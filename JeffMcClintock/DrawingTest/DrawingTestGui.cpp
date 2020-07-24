@@ -13,10 +13,6 @@ using namespace GmpiDrawing;
 
 GMPI_REGISTER_GUI(MP_SUB_TYPE_GUI2, DrawingTestGui, L"SE Drawing Test" );
 
-void DrawingTestGui::SwiftUItest(GmpiDrawing::Graphics& g)
-{
-}
-
 DrawingTestGui::DrawingTestGui()
 {
 	initializePin(pinTestType, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
