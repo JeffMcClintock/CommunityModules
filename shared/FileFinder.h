@@ -35,7 +35,7 @@ public:
 	{
 		platform_string filename;
 		platform_string fullPath;
-		bool isFolder;
+		bool isFolder = false;
 	};
 
 #if defined(_WIN32)
@@ -83,9 +83,8 @@ private:
 	FileFinderItem current_;
 	platform_string searchPath;
     bool done_;
-#if defined(_WIN32)
     bool last_;
-#else
+#if !defined(_WIN32)
 	platform_string extension;
 #endif
 };

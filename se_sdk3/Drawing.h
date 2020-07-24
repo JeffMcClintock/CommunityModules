@@ -1549,8 +1549,6 @@ namespace GmpiDrawing
 	class TextFormat : public TextFormat_readonly
 	{
 	public:
-//		GMPIGUISDK_DEFINE_CLASS(TextFormat, GmpiSdk::Internal::Object, GmpiDrawing_API::IMpTextFormat);
-
 		inline int32_t SetTextAlignment(TextAlignment textAlignment)
 		{
 			return Get()->SetTextAlignment((GmpiDrawing_API::MP1_TEXT_ALIGNMENT) textAlignment);
@@ -1769,11 +1767,6 @@ namespace GmpiDrawing
 	{
 	public:
 		GMPIGUISDK_DEFINE_CLASS(Brush, Resource, GmpiDrawing_API::IMpBrush);
-
-		inline void SetOpacity(float opacity)
-		{
-//			Get()->SetOpacity(opacity);
-		}
 	};
 
 	class BitmapBrush : public Brush

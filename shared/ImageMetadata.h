@@ -86,12 +86,18 @@ struct FontMetadata
 	std::string category_;
 	std::vector<std::string> faceFamilies_;
 	int flags_;
-	int size_;
-	int pixelWidth_; // original measurement in SynthEdit.
+	int size_;					// Classic font-size. Produces varying results on different platforms.
+	float bodyHeight_ = -1.0f;	// NEW: Produces text of consistant size (ascent+descent) on all platforms. -1 = ignore. Not supported on legacy SE pre May-2020.
+	bool bodyHeightDigitsOnly_ = false;
+	int pixelWidth_;			// original measurement in SynthEdit.
 	int pixelHeight_;
 	uint32_t color_;
 	uint32_t backgroundColor_;
 	int32_t vst3_vertical_offset_;
+	bool verticalSnapBackwardCompatibilityMode = true; // reverts to classic font positioning.
+
+	GmpiDrawing::WordWrapping wordWrapping = GmpiDrawing::WordWrapping::NoWrap;
+	GmpiDrawing::ParagraphAlignment paragraphAlignment = GmpiDrawing::ParagraphAlignment::Near;
 
 	FontMetadata(std::string category = "") :
 		category_(category)
@@ -100,7 +106,6 @@ struct FontMetadata
 		, pixelWidth_(8)
 		, pixelHeight_(12)
 		, color_(0xffffffff) // white is default for specified fonts (that exist in global.txt). Black is default for styles not found in global.txt 
-
 		, backgroundColor_(0) // transparent.
 		, vst3_vertical_offset_(0)
 	{}
@@ -114,7 +119,8 @@ struct FontMetadata
 		int flags,
 		int pixelWidth, // original measurement in SynthEdit.
 		int pixelHeight, // original measurement in SynthEdit.
-		uint32_t vst3_vertical_offset
+		uint32_t vst3_vertical_offset,
+		bool pverticalSnapBackwardCompatibilityMode
 		) :
 		category_(category)
 		, flags_(flags)
@@ -124,6 +130,7 @@ struct FontMetadata
 		, color_(color)
 		, backgroundColor_(backgroundColor)
 		, vst3_vertical_offset_(vst3_vertical_offset)
+		,verticalSnapBackwardCompatibilityMode(pverticalSnapBackwardCompatibilityMode)
 	{
 		faceFamilies_.push_back(typeface);
 	}
@@ -205,6 +212,7 @@ struct FontMetadata
 		}
 	}
 
+	// DEPRECATED.
 	// The new GUI API renders text differently than the old one.
 	// This method estimates the verical offset needed for backward compatibility.
 	int getLegacyVerticalOffset() const
@@ -237,20 +245,6 @@ struct FontMetadata
 
 		return verticalAdjustmentHack + vst3_vertical_offset_;
 	}
-
-	//GmpiDrawing::TextFormatProperties ToGmpi()
-	//{
-	//	GmpiDrawing::TextFormatProperties props
-	//	{
-	//	(float)size_, // dipFontSize
-	//	faceFamilies_[0],
-	//	(GmpiDrawing_API::MP1_FONT_WEIGHT) getWeight(),
-	//	(GmpiDrawing_API::MP1_FONT_STYLE) getStyle(),
-	//	GmpiDrawing_API::MP1_FONT_STRETCH_NORMAL,
-	//	};
-
-	//	return props;
-	//}
 };
 
 struct SkinMetadata
@@ -260,13 +254,12 @@ struct SkinMetadata
 		defaultFont_.faceFamilies_.push_back("Arial");
 		defaultFont_.color_ = 0xff000000 | GmpiDrawing::Color::Black; // From SE.
 	}
+	const FontMetadata* getFont(std::string category) const;
+	void Serialise(gmpi_sdk::mp_shared_ptr<gmpi::IProtectedFile2> stream);
 
 	std::vector<FontMetadata> fonts_;
-	void Serialise(gmpi_sdk::mp_shared_ptr<gmpi::IProtectedFile2> stream);
 	FontMetadata defaultFont_;
 	std::string skinUri;
-
-	FontMetadata* getFont(std::string category);
 };
 
 #endif

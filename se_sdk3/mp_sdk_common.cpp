@@ -186,7 +186,7 @@ int32_t MpFactory::createInstance( const wchar_t* uniqueId, int32_t subType,
 		}
 #endif
 
-		IoldSchoolInitialisation* p = dynamic_cast<IoldSchoolInitialisation*>( m );
+		IMpLegacyInitialization* p = dynamic_cast<IMpLegacyInitialization*>( m );
 		if( p )
 		{
 			p->setHost( host );

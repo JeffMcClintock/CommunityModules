@@ -91,6 +91,8 @@ void FileFinder::first( const platform_string& folderPath )
 
 void FileFinder::next()
 {
+    assert(!done_);
+    
 #if defined(_WIN32)
 	current_.filename = fdata.cFileName;
 	current_.isFolder = (fdata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
@@ -115,27 +117,28 @@ void FileFinder::next()
     }
     
 #else
+    if(last_)
+    {
+        done_ = true;
+        return;
+    }
+    
     current_.filename = entry->d_name;
     current_.isFolder = DT_REG != entry->d_type;
     
-	bool success = NULL != ( entry = readdir(directoryHandle) );
-    
-    // skip Unqualified
-    if (!extension.empty())
+    bool qualifies = true;
+    do
     {
-        while( success )
-        {
-            platform_string nextFilename = entry->d_name;
-            
-            if (getExtension(nextFilename) == extension || DT_REG != entry->d_type) // correct extension or is-folder breaks. DT_REG = regular file (not directory).
-                break;
-            
-            success = NULL != ( entry = readdir(directoryHandle) );
-        }
-    }
+        last_ = NULL == (entry = readdir(directoryHandle));
     
-    done_ = !success;
-    
+        qualifies =
+                last_
+                || extension.empty()
+                || getExtension(entry->d_name) == extension
+                || DT_REG != entry->d_type; // DT_REG = regular file (not directory).
+            
+    }while(!qualifies);
+
 #endif
 
 	current_.fullPath = combinePathAndFile( StripFilename(searchPath), current_.filename);

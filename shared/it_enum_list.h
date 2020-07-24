@@ -2,11 +2,51 @@
 #include <string>
 #include <assert.h>
 
+enum class enum_entry_type {Normal, Separator, Break, SubMenu, SubMenuEnd};
+
 struct enum_entry
 {
 	int index;
 	int value;
 	std::wstring text;
+
+	enum_entry_type getType() const
+	{
+		// Special commands (sub-menus)?
+		if(text.size() < 4)
+		{
+			return enum_entry_type::Normal;
+		}
+
+		for(int i = 1; i < 4; ++i)
+		{
+			if(text[0] != text[i])
+			{
+				return enum_entry_type::Normal;
+			}
+		}
+
+		switch (text[0])
+		{
+		case L'-':
+			return enum_entry_type::Separator;
+			break;
+
+		case L'|':
+			return enum_entry_type::Break;
+			break;
+
+		case L'>':
+			return enum_entry_type::SubMenu;
+			break;
+
+		case L'<':
+			return enum_entry_type::SubMenuEnd;
+			break;
+		}
+
+		return enum_entry_type::Normal;
+	}
 };
 
 // TODO: make more like STL, defer extracting text unless CurrentItem() called. hold pointer-to string, not copy-of.

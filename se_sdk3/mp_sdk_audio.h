@@ -36,7 +36,14 @@ namespace GmpiSdk
 {
 	class ProcessorHost : public Internal::GmpiIWrapper<gmpi::IMpHost>
 	{
+		gmpi::IGmpiHost* host2 = {};
+
 	public:
+		int32_t Init(gmpi::IMpUnknown* phost)
+		{
+			return phost->queryInterface(gmpi::MP_IID_PROCESSOR_HOST, (void**) &host2);
+		}
+
 		// Plugin sending out control data.
 		inline int32_t setPin(int32_t blockRelativeTimestamp, int32_t pinId, int32_t size, const void* data)
 		{
@@ -62,9 +69,17 @@ namespace GmpiSdk
 		// Query audio buffer size.
 		inline int32_t getBlockSize()
 		{
-			int32_t s;
+			int32_t s{};
 			Get()->getBlockSize(s);
 			return s;
+		}
+
+		void SetLatency(int32_t latency)
+		{
+			if(host2)
+			{
+				host2->setLatency(latency);
+			}
 		}
 		/*
 
@@ -508,7 +523,7 @@ MpBaseMemberPtr MpPinMidi<gmpi::MP_OUT>::getDefaultEventHandler(void);
 
 typedef	std::map<int, MpPinBase*> Pins_t;
 
-class MpPluginBase : public gmpi::IMpPlugin, public gmpi::IMpPlugin2, public IoldSchoolInitialisation
+class MpPluginBase : public gmpi::IMpPlugin, public gmpi::IMpPlugin2, public IoldSchoolInitialisation, public gmpi::IMpLegacyInitialization
 {
 	friend class TempBlockPositionSetter;
 
@@ -616,7 +631,6 @@ public:
 	virtual void onGraphStart();	// called on very first sample.
 
 protected:
-//	gmpi_sdk::mp_shared_ptr<gmpi::IMpHost> host_;
 	GmpiSdk::ProcessorHost host;
 	Pins_t pins_;
 

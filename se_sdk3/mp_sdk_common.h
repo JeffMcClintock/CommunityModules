@@ -302,10 +302,20 @@ public:
 	virtual int32_t MP_STDCALL receiveMessageFromGui( int32_t id, int32_t size, void* messageData ) = 0;
 };
 
-
 // GUID for IMpPlugin  - {2B0DFC7E-A539-49cd-B72D-32FF9DF0D9E4}
 static const MpGuid MP_IID_PLUGIN =
 { 0x2b0dfc7e, 0xa539, 0x49cd, { 0xb7, 0x2d, 0x32, 0xff, 0x9d, 0xf0, 0xd9, 0xe4 } };
+
+// Helper for old hosts calling new-style plugins and vica-versa.
+class IMpLegacyInitialization : public IMpUnknown
+{
+public:
+	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) = 0;
+};
+
+// GUID for IMpLegacyInitialization  - {0B471002-5627-4D46-984E-C0DC79D0AD35}
+static const MpGuid MP_IID_LEGACY_INITIALIZATION =
+{ 0xb471002, 0x5627, 0x4d46, { 0x98, 0x4e, 0xc0, 0xdc, 0x79, 0xd0, 0xad, 0x35 } };
 
 // IMpPlugin2
 // Music plugin audio processing interface V2. 2-stage construction.
@@ -448,6 +458,35 @@ public:
 static const MpGuid MP_IID_HOST =
 { 0x4f1b532f, 0x3c46, 0x4927, { 0xa4, 0x98, 0x61, 0x48, 0x67, 0x42, 0x5b, 0xe7 } };
 
+class IGmpiHost : public IMpUnknown
+{
+public:
+	// Plugin sending out control data.
+	virtual int32_t MP_STDCALL setPin( int32_t blockRelativeTimestamp, int32_t pinId, int32_t size, const void* data ) = 0;
+
+	// Plugin audio output start/stop (silence detection).
+	virtual int32_t MP_STDCALL setPinStreaming( int32_t blockRelativeTimestamp, int32_t pinId, bool isStreaming ) = 0;
+
+	// PDC (Plugin Delay Compensation) support.
+	virtual int32_t MP_STDCALL setLatency( int32_t latency ) = 0;
+
+	// Plugin indicates no processing needed until input state changes.
+	virtual int32_t MP_STDCALL sleep() = 0;
+
+	// Query audio buffer size.
+	virtual int32_t MP_STDCALL getBlockSize() = 0;
+
+	// Query sample-rate.
+	virtual float MP_STDCALL getSampleRate() = 0;
+
+	// Each plugin instance has a host-assigned unique handle shared by UI and Audio class.
+	virtual int32_t MP_STDCALL getHandle() = 0;
+};
+
+// GUID for IGmpiHost.
+// {87CCD426-71D7-414E-A9A6-5ADCA81C7420}
+static const MpGuid MP_IID_PROCESSOR_HOST =
+{ 0x87ccd426, 0x71d7, 0x414e, { 0xa9, 0xa6, 0x5a, 0xdc, 0xa8, 0x1c, 0x74, 0x20 } };
 
 // GUI PLUGIN
 
@@ -1017,7 +1056,7 @@ public:
 
 } // namespace
 
-// Helper for old hosts calling new-style plugins.
+// Helper for old hosts calling new-style plugins. Deprecated, use IMpLegacyInitialization instead.
 class IoldSchoolInitialisation
 {
 public:

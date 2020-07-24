@@ -24,7 +24,6 @@ void SplitString(const char* pText, std::vector<std::string>& returnValue)
 
 		char terminator;
 
-
 		while( true )
 		{
 			// eat leading spaces.
@@ -345,6 +344,10 @@ void SkinMetadata::Serialise(mp_shared_ptr<gmpi::IProtectedFile2> stream)
 					{
 						current->vst3_vertical_offset_ = StringToInt(words[1]);
 					}
+					if (words[0] == "legacy-vertical-offset")
+					{
+						current->verticalSnapBackwardCompatibilityMode = (0 != StringToInt(words[1]));
+					}
 					if (words[0] == "GDI_pixelHeight")
 					{
 						current->pixelHeight_ = StringToInt(words[1]);
@@ -456,7 +459,7 @@ void SkinMetadata::Serialise(mp_shared_ptr<gmpi::IProtectedFile2> stream)
 	}
 }
 
-FontMetadata* SkinMetadata::getFont(std::string category)
+const FontMetadata* SkinMetadata::getFont(std::string category) const
 {
 	transform(category.begin(), category.end(), category.begin(), towlower);
 

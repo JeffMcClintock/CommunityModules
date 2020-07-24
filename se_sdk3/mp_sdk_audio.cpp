@@ -28,6 +28,13 @@ int32_t MpPluginBase::queryInterface( const gmpi::MpGuid& iid, void** returnInte
 		return gmpi::MP_OK;
 	}
 
+	if( iid == MP_IID_LEGACY_INITIALIZATION )
+	{
+		*returnInterface = static_cast<gmpi::IMpLegacyInitialization*>(this);
+		addRef();
+		return gmpi::MP_OK;
+	}
+
 	return MP_NOSUPPORT;
 }
 
@@ -370,11 +377,11 @@ MpPluginBase::MpPluginBase( ) :
 	,debugGraphStartCalled_( false )
 	#endif
 {
-//	host->query Interface( MP_IID_HOST, reinterpret_cast<void**>( &host_ ) );
 }
 
 int32_t MpPluginBase::setHost( gmpi::IMpUnknown* phost )
 {
+	host.Init(phost);
 	return phost->queryInterface(MP_IID_HOST, host.asIMpUnknownPtr());
 }
 

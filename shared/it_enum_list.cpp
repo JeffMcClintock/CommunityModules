@@ -166,7 +166,7 @@ bool it_enum_list::FindValue( int p_value )
 
 	for( First(); !IsDone(); Next() )
 	{
-		if( CurrentItem()->value == p_value )
+		if(CurrentItem()->value == p_value && CurrentItem()->getType() == enum_entry_type::Normal)
 			return true;
 	}
 	return false;
@@ -176,7 +176,7 @@ bool it_enum_list::FindIndex( int p_index )
 {
 	for( First(); !IsDone(); Next() )
 	{
-		if( CurrentItem()->index == p_index )
+		if(CurrentItem()->index == p_index && CurrentItem()->getType() == enum_entry_type::Normal)
 			return true;
 	}
 	return false;

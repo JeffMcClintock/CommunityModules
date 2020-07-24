@@ -1,3 +1,4 @@
+#define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS 1
 #include "wav_file.h"
 
 #include <algorithm>

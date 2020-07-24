@@ -99,7 +99,7 @@ protected:
 
 // Abstract base class for several derived classes.
 class MpGuiBase_base :
-	public gmpi::IMpUserInterface, public IoldSchoolInitialisation, public GuiPinOwner
+	public gmpi::IMpUserInterface, public IoldSchoolInitialisation, public gmpi::IMpLegacyInitialization, public GuiPinOwner
 {
 public:
 	MpGuiBase_base(IMpUnknown* host);
@@ -138,7 +138,7 @@ public:
 	virtual int32_t MP_STDCALL onCreateContextMenu() override;
 	virtual int32_t MP_STDCALL onContextMenu( int32_t selection ) override;
 
-	// IoldSchoolInitialisation interface.
+	// IMpLegacyInitialization interface.
 	virtual int32_t MP_STDCALL setHost(IMpUnknown* host) override;
 	gmpi::IMpUserInterfaceHost* getHost(void){ return patchMemoryHost_; }
 
@@ -147,7 +147,28 @@ public:
 		return getHost()->pinTransmit(pinId, size, (void*) data, voice);
 	}
 
-	GMPI_QUERYINTERFACE1(gmpi::MP_IID_GUI_PLUGIN, gmpi::IMpUserInterface)
+//	GMPI_QUERYINTERFACE1(gmpi::MP_IID_GUI_PLUGIN, gmpi::IMpUserInterface)
+	GMPI_REFCOUNT;
+	int32_t MP_STDCALL queryInterface( const gmpi::MpGuid& iid, void** returnInterface ) override
+	{
+		*returnInterface = 0;
+
+		if( iid == gmpi::MP_IID_GUI_PLUGIN || iid == gmpi::MP_IID_UNKNOWN )
+		{
+			*returnInterface = static_cast<gmpi::IMpUserInterface*>(this);
+			addRef();
+			return gmpi::MP_OK;
+		}
+
+		if( iid == gmpi::MP_IID_LEGACY_INITIALIZATION )
+		{
+			*returnInterface = static_cast<gmpi::IMpLegacyInitialization*>(this);
+			addRef();
+			return gmpi::MP_OK;
+		}
+
+		return gmpi::MP_NOSUPPORT;
+	}
 
 protected:
 	gmpi::IMpUserInterfaceHost* patchMemoryHost_;
@@ -305,7 +326,7 @@ public:
 	void invalidateRect( RECT* invalidRect = 0, bool eraseBackground = true );
 	ISeGraphicsHostComposited* getGuiHost(void){return guiHost_;};
 
-	// IoldSchoolInitialisation interface.
+	// IMpLegacyInitialization interface.
 	virtual int32_t MP_STDCALL setHost(IMpUnknown* host) override;
 
 	GMPI_QUERYINTERFACE2(SE_IID_GRAPHICS_COMPOSITED, ISeGraphicsComposited, MpGuiBase)
@@ -353,7 +374,7 @@ public:
 	MpRect getRect(){return rect_;};
 	IMpGraphicsWinGdi* getGuiHost(void){return guiHost_;};
 
-	// IoldSchoolInitialisation interface.
+	// IMpLegacyInitialization interface.
 	virtual int32_t MP_STDCALL setHost(IMpUnknown* host) override;
 
 	GMPI_QUERYINTERFACE2(MP_IID_GRAPHICS_WIN_GDI, IMpGraphicsWinGdi, MpGuiBase)
@@ -377,7 +398,7 @@ public:
 
 	ISeGraphicsHostWinGdi* getGuiHost(void){return seGuiHost_;};
 
-	// IoldSchoolInitialisation interface.
+	// IMpLegacyInitialization interface.
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 
 //	GMPI_QUERYINTERFACE2(MP_IID_GRAPHICS_WIN_GDI, IMpGraphicsWinGdi, MpGuiWindowsGfxBase)
