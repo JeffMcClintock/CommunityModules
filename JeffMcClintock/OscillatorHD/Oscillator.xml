@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <PluginList>
-  <Plugin id="SE Oscillator" name="Oscillator HD" category="Community">
+  <Plugin id="SE Oscillator" name="Oscillator HD" category="Community/Under Construction">
     <Audio>
       <Pin name="Pitch" datatype="float" rate="audio" default="0.5" />
       <Pin name="Pulse Width" datatype="float" rate="audio" default="0.5" />

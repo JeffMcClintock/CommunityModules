@@ -323,9 +323,9 @@ class Oscillator : public MpBase2
 
 	WavetableMipmapPolicy mipMapPolicySine;
 	WavetableMipmapPolicy mipMapPolicy; // others
-	float* waveSawtooth;
-	float* waveTriangle;
-	float* waveSine;
+	float* waveSawtooth = nullptr;
+	float* waveTriangle = nullptr;
+	float* waveSine = nullptr;
 
 	int zeroSamplesCounter = 0;
 

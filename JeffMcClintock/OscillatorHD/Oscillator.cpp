@@ -147,8 +147,11 @@ int32_t Oscillator::open()
 
 	// Sawtooth
 	{
-		auto needAllocation = (MP_OK != getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, -1, -1, needInit));
-		if(needAllocation)
+		assert(!waveSawtooth);
+		// Query if wave already exists. But don't create it if not. (size = -1)
+		getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, getSampleRate(), -1, needInit);
+
+		if(!waveSawtooth)
 		{
 			auto sawToothSpectrum = [](int partial) -> std::tuple<float, float> {
 				constexpr float scale = -1.0f / M_PI;
@@ -158,18 +161,21 @@ int32_t Oscillator::open()
 			const auto mips = MipMapCalculator::CalcMips(getSampleRate(), sawToothSpectrum);
 			MipMapCalculator::PrintMips(getSampleRate(), mips);
 
+			// Do actual allocation.
 			r = getHost()->allocateSharedMemory(
 				L"JM:HdOscillator:Saw",
 				(void**)&waveSawtooth,
-				-1,
+				getSampleRate(),
 				static_cast<int32_t>(mips.GetTotalMemoryBytes()),
 				needInit
 			);
 
+			assert(r == MP_OK);
 			assert(needInit);
 			// TODO. if I put mip level info AND waveform in shared mem, don't need to recalc it for every osc.
 
-			// mips.writeOut(&waveSawtooth);
+			// Write 'flattened' copy of mips table followed by Waveformdata to shared memory.
+			// mips.generate(&waveSawtooth);
 		}
 	}
 
@@ -179,7 +185,6 @@ int32_t Oscillator::open()
 	{
 		const int maxSamples = 16384;
 		float spectrum[maxSamples + 2];
-
 
 		// Saw Wave.
 		int totalHarmonics = maxSamples / 2;
