@@ -1,6 +1,5 @@
 #include "./Oscillator.h"
 #include "real_fft.h"
-#include "OscMipmaps.h"
 
 using namespace gmpi;
 
@@ -149,18 +148,26 @@ int32_t Oscillator::open()
 	{
 		assert(!waveSawtooth);
 		// Query if wave already exists. But don't create it if not. (size = -1)
-		getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, getSampleRate(), -1, needInit);
+//		getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, getSampleRate(), -1, needInit);
 
 		if(!waveSawtooth)
 		{
 			auto sawToothSpectrum = [](int partial) -> std::tuple<float, float> {
 				constexpr float scale = -1.0f / M_PI;
-				return { 0.0f, scale / partial };
+
+				if(partial == 0)
+				{
+					return { 0.0f, 0.0f }; // DC and nyquist
+				}
+				else
+				{
+					return { 0.0f, scale / partial };
+				}
 			};
 
 			const auto mips = MipMapCalculator::CalcMips(getSampleRate(), sawToothSpectrum);
 			MipMapCalculator::PrintMips(getSampleRate(), mips);
-
+/*
 			// Do actual allocation.
 			r = getHost()->allocateSharedMemory(
 				L"JM:HdOscillator:Saw",
@@ -169,13 +176,16 @@ int32_t Oscillator::open()
 				static_cast<int32_t>(mips.GetTotalMemoryBytes()),
 				needInit
 			);
-
 			assert(r == MP_OK);
 			assert(needInit);
+*/
 			// TODO. if I put mip level info AND waveform in shared mem, don't need to recalc it for every osc.
 
 			// Write 'flattened' copy of mips table followed by Waveformdata to shared memory.
 			// mips.generate(&waveSawtooth);
+
+			// TODO: Share it.
+			waveSawtooth2 = MipMapCalculator::generateWavetable(mips, sawToothSpectrum);
 		}
 	}
 
@@ -537,6 +547,7 @@ void Oscillator::startGrain( phasor_t initCount, float increment, int fadeIncrem
 
 	grains[g].fadeIndex += grains[g].fadeIncrement;
 
+/* todo
 	WavetableMipmapPolicy* mipPolicy;
 
 	switch (pinWaveform)
@@ -554,12 +565,18 @@ void Oscillator::startGrain( phasor_t initCount, float increment, int fadeIncrem
 		mipPolicy = &mipMapPolicy;
 		break;
 	}
-
 	int mip = mipPolicy->CalcMipLevel(increment);
-	grains[g].maxIncrement = mipPolicy->GetMaximumIncrement(mip);
-	grains[g].minIncrement = mipPolicy->GetMinimumIncrement(mip);
-	grains[g].waveSize = mipPolicy->GetWaveSize(mip);
-	grains[g].wave += mipPolicy->getSlotOffset(0, 0, mip) + extraInterpolationPreSamples;
+*/
+	const auto& mipMap = *waveSawtooth2;
+
+	const auto mip = CalcMipLevel(mipMap, increment);
+
+	grains[g].wave = mip->GetWave(); // TODO arrrange layout of mip same as grain.
+	grains[g].maxIncrement = mip->maximumIncrement;
+	grains[g].minIncrement = mip->minimumIncrement;
+	grains[g].waveSize = mip->GetWaveSize();
+
+	grains[g].PrintState();
 }
 
 void Oscillator::sub_process_white_noise( int sampleFrames )

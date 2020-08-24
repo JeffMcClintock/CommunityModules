@@ -5,6 +5,7 @@
 #include <math.h>
 #include "mp_sdk_audio.h"
 #include "OscMipmapPolicy.h"
+#include "OscMipmaps.h"
 
 typedef double phasor_t;
 
@@ -166,7 +167,7 @@ struct Grain
 {
 	int waveSize;
 	phasor_t count;
-	float* wave;
+	const float* wave = {};
 	int fadeIncrement;
 	int fadeIndex;
 	phasor_t minIncrement;
@@ -177,9 +178,22 @@ struct Grain
 	{
 		waveSize = 0;
 	}
-	inline bool isActive()
+	inline bool isActive() const
 	{
 		return waveSize != 0;
+	}
+
+	void PrintState() const
+	{
+#if defined(_DEBUG) && defined(WIN32)
+	_RPT0(_CRT_WARN, "osc-HD---GRAIN------------\n");
+	_RPT1(_CRT_WARN, "   waveSize %d\n    {", waveSize);
+	for(int i = -4; i < (std::min)(20, waveSize + 4); ++i)
+	{
+		_RPT1(_CRT_WARN, " %f, ", wave[i]);
+	}
+	_RPT0(_CRT_WARN, "\n");
+#endif
 	}
 };
 
@@ -326,6 +340,8 @@ class Oscillator : public MpBase2
 	float* waveSawtooth = nullptr;
 	float* waveTriangle = nullptr;
 	float* waveSine = nullptr;
+
+	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSawtooth2;
 
 	int zeroSamplesCounter = 0;
 
