@@ -145,48 +145,52 @@ int32_t Oscillator::open()
 	// Init wavetable memory.
 
 	// Sawtooth
-	{
-		assert(!waveSawtooth);
-		// Query if wave already exists. But don't create it if not. (size = -1)
+	assert(!waveSawtooth);
+	// Query if wave already exists. But don't create it if not. (size = -1)
 //		getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, getSampleRate(), -1, needInit);
 
-		if(!waveSawtooth)
+	if(!waveSawtooth)
+	{
+		auto sawToothSpectrum = [](int partial) -> std::tuple<float, float>
 		{
-			auto sawToothSpectrum = [](int partial) -> std::tuple<float, float> {
-				constexpr float scale = -1.0f / M_PI;
+			constexpr float scale = -1.0f / M_PI;
 
-				if(partial == 0)
-				{
-					return { 0.0f, 0.0f }; // DC and nyquist
-				}
-				else
-				{
-					return { 0.0f, scale / partial };
-				}
-			};
+			if(partial == 0)
+			{
+				return { 0.0f, 0.0f }; // DC and nyquist
+			}
+			else
+			{
+				return { 0.0f, scale / partial };
+			}
+		};
 
-			const auto mips = MipMapCalculator::CalcMips(getSampleRate(), sawToothSpectrum);
-			MipMapCalculator::PrintMips(getSampleRate(), mips);
-/*
-			// Do actual allocation.
-			r = getHost()->allocateSharedMemory(
-				L"JM:HdOscillator:Saw",
-				(void**)&waveSawtooth,
-				getSampleRate(),
-				static_cast<int32_t>(mips.GetTotalMemoryBytes()),
-				needInit
-			);
-			assert(r == MP_OK);
-			assert(needInit);
-*/
-			// TODO. if I put mip level info AND waveform in shared mem, don't need to recalc it for every osc.
+		const auto mips = MipMapCalculator::CalcMips(getSampleRate(), sawToothSpectrum);
+		MipMapCalculator::PrintMips(getSampleRate(), mips, "SawTooth");
 
-			// Write 'flattened' copy of mips table followed by Waveformdata to shared memory.
-			// mips.generate(&waveSawtooth);
+		// TODO: Share it.
+		waveSawtooth2 = MipMapCalculator::generateWavetable(mips, sawToothSpectrum);
+	}
 
-			// TODO: Share it.
-			waveSawtooth2 = MipMapCalculator::generateWavetable(mips, sawToothSpectrum);
-		}
+	if(!waveSine)
+	{
+		auto sineSpectrum = [](int partial) -> std::tuple<float, float>
+		{
+			if(partial == 1)
+			{
+				return { 0.0f, 0.5f };
+			}
+			else
+			{
+				return { 0.0f, 0.0f }; // DC and nyquist and all other harmonics.
+			}
+		};
+
+		const auto mips = MipMapCalculator::CalcMips(getSampleRate(), sineSpectrum);
+		MipMapCalculator::PrintMips(getSampleRate(), mips, "Sine");
+
+		// TODO: Share it.
+		waveSine2 = MipMapCalculator::generateWavetable(mips, sineSpectrum);
 	}
 
 	totalMemoryBytes = mipMapPolicy.GetTotalMipMapSize() * sizeof(float);

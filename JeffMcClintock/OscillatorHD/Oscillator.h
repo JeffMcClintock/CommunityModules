@@ -342,6 +342,7 @@ class Oscillator : public MpBase2
 	float* waveSine = nullptr;
 
 	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSawtooth2;
+	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSine2;
 
 	int zeroSamplesCounter = 0;
 
