@@ -32,7 +32,7 @@ Oscillator::Oscillator() :
 	initializePin(pinVoiceActive);
 }
 
-
+#if 0
 //#define PRINT_WAVETABLE_STATS 1
 void Oscillator::CalcWave(float* spectrum, float* pdest, const WavetableMipmapPolicy& pMipMapPolicy, const char* debug_waveshape_name)
 {
@@ -95,6 +95,7 @@ void Oscillator::CalcWave(float* spectrum, float* pdest, const WavetableMipmapPo
 		}
 	}
 }
+#endif
 
 int32_t Oscillator::open()
 {
@@ -139,17 +140,50 @@ int32_t Oscillator::open()
 	const int maxWaveSz = 8192; // biggest wave FFT can handle.
 	const int waveOversample = 32;
 	const double spectrumFill = 0.5; // how much spectum (minimum) to produce at any MIP level.
-	mipMapPolicy.initializeOsc(mipCount, waveOversample, extraInterpolationPreSamples + extraInterpolationPostSamples, minWaveSz, maxWaveSz, spectrumFill);
-	mipMapPolicySine.initializeOsc(2, waveOversample, extraInterpolationPreSamples + extraInterpolationPostSamples, 512, maxWaveSz, spectrumFill);
+//	mipMapPolicy.initializeOsc(mipCount, waveOversample, extraInterpolationPreSamples + extraInterpolationPostSamples, minWaveSz, maxWaveSz, spectrumFill);
+//	mipMapPolicySine.initializeOsc(2, waveOversample, extraInterpolationPreSamples + extraInterpolationPostSamples, 512, maxWaveSz, spectrumFill);
 
 	// Init wavetable memory.
 
 	// Sawtooth
-	assert(!waveSawtooth);
+//	assert(!waveSawtooth);
 	// Query if wave already exists. But don't create it if not. (size = -1)
 //		getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, getSampleRate(), -1, needInit);
 
-	if(!waveSawtooth)
+//	if(!waveTriangle)
+	{
+		auto TriangleSpectrum = [](int partial) -> std::tuple<float, float>
+		{
+			constexpr float scale = 4.0f / (float)(M_PI * M_PI); // scale to 5V.
+
+			if(partial == 0)
+			{
+				return { 0.0f, 0.0f }; // DC and nyquist
+			}
+			else
+			{
+				if ((partial & 0x01) == 0)
+				{
+					return { 0.0f, 0.0f };
+				}
+
+				float level = scale / (partial * partial);
+				if ((partial >> 1) & 1) // every 2nd harmonic inverted
+				{
+					level = -level;
+				}
+				return { 0.0f, level };
+			}
+		};
+
+		const auto mips = MipMapCalculator::CalcMips(getSampleRate(), TriangleSpectrum);
+		MipMapCalculator::PrintMips(getSampleRate(), mips, "Triangle");
+
+		// TODO: Share it.
+		waveTriangle2 = MipMapCalculator::generateWavetable(mips, TriangleSpectrum);
+	}
+
+//	if(!waveSawtooth)
 	{
 		auto sawToothSpectrum = [](int partial) -> std::tuple<float, float>
 		{
@@ -172,7 +206,7 @@ int32_t Oscillator::open()
 		waveSawtooth2 = MipMapCalculator::generateWavetable(mips, sawToothSpectrum);
 	}
 
-	if(!waveSine)
+//	if(!waveSine)
 	{
 		auto sineSpectrum = [](int partial) -> std::tuple<float, float>
 		{
@@ -192,7 +226,7 @@ int32_t Oscillator::open()
 		// TODO: Share it.
 		waveSine2 = MipMapCalculator::generateWavetable(mips, sineSpectrum);
 	}
-
+#if 0
 	totalMemoryBytes = mipMapPolicy.GetTotalMipMapSize() * sizeof(float);
 	r = getHost()->allocateSharedMemory(L"JM:Oscillator:Saw", (void**)&waveSawtooth, -1, totalMemoryBytes, needInit);
 	if (needInit != 0)
@@ -227,7 +261,6 @@ int32_t Oscillator::open()
 		const int maxSamples = 16384;
 		float spectrum[maxSamples + 2];
 
-		// Saw Wave.
 		int totalHarmonics = maxSamples / 2;
 		spectrum[0] = spectrum[1] = 0.0f; // DC and nyquist level.
 		float scale = 4.0f / (float)(M_PI * M_PI); // scale to 5V.
@@ -264,6 +297,7 @@ int32_t Oscillator::open()
 
 		CalcWave(spectrum, waveSine, mipMapPolicySine, "Sine");
 	}
+#endif
 
 	SET_PROCESS2(&Oscillator::sub_process_silence);
 
@@ -551,29 +585,22 @@ void Oscillator::startGrain( phasor_t initCount, float increment, int fadeIncrem
 
 	grains[g].fadeIndex += grains[g].fadeIncrement;
 
-/* todo
-	WavetableMipmapPolicy* mipPolicy;
+	std::vector<MipMapCalculator::WavetableMip>* mipMap;
 
 	switch (pinWaveform)
 	{
 	case WS_SINE:
-		grains[g].wave = waveSine;
-		mipPolicy = &mipMapPolicySine;
+		mipMap = waveSine2.get();
 		break;
 	case WS_TRI:
-		grains[g].wave = waveTriangle;
-		mipPolicy = &mipMapPolicy;
+		mipMap = waveTriangle2.get();
 		break;
 	default:
-		grains[g].wave = waveSawtooth;
-		mipPolicy = &mipMapPolicy;
+		mipMap = waveSawtooth2.get();
 		break;
 	}
-	int mip = mipPolicy->CalcMipLevel(increment);
-*/
-	const auto& mipMap = *waveSawtooth2;
 
-	const auto mip = CalcMipLevel(mipMap, increment);
+	const auto mip = CalcMipLevel(*mipMap, increment);
 
 	grains[g].wave = mip->GetWave(); // TODO arrrange layout of mip same as grain.
 	grains[g].maxIncrement = mip->maximumIncrement;

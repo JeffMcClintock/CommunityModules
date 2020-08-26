@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "mp_sdk_audio.h"
-#include "OscMipmapPolicy.h"
+//#include "OscMipmapPolicy.h"
 #include "OscMipmaps.h"
 
 typedef double phasor_t;
@@ -335,13 +335,14 @@ class Oscillator : public MpBase2
 	float buf4;
 	float buf5;
 
-	WavetableMipmapPolicy mipMapPolicySine;
-	WavetableMipmapPolicy mipMapPolicy; // others
-	float* waveSawtooth = nullptr;
-	float* waveTriangle = nullptr;
-	float* waveSine = nullptr;
+//	WavetableMipmapPolicy mipMapPolicySine;
+//	WavetableMipmapPolicy mipMapPolicy; // others
+	//float* waveSawtooth = nullptr;
+	//float* waveTriangle = nullptr;
+	//float* waveSine = nullptr;
 
 	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSawtooth2;
+	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveTriangle2;
 	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSine2;
 
 	int zeroSamplesCounter = 0;
@@ -626,7 +627,7 @@ public:
 	void resetOscillator();
 	void doSync(bool newSyncState);
 	virtual void onSetPins(void);
-	void CalcWave(float* spectrum, float* dest, const WavetableMipmapPolicy& mipMapPolicy, const char* debug_waveshape_name);
+//	void CalcWave(float* spectrum, float* dest, const WavetableMipmapPolicy& mipMapPolicy, const char* debug_waveshape_name);
 	void ChooseProcessMethod();
 };
 
