@@ -260,7 +260,7 @@ namespace MipMapCalculator
 			wavetable->push_back(std::move(mip));
 		}
 
-		wavetable->back().maximumIncrement = -1;
+		wavetable->back().minimumIncrement = -1;
 
 		for(size_t i = 0; i < wavetable->size() - 1; ++i)
 		{

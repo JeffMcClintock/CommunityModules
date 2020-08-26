@@ -1,5 +1,6 @@
 #include "./Oscillator.h"
 #include "real_fft.h"
+#include "SharedObject.h"
 
 using namespace gmpi;
 
@@ -150,7 +151,7 @@ int32_t Oscillator::open()
 	// Query if wave already exists. But don't create it if not. (size = -1)
 //		getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, getSampleRate(), -1, needInit);
 
-//	if(!waveTriangle)
+	auto TriangleMaker = [](float sampleRate) -> std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>>
 	{
 		auto TriangleSpectrum = [](int partial) -> std::tuple<float, float>
 		{
@@ -162,13 +163,13 @@ int32_t Oscillator::open()
 			}
 			else
 			{
-				if ((partial & 0x01) == 0)
+				if((partial & 0x01) == 0)
 				{
 					return { 0.0f, 0.0f };
 				}
 
 				float level = scale / (partial * partial);
-				if ((partial >> 1) & 1) // every 2nd harmonic inverted
+				if((partial >> 1) & 1) // every 2nd harmonic inverted
 				{
 					level = -level;
 				}
@@ -176,56 +177,62 @@ int32_t Oscillator::open()
 			}
 		};
 
-		const auto mips = MipMapCalculator::CalcMips(getSampleRate(), TriangleSpectrum);
-		MipMapCalculator::PrintMips(getSampleRate(), mips, "Triangle");
+		const auto mips = MipMapCalculator::CalcMips(sampleRate, TriangleSpectrum);
+		MipMapCalculator::PrintMips(sampleRate, mips, "Triangle");
+		return MipMapCalculator::generateWavetable(mips, TriangleSpectrum);;
+	};
 
-		// TODO: Share it.
-		waveTriangle2 = MipMapCalculator::generateWavetable(mips, TriangleSpectrum);
-	}
+	// TODO release mem after period of inactivity.
+	waveTriangle2 = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(getSampleRate(), WS_TRI, TriangleMaker);
 
-//	if(!waveSawtooth)
-	{
-		auto sawToothSpectrum = [](int partial) -> std::tuple<float, float>
+	waveSawtooth2 = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(
+		getSampleRate(),
+		WS_SAW,
+		[](float sampleRate) -> std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>>
 		{
-			constexpr float scale = -1.0f / M_PI;
-
-			if(partial == 0)
+			auto sawToothSpectrum = [](int partial) -> std::tuple<float, float>
 			{
-				return { 0.0f, 0.0f }; // DC and nyquist
-			}
-			else
-			{
-				return { 0.0f, scale / partial };
-			}
-		};
+				constexpr float scale = -1.0f / M_PI;
 
-		const auto mips = MipMapCalculator::CalcMips(getSampleRate(), sawToothSpectrum);
-		MipMapCalculator::PrintMips(getSampleRate(), mips, "SawTooth");
+				if(partial == 0)
+				{
+					return { 0.0f, 0.0f }; // DC and nyquist
+				}
+				else
+				{
+					return { 0.0f, scale / partial };
+				}
+			};
 
-		// TODO: Share it.
-		waveSawtooth2 = MipMapCalculator::generateWavetable(mips, sawToothSpectrum);
-	}
+			const auto mips = MipMapCalculator::CalcMips(sampleRate, sawToothSpectrum);
+			MipMapCalculator::PrintMips(sampleRate, mips, "SawTooth");
+			return MipMapCalculator::generateWavetable(mips, sawToothSpectrum);
+		}
+		);
 
-//	if(!waveSine)
-	{
-		auto sineSpectrum = [](int partial) -> std::tuple<float, float>
+		waveSine2 = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(
+		getSampleRate(),
+		WS_SINE,
+		[](float sampleRate) -> std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>>
 		{
-			if(partial == 1)
+			auto sineSpectrum = [](int partial) -> std::tuple<float, float>
 			{
-				return { 0.0f, 0.5f };
-			}
-			else
-			{
-				return { 0.0f, 0.0f }; // DC and nyquist and all other harmonics.
-			}
-		};
+				if(partial == 1)
+				{
+					return { 0.0f, 0.5f };
+				}
+				else
+				{
+					return { 0.0f, 0.0f }; // DC and nyquist and all other harmonics.
+				}
+			};
 
-		const auto mips = MipMapCalculator::CalcMips(getSampleRate(), sineSpectrum);
-		MipMapCalculator::PrintMips(getSampleRate(), mips, "Sine");
+			const auto mips = MipMapCalculator::CalcMips(sampleRate, sineSpectrum);
+			MipMapCalculator::PrintMips(sampleRate, mips, "Sine");
+			return MipMapCalculator::generateWavetable(mips, sineSpectrum);
+		}
+		);
 
-		// TODO: Share it.
-		waveSine2 = MipMapCalculator::generateWavetable(mips, sineSpectrum);
-	}
 #if 0
 	totalMemoryBytes = mipMapPolicy.GetTotalMipMapSize() * sizeof(float);
 	r = getHost()->allocateSharedMemory(L"JM:Oscillator:Saw", (void**)&waveSawtooth, -1, totalMemoryBytes, needInit);

@@ -25,6 +25,9 @@
     <ClInclude Include="..\..\se_sdk3\mp_sdk_common.h">
       <Filter>sdk</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\shared\SharedObject.h">
+      <Filter>sdk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="sdk">
