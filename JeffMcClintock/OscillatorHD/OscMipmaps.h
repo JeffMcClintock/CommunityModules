@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Wavetable.h"
 #include <vector>
 #include <sstream>
 #include <iomanip>

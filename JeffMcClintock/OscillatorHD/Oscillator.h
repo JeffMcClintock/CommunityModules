@@ -3,8 +3,8 @@
 #include "xp_simd.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <array>
 #include "mp_sdk_audio.h"
-//#include "OscMipmapPolicy.h"
 #include "OscMipmaps.h"
 
 typedef double phasor_t;
@@ -309,18 +309,24 @@ struct CubicInterpolator
 class Oscillator : public MpBase2
 {
 	const static int MaxGrains = 4;
-	const static int extraInterpolationPreSamples = 1;
-	const static int extraInterpolationPostSamples = 3;
-	const static int syncCrossFadeSamples = 8;
+	const static size_t syncCrossFadeSamples = 8;
+	const static size_t syncCrossFadeTableSize = syncCrossFadeSamples + 1;
 
-	static const int mipCount = 14;
-	static unsigned int randomSeedValue;
+	constexpr std::array<float, syncCrossFadeTableSize> fill_crossfade_array()
+	{
+		std::array<float, syncCrossFadeTableSize> v{ 0 };
+		for(uint64_t i = 0; i < syncCrossFadeTableSize; ++i)
+		{
+			v[i] = 0.5f + 0.5f * sinf( (float)M_PI * ((float)(i + 1) / (float)(syncCrossFadeSamples + 1) - 0.5f));
+		}
+		return v;
+	}
 
 	Grain grains[MaxGrains];
 	float increment;
-	float *pitchTable;
-	float* waveData_;
-	float* syncFadeCurve_;
+	float* pitchTable = {};
+	float* waveData_ = {};
+	std::array<float, syncCrossFadeTableSize> syncFadeCurve_ = fill_crossfade_array();
 	bool syncState;
 	float prevSync;
 	bool firstTime;
@@ -335,15 +341,9 @@ class Oscillator : public MpBase2
 	float buf4;
 	float buf5;
 
-//	WavetableMipmapPolicy mipMapPolicySine;
-//	WavetableMipmapPolicy mipMapPolicy; // others
-	//float* waveSawtooth = nullptr;
-	//float* waveTriangle = nullptr;
-	//float* waveSine = nullptr;
-
-	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSawtooth2;
-	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveTriangle2;
-	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSine2;
+	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSawtooth;
+	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveTriangle;
+	std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>> waveSine;
 
 	int zeroSamplesCounter = 0;
 
@@ -627,7 +627,6 @@ public:
 	void resetOscillator();
 	void doSync(bool newSyncState);
 	virtual void onSetPins(void);
-//	void CalcWave(float* spectrum, float* dest, const WavetableMipmapPolicy& mipMapPolicy, const char* debug_waveshape_name);
 	void ChooseProcessMethod();
 };
 

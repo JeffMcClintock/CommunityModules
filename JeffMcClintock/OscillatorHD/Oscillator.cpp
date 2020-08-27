@@ -33,71 +33,6 @@ Oscillator::Oscillator() :
 	initializePin(pinVoiceActive);
 }
 
-#if 0
-//#define PRINT_WAVETABLE_STATS 1
-void Oscillator::CalcWave(float* spectrum, float* pdest, const WavetableMipmapPolicy& pMipMapPolicy, const char* debug_waveshape_name)
-{
-#ifdef PRINT_WAVETABLE_STATS
-	_RPT1(_CRT_WARN, "\n\n%s\n", debug_waveshape_name);
-	_RPT0(_CRT_WARN, "---------------------------\n");
-#endif
-
-	for (int mip = 0; mip < pMipMapPolicy.getMipCount(); ++mip)
-	{
-		int wavesize = pMipMapPolicy.GetWaveSize(mip);
-		int activepartials = pMipMapPolicy.GetPartialCount(mip);
-
-		float* dest = pdest + pMipMapPolicy.getSlotOffset(0, 0, mip) + extraInterpolationPreSamples;
-		unsigned int fftSize = wavesize;
-		bool applyGibbsFix = mip > 2 && mip == pMipMapPolicy.getMipCount() - 1; // lowest mip of sawtooth smooth to reduce overtone when stretched right down.
-
-//#ifdef PRINT_WAVETABLE_STATS
-//		_RPT0(_CRT_WARN, "Harm     lev          Gibbs\n");
-//		_RPT0(_CRT_WARN, "---------------------------\n");
-//#endif
-		int componenets = (std::min)(activepartials * 2, wavesize - 2);
-
-#ifdef PRINT_WAVETABLE_STATS
-		_RPT3(_CRT_WARN, "MIP %3d partials %3d size %d\n", mip, (componenets / 2), wavesize);
-#endif
-
-		int i;
-		for (i = 0; i < (componenets + 2); i = i + 2)
-		{
-			dest[i] = spectrum[i];
-			dest[i + 1] = spectrum[i + 1];
-
-			// Gibbs fix intended to make wave smoother for less interpolation noise.
-			// Requires extra MIPs to work without attenuating HF.
-
-			if (applyGibbsFix)
-			{
-				float damping = (float)(i - 2) / (componenets);
-				float window = 0.5f + 0.5f * cosf(damping * (float)M_PI);
-				dest[i + 1] *= window;
-				dest[i] *= window;
-			}
-		}
-		for (; i < (int)fftSize; ++i)
-		{
-			dest[i] = 0.0f;
-		}
-
-		realft(dest - 1, fftSize, -1);
-
-		// Wrap samples off front and back to ease interpolator.
-		for (i = -extraInterpolationPreSamples; i < 0; ++i)
-		{
-			dest[i] = dest[i + fftSize];
-		}
-		for (i = 0; i < extraInterpolationPostSamples; ++i)
-		{
-			dest[fftSize + i] = dest[i];
-		}
-	}
-}
-#endif
-
 int32_t Oscillator::open()
 {
 	// 20kHz is about 10.5 Volts. 1Hz is about -3.7 volts. 0.01Hz = -10V
@@ -107,7 +42,7 @@ int32_t Oscillator::open()
     const int pitchTableSize = extraEntriesAtStart + extraEntriesAtEnd + (OscPitchChanging::pitchTableHiVolts - OscPitchChanging::pitchTableLowVolts) * 12;
 	const float oneSemitone = 1.0f / 12.0f;
 	int size = (pitchTableSize)* sizeof( float );
-	int32_t needInitialize;
+	int32_t needInitialize = 0;
 	getHost()->allocateSharedMemory( L"JM:Oscillator:Pitch", (void**)&pitchTable, getSampleRate(), size, needInitialize );
 
 	if( needInitialize )
@@ -124,68 +59,43 @@ int32_t Oscillator::open()
 
 	pitchTable += extraEntriesAtStart; // Shift apparent start of table to entry #1, so we can access table[-1] without hassle.
 
-	int32_t needInit;
-	// Init Sync cross-fade curve.
-	int totalMemoryBytes = ( 2 + syncCrossFadeSamples ) * sizeof( float );
-	int r = getHost()->allocateSharedMemory( L"JM:Oscillator:SyncCurve", (void**)&syncFadeCurve_, -1, totalMemoryBytes, needInit );
-	if( needInit != 0 )
-	{
-		for( int i = 1; i <= syncCrossFadeSamples; ++i )
-		{
-			syncFadeCurve_[i - 1] = 0.5f + 0.5f * sinf( (float)M_PI * ((float)(i) / (float)(syncCrossFadeSamples + 1) - 0.5f));
-		}
-		syncFadeCurve_[syncCrossFadeSamples] = 100.0f; // testing not overstepping.
-	}
-
-	const int minWaveSz = 256; // little extra oversampling on top 2 octaves.
-	const int maxWaveSz = 8192; // biggest wave FFT can handle.
-	const int waveOversample = 32;
-	const double spectrumFill = 0.5; // how much spectum (minimum) to produce at any MIP level.
-//	mipMapPolicy.initializeOsc(mipCount, waveOversample, extraInterpolationPreSamples + extraInterpolationPostSamples, minWaveSz, maxWaveSz, spectrumFill);
-//	mipMapPolicySine.initializeOsc(2, waveOversample, extraInterpolationPreSamples + extraInterpolationPostSamples, 512, maxWaveSz, spectrumFill);
-
-	// Init wavetable memory.
-
-	// Sawtooth
-//	assert(!waveSawtooth);
-	// Query if wave already exists. But don't create it if not. (size = -1)
-//		getHost()->allocateSharedMemory(L"JM:HdOscillator:Saw", (void**)&waveSawtooth, getSampleRate(), -1, needInit);
-
-	auto TriangleMaker = [](float sampleRate) -> std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>>
-	{
-		auto TriangleSpectrum = [](int partial) -> std::tuple<float, float>
-		{
-			constexpr float scale = 4.0f / (float)(M_PI * M_PI); // scale to 5V.
-
-			if(partial == 0)
-			{
-				return { 0.0f, 0.0f }; // DC and nyquist
-			}
-			else
-			{
-				if((partial & 0x01) == 0)
-				{
-					return { 0.0f, 0.0f };
-				}
-
-				float level = scale / (partial * partial);
-				if((partial >> 1) & 1) // every 2nd harmonic inverted
-				{
-					level = -level;
-				}
-				return { 0.0f, level };
-			}
-		};
-
-		const auto mips = MipMapCalculator::CalcMips(sampleRate, TriangleSpectrum);
-		MipMapCalculator::PrintMips(sampleRate, mips, "Triangle");
-		return MipMapCalculator::generateWavetable(mips, TriangleSpectrum);;
-	};
-
 	// TODO release mem after period of inactivity.
-	waveTriangle2 = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(getSampleRate(), WS_TRI, TriangleMaker);
+	waveTriangle = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(
+		getSampleRate(),
+		WS_TRI,
+		[](float sampleRate) -> std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>>
+		{
+			auto TriangleSpectrum = [](int partial) -> std::tuple<float, float>
+			{
+				constexpr float scale = 4.0f / (float)(M_PI * M_PI); // scale to 5V.
 
-	waveSawtooth2 = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(
+				if(partial == 0)
+				{
+					return { 0.0f, 0.0f }; // DC and nyquist
+				}
+				else
+				{
+					if((partial & 0x01) == 0)
+					{
+						return { 0.0f, 0.0f };
+					}
+
+					float level = scale / (partial * partial);
+					if((partial >> 1) & 1) // every 2nd harmonic inverted
+					{
+						level = -level;
+					}
+					return { 0.0f, level };
+				}
+			};
+
+			const auto mips = MipMapCalculator::CalcMips(sampleRate, TriangleSpectrum);
+			MipMapCalculator::PrintMips(sampleRate, mips, "Triangle");
+			return MipMapCalculator::generateWavetable(mips, TriangleSpectrum);;
+		}
+	);
+
+	waveSawtooth = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(
 		getSampleRate(),
 		WS_SAW,
 		[](float sampleRate) -> std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>>
@@ -210,7 +120,7 @@ int32_t Oscillator::open()
 		}
 		);
 
-		waveSine2 = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(
+	waveSine = SharedObjectManager< std::vector<MipMapCalculator::WavetableMip> >::getOrCreateSharedMemory(
 		getSampleRate(),
 		WS_SINE,
 		[](float sampleRate) -> std::shared_ptr<std::vector<MipMapCalculator::WavetableMip>>
@@ -231,80 +141,8 @@ int32_t Oscillator::open()
 			MipMapCalculator::PrintMips(sampleRate, mips, "Sine");
 			return MipMapCalculator::generateWavetable(mips, sineSpectrum);
 		}
-		);
+	);
 
-#if 0
-	totalMemoryBytes = mipMapPolicy.GetTotalMipMapSize() * sizeof(float);
-	r = getHost()->allocateSharedMemory(L"JM:Oscillator:Saw", (void**)&waveSawtooth, -1, totalMemoryBytes, needInit);
-	if (needInit != 0)
-	{
-		const int maxSamples = 16384;
-		float spectrum[maxSamples + 2];
-
-		// Saw Wave.
-		int totalHarmonics = maxSamples / 2;
-		spectrum[0] = spectrum[1] = 0.0f; // DC and nyquist level.
-		float scale = 2.0f / M_PI; // scale to 5V.
-		for (int partial = 1; partial < totalHarmonics; ++partial)
-		{
-			spectrum[partial * 2] = 0.0f;
-			float level = scale * -0.5f / partial;
-			spectrum[partial * 2 + 1] = level;
-
-			//const auto test = sawToothSpectrum(partial);
-			//assert(std::get<0>(test) == spectrum[partial * 2]);
-			//assert(std::get<1>(test) == spectrum[partial * 2 + 1]);
-		}
-
-		CalcWave(spectrum, waveSawtooth, mipMapPolicy, "Sawtooth");
-
-		const auto s = mipMapPolicy.PrintMips("Sawtooth");
-		_RPT1(_CRT_WARN, "%s\n", s.c_str() );
-	}
-
-	r = getHost()->allocateSharedMemory(L"JM:Oscillator:Tri", (void**)&waveTriangle, -1, totalMemoryBytes, needInit);
-	if (needInit != 0)
-	{
-		const int maxSamples = 16384;
-		float spectrum[maxSamples + 2];
-
-		int totalHarmonics = maxSamples / 2;
-		spectrum[0] = spectrum[1] = 0.0f; // DC and nyquist level.
-		float scale = 4.0f / (float)(M_PI * M_PI); // scale to 5V.
-		for (int partial = 1; partial < totalHarmonics; ++partial)
-		{
-			float level = scale / (partial * partial);
-			if ((partial & 0x01) == 0)
-			{
-				level = 0.0f;
-			}
-
-			if ((partial >> 1) & 1) // every 2nd harmonic inverted
-			{
-				level = -level;
-			}
-			spectrum[partial * 2] = 0.0f;
-			spectrum[partial * 2 + 1] = level;
-		}
-
-		CalcWave(spectrum, waveTriangle, mipMapPolicy, "Triangle");
-	}
-
-	// Sine
-	totalMemoryBytes = mipMapPolicySine.GetTotalMipMapSize() * sizeof(float);
-	r = getHost()->allocateSharedMemory(L"JM:Oscillator:Sin", (void**)&waveSine, -1, totalMemoryBytes, needInit);
-	if (needInit != 0)
-	{
-		float spectrum[4];
-
-		// Saw Wave.
-		spectrum[0] = spectrum[1] = 0.0f; // DC and nyquist level.
-		spectrum[2] = 0.0f;
-		spectrum[3] = 0.5f;
-
-		CalcWave(spectrum, waveSine, mipMapPolicySine, "Sine");
-	}
-#endif
 
 	SET_PROCESS2(&Oscillator::sub_process_silence);
 
@@ -549,7 +387,7 @@ void Oscillator::ChooseProcessMethod()
 		if (wavetype > -1)
 		{
 			// Fast mode can be used if only one grain active at a steady level.
-			bool fastMode = grains[0].waveSize != 0 && grains[0].fadeIncrement == 0 && !pinSync.isStreaming();
+			 bool fastMode = grains[0].waveSize != 0 && grains[0].fadeIncrement == 0 && !pinSync.isStreaming();
 			for (int g = 1; g < MaxGrains; ++g)
 			{
 				fastMode &= grains[g].waveSize == 0;
@@ -597,13 +435,13 @@ void Oscillator::startGrain( phasor_t initCount, float increment, int fadeIncrem
 	switch (pinWaveform)
 	{
 	case WS_SINE:
-		mipMap = waveSine2.get();
+		mipMap = waveSine.get();
 		break;
 	case WS_TRI:
-		mipMap = waveTriangle2.get();
+		mipMap = waveTriangle.get();
 		break;
 	default:
-		mipMap = waveSawtooth2.get();
+		mipMap = waveSawtooth.get();
 		break;
 	}
 
@@ -677,9 +515,10 @@ void Oscillator::sub_process_silence(int sampleFrames)
 
 		for (int s = sampleFrames; s > 0; --s)
 		{
-			++zeroSamplesCounter;
 			*signalOut++ = 0.f;
 		}
+
+		zeroSamplesCounter += sampleFrames;
 	}
 }
 
