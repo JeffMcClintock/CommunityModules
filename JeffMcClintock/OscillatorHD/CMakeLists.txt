@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.15)
 
 #Steinberg only: include(Bundle)
 
-project(ADSR)
+project(Oscillator)
 set(sdk_folder
 ../../se_sdk3
 )
@@ -13,8 +13,9 @@ ${sdk_folder}/mp_sdk_common.cpp
 ${sdk_folder}/mp_sdk_audio.cpp
 )
 set(srcs
-Adsr.rc
-Adsr.cpp
+${PROJECT_NAME}.rc
+${PROJECT_NAME}.cpp
+real_fft.cpp
 )
 include_directories(
 ${sdk_folder}
@@ -27,10 +28,9 @@ if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE_EXTENSION "sem")
 
-  # Place ADSR.xml in bundle 'Resources' folder.
-  set(xml_path "ADSR.xml")
-  target_sources(${PROJECT_NAME} PUBLIC ${xml_path})
-  set_source_files_properties(${xml_path} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  # Place *.xml in bundle 'Resources' folder.
+  target_sources(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}.xml)
+  set_source_files_properties(${PROJECT_NAME}.xml PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
   # Attempt: Place my Info.plist in bundle.
   # Might not be needed because CMake places a default Info.plist file in bundle anyhow.
