@@ -312,7 +312,7 @@ class Oscillator : public MpBase2
 	const static size_t syncCrossFadeSamples = 8;
 	const static size_t syncCrossFadeTableSize = syncCrossFadeSamples + 1;
 
-	constexpr std::array<float, syncCrossFadeTableSize> fill_crossfade_array()
+	/* not macos: constexpr*/ std::array<float, syncCrossFadeTableSize> fill_crossfade_array()
 	{
 		std::array<float, syncCrossFadeTableSize> v{ 0 };
 		for(uint64_t i = 0; i < syncCrossFadeTableSize; ++i)
