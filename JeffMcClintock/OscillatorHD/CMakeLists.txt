@@ -8,6 +8,9 @@ project(Oscillator)
 set(sdk_folder
 ../../se_sdk3
 )
+set(sdk_shared_folder
+../../shared
+)
 set(sdk_srcs
 ${sdk_folder}/mp_sdk_common.cpp
 ${sdk_folder}/mp_sdk_audio.cpp
@@ -19,6 +22,7 @@ real_fft.cpp
 )
 include_directories(
 ${sdk_folder}
+${sdk_shared_folder}
 )
 include (GenerateExportHeader)
 add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
