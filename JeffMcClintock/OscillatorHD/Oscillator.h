@@ -1,6 +1,6 @@
 #pragma once
 
-#include "xp_simd.h"
+//#include "xp_simd.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <array>
