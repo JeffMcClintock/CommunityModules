@@ -130,7 +130,9 @@ namespace MipMapCalculator
 			<< std::setw(width[4]) << std::right << std::fixed << p.mipSwitchNote(sampleRate)
 			<< "\n";
 
+#if defined(_DEBUG) && defined(WIN32)
 			_RPT1(_CRT_WARN, "%s", s2.str().c_str());
+#endif
 			s2.str("");
 			s2.clear();
 		}
@@ -334,7 +336,7 @@ void PrintMidiNoteStats(double sampleRate)
 		patialsRequired[prevPartials]++;
 	}
 
-	_RPT1(_CRT_WARN, "%s\n", s.str().c_str());
+//	_RPT1(_CRT_WARN, "%s\n", s.str().c_str());
 
 	std::ostringstream s2;
 	s2.precision(2);
@@ -360,7 +362,7 @@ void PrintMidiNoteStats(double sampleRate)
 			<< std::setw(width[4]) << std::right << std::fixed << mipSwitchNote
 			<< "\n";
 
-		_RPT1(_CRT_WARN, "%s", s2.str().c_str());
+//		_RPT1(_CRT_WARN, "%s", s2.str().c_str());
 		s2.str("");
 		s2.clear();
 	}
