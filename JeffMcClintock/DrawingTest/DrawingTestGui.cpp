@@ -207,21 +207,21 @@ void DrawingTestGui::drawMacGraphicsTest(GmpiDrawing::Graphics& g)
 void RGB2LAB(uint8_t R, uint8_t G, uint8_t B, float *l, float *a, float *b) {
     float RGB[3], XYZ[3];
 
-    RGB[0] = R * 0.003922;
-    RGB[1] = G * 0.003922;
-    RGB[2] = B * 0.003922;
+    RGB[0] = R * 0.003922f;
+    RGB[1] = G * 0.003922f;
+    RGB[2] = B * 0.003922f;
 
-    RGB[0] = (RGB[0] > 0.04045) ? pow(((RGB[0] + 0.055)/1.055), 2.4) : RGB[0] / 12.92;
-    RGB[1] = (RGB[1] > 0.04045) ? pow(((RGB[1] + 0.055)/1.055), 2.4) : RGB[1] / 12.92;
-    RGB[2] = (RGB[2] > 0.04045) ? pow(((RGB[2] + 0.055)/1.055), 2.4) : RGB[2] / 12.92;
+    RGB[0] = (RGB[0] > 0.04045f) ? powf(((RGB[0] + 0.055f)/1.055f), 2.4f) : RGB[0] / 12.92f;
+    RGB[1] = (RGB[1] > 0.04045f) ? powf(((RGB[1] + 0.055f)/1.055f), 2.4f) : RGB[1] / 12.92f;
+    RGB[2] = (RGB[2] > 0.04045f) ? powf(((RGB[2] + 0.055f)/1.055f), 2.4f) : RGB[2] / 12.92f;
 
-    XYZ[0] = 0.412424  * RGB[0] + 0.357579 * RGB[1] + 0.180464  * RGB[2];
-    XYZ[1] = 0.212656  * RGB[0] + 0.715158 * RGB[1] + 0.0721856 * RGB[2];
-    XYZ[2] = 0.0193324 * RGB[0] + 0.119193 * RGB[1] + 0.950444  * RGB[2];
+    XYZ[0] = 0.412424f  * RGB[0] + 0.357579f * RGB[1] + 0.180464f  * RGB[2];
+    XYZ[1] = 0.212656f  * RGB[0] + 0.715158f * RGB[1] + 0.0721856f * RGB[2];
+    XYZ[2] = 0.0193324f * RGB[0] + 0.119193f * RGB[1] + 0.950444f  * RGB[2];
 
-    *l = 116 * ( ( XYZ[1] / 1.000000) > 0.008856 ? pow(XYZ[1] / 1.000000, 0.333333) : 7.787 * XYZ[1] / 1.000000 + 0.137931) - 16;
-    *a = 500 * ( ((XYZ[0] / 0.950467) > 0.008856 ? pow(XYZ[0] / 0.950467, 0.333333) : 7.787 * XYZ[0] / 0.950467 + 0.137931) - ((XYZ[1] / 1.000000) > 0.008856 ? pow(XYZ[1] / 1.000000, 0.333333) : 7.787 * XYZ[1] / 1.000000 + 0.137931) );
-    *b = 200 * ( ((XYZ[1] / 1.000000) > 0.008856 ? pow(XYZ[1] / 1.000000, 0.333333) : 7.787 * XYZ[1] / 1.000000 + 0.137931) - ((XYZ[2] / 1.088969) > 0.008856 ? pow(XYZ[2] / 1.088969, 0.333333) : 7.787 * XYZ[2] / 1.088969 + 0.137931) );
+    *l = 116 * ( ( XYZ[1] / 1.000000f) > 0.008856f ? powf(XYZ[1] / 1.000000f, 0.333333f) : 7.787f * XYZ[1] / 1.000000f + 0.137931f) - 16;
+    *a = 500 * ( ((XYZ[0] / 0.950467f) > 0.008856f ? powf(XYZ[0] / 0.950467f, 0.333333f) : 7.787f * XYZ[0] / 0.950467f + 0.137931f) - ((XYZ[1] / 1.000000f) > 0.008856f ? powf(XYZ[1] / 1.000000f, 0.333333f) : 7.787f * XYZ[1] / 1.000000f + 0.137931f) );
+    *b = 200 * ( ((XYZ[1] / 1.000000f) > 0.008856f ? powf(XYZ[1] / 1.000000f, 0.333333f) : 7.787f * XYZ[1] / 1.000000f + 0.137931f) - ((XYZ[2] / 1.088969f) > 0.008856f ? powf(XYZ[2] / 1.088969f, 0.333333f) : 7.787f * XYZ[2] / 1.088969f + 0.137931f) );
 }
 
 void LAB2RGB(float L, float A, float B, uint8_t *r, uint8_t *g, uint8_t *b) {
@@ -231,17 +231,17 @@ void LAB2RGB(float L, float A, float B, uint8_t *r, uint8_t *g, uint8_t *b) {
     XYZ[0] = A / 500 + XYZ[1];
     XYZ[2] = XYZ[1] - B / 200;
 
-    XYZ[1] = (XYZ[1]*XYZ[1]*XYZ[1] > 0.008856) ? XYZ[1]*XYZ[1]*XYZ[1] : (XYZ[1] - (16.0f / 116)) / 7.787;
-    XYZ[0] = (XYZ[0]*XYZ[0]*XYZ[0] > 0.008856) ? XYZ[0]*XYZ[0]*XYZ[0] : (XYZ[0] - (16.0f / 116)) / 7.787;
-    XYZ[2] = (XYZ[2]*XYZ[2]*XYZ[2] > 0.008856) ? XYZ[2]*XYZ[2]*XYZ[2] : (XYZ[2] - (16.0f / 116)) / 7.787;
+    XYZ[1] = (XYZ[1]*XYZ[1]*XYZ[1] > 0.008856f) ? XYZ[1]*XYZ[1]*XYZ[1] : (XYZ[1] - (16.0f / 116)) / 7.787f;
+    XYZ[0] = (XYZ[0]*XYZ[0]*XYZ[0] > 0.008856f) ? XYZ[0]*XYZ[0]*XYZ[0] : (XYZ[0] - (16.0f / 116)) / 7.787f;
+    XYZ[2] = (XYZ[2]*XYZ[2]*XYZ[2] > 0.008856f) ? XYZ[2]*XYZ[2]*XYZ[2] : (XYZ[2] - (16.0f / 116)) / 7.787f;
 
-    RGB[0] = 0.950467 * XYZ[0] *  3.2406 + 1.000000 * XYZ[1] * -1.5372 + 1.088969 * XYZ[2] * -0.4986;
-    RGB[1] = 0.950467 * XYZ[0] * -0.9689 + 1.000000 * XYZ[1] *  1.8758 + 1.088969 * XYZ[2] *  0.0415;
-    RGB[2] = 0.950467 * XYZ[0] *  0.0557 + 1.000000 * XYZ[1] * -0.2040 + 1.088969 * XYZ[2] *  1.0570;
+    RGB[0] = 0.950467f * XYZ[0] *  3.2406f + 1.000000f * XYZ[1] * -1.5372f + 1.088969f * XYZ[2] * -0.4986f;
+    RGB[1] = 0.950467f * XYZ[0] * -0.9689f + 1.000000f * XYZ[1] *  1.8758f + 1.088969f * XYZ[2] *  0.0415f;
+    RGB[2] = 0.950467f * XYZ[0] *  0.0557f + 1.000000f * XYZ[1] * -0.2040f + 1.088969f * XYZ[2] *  1.0570f;
 
-    *r = (255 * ( (RGB[0] > 0.0031308) ? 1.055 * (pow(RGB[0], (1/2.4)) - 0.055) : RGB[0] * 12.92 ));
-    *g = (255 * ( (RGB[1] > 0.0031308) ? 1.055 * (pow(RGB[1], (1/2.4)) - 0.055) : RGB[1] * 12.92 ));
-    *b = (255 * ( (RGB[2] > 0.0031308) ? 1.055 * (pow(RGB[2], (1/2.4)) - 0.055) : RGB[2] * 12.92 ));
+    *r = static_cast<uint8_t>(255 * ( (RGB[0] > 0.0031308f) ? 1.055f * (pow(RGB[0], (1/2.4f)) - 0.055f) : RGB[0] * 12.92f ));
+    *g = static_cast<uint8_t>(255 * ( (RGB[1] > 0.0031308f) ? 1.055f * (pow(RGB[1], (1/2.4f)) - 0.055f) : RGB[1] * 12.92f ));
+    *b = static_cast<uint8_t>(255 * ( (RGB[2] > 0.0031308f) ? 1.055f * (pow(RGB[2], (1/2.4f)) - 0.055f) : RGB[2] * 12.92f ));
 }
 
 void lab2rgb(float L, float A, float B, uint8_t *pr, uint8_t *pg, uint8_t *pb)
@@ -262,9 +262,9 @@ void lab2rgb(float L, float A, float B, uint8_t *pr, uint8_t *pg, uint8_t *pb)
 	g = (g > 0.0031308) ? (1.055 * pow(g, 1.0 / 2.4) - 0.055) : 12.92 * g;
 	b = (b > 0.0031308) ? (1.055 * pow(b, 1.0 / 2.4) - 0.055) : 12.92 * b;
 
-	*pr = max(0, min(1, r)) * 255;
-	*pg = max(0, min(1, g)) * 255;
-	*pb = max(0, min(1, b)) * 255;
+	*pr = static_cast<uint8_t>(max(0.0, min(1.0, r)) * 255.0);
+	*pg = static_cast<uint8_t>(max(0.0, min(1.0, g)) * 255.0);
+	*pb = static_cast<uint8_t>(max(0.0, min(1.0, b)) * 255.0);
 }
 
 auto lab2rgb_lin(float L, float A, float B)
@@ -277,9 +277,9 @@ auto lab2rgb_lin(float L, float A, float B)
 	y = 1.00000f * ((y * y * y > 0.008856f) ? y * y * y : (y - 16.0f / 116.0f) / 7.787f);
 	z = 1.08883f * ((z * z * z > 0.008856f) ? z * z * z : (z - 16.0f / 116.0f) / 7.787f);
 
-	auto r = x * 3.2406 + y * -1.5372 + z * -0.4986;
-	auto g = x * -0.9689 + y * 1.8758 + z * 0.0415;
-	auto b = x * 0.0557 + y * -0.2040 + z * 1.0570;
+	auto r = x * 3.2406f + y * -1.5372f + z * -0.4986f;
+	auto g = x * -0.9689f + y * 1.8758f + z * 0.0415f;
+	auto b = x * 0.0557f + y * -0.2040f + z * 1.0570f;
 
 	return Color(r, g, b);
 }
@@ -493,8 +493,8 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 		r.Offset(x1, y1);
 
 		GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES props{
-              {x1 + 128.0, y1}, // center
-              {0.0, 0.0},     // gradientOriginOffset
+              {x1 + 128.0f, y1}, // center
+              {0.0f, 0.0f},     // gradientOriginOffset
               100.0f,         // radiusX
               100.0f          // radiusY
        };
