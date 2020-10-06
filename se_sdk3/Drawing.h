@@ -1350,11 +1350,33 @@ namespace GmpiDrawing
 		}
 	};
 
-	class RadialGradientBrushProperties : public GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES
+	class RadialGradientBrushProperties // : public GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES
 	{
 	public:
-		inline RadialGradientBrushProperties(GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES native) :
-			GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES(native)
+		// Must be identical layout to GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES
+		Point center;
+		Point gradientOriginOffset;
+		float radiusX;
+		float radiusY;
+
+		RadialGradientBrushProperties(GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES native) :
+			center(native.center),
+			gradientOriginOffset(native.gradientOriginOffset),
+			radiusX(native.radiusX),
+			radiusY(native.radiusY)
+		{
+		}
+
+		RadialGradientBrushProperties(
+			Point pCenter,
+			Point pGradientOriginOffset,
+			float pRadiusX,
+			float pRadiusY
+		) :
+			center(pCenter),
+			gradientOriginOffset(pGradientOriginOffset),
+			radiusX(pRadiusX),
+			radiusY(pRadiusY)
 		{
 		}
 	};

@@ -8,7 +8,7 @@
       <Pin name="Sync" datatype="float" rate="audio" metadata="100, 0, 5, -5" />
       <Pin name="Phase Mod" datatype="float" rate="audio" />
       <Pin name="PM Depth dmy" datatype="float" rate="audio" private="true" />
-      <Pin name="Bypass" datatype="bool" default="false"/>
+      <Pin name="Disable" datatype="bool" default="false"/>
       <Pin name="Reset Mode" datatype="enum" metadata="VCO (Freerun),DCO (Sync)" />
       <Pin name="Audio Out" datatype="float" rate="audio" direction="out" />
       <Pin name="VoiceActive" hostConnect="Voice/Active" datatype="float" isPolyphonic="true" />

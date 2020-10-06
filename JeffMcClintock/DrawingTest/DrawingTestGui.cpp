@@ -204,6 +204,109 @@ void DrawingTestGui::drawMacGraphicsTest(GmpiDrawing::Graphics& g)
 //	testClient.OnRender(g.Get());
 }
 
+void RGB2LAB(uint8_t R, uint8_t G, uint8_t B, float *l, float *a, float *b) {
+    float RGB[3], XYZ[3];
+
+    RGB[0] = R * 0.003922;
+    RGB[1] = G * 0.003922;
+    RGB[2] = B * 0.003922;
+
+    RGB[0] = (RGB[0] > 0.04045) ? pow(((RGB[0] + 0.055)/1.055), 2.4) : RGB[0] / 12.92;
+    RGB[1] = (RGB[1] > 0.04045) ? pow(((RGB[1] + 0.055)/1.055), 2.4) : RGB[1] / 12.92;
+    RGB[2] = (RGB[2] > 0.04045) ? pow(((RGB[2] + 0.055)/1.055), 2.4) : RGB[2] / 12.92;
+
+    XYZ[0] = 0.412424  * RGB[0] + 0.357579 * RGB[1] + 0.180464  * RGB[2];
+    XYZ[1] = 0.212656  * RGB[0] + 0.715158 * RGB[1] + 0.0721856 * RGB[2];
+    XYZ[2] = 0.0193324 * RGB[0] + 0.119193 * RGB[1] + 0.950444  * RGB[2];
+
+    *l = 116 * ( ( XYZ[1] / 1.000000) > 0.008856 ? pow(XYZ[1] / 1.000000, 0.333333) : 7.787 * XYZ[1] / 1.000000 + 0.137931) - 16;
+    *a = 500 * ( ((XYZ[0] / 0.950467) > 0.008856 ? pow(XYZ[0] / 0.950467, 0.333333) : 7.787 * XYZ[0] / 0.950467 + 0.137931) - ((XYZ[1] / 1.000000) > 0.008856 ? pow(XYZ[1] / 1.000000, 0.333333) : 7.787 * XYZ[1] / 1.000000 + 0.137931) );
+    *b = 200 * ( ((XYZ[1] / 1.000000) > 0.008856 ? pow(XYZ[1] / 1.000000, 0.333333) : 7.787 * XYZ[1] / 1.000000 + 0.137931) - ((XYZ[2] / 1.088969) > 0.008856 ? pow(XYZ[2] / 1.088969, 0.333333) : 7.787 * XYZ[2] / 1.088969 + 0.137931) );
+}
+
+void LAB2RGB(float L, float A, float B, uint8_t *r, uint8_t *g, uint8_t *b) {
+    float XYZ[3], RGB[3];
+
+    XYZ[1] = (L + 16 ) / 116;
+    XYZ[0] = A / 500 + XYZ[1];
+    XYZ[2] = XYZ[1] - B / 200;
+
+    XYZ[1] = (XYZ[1]*XYZ[1]*XYZ[1] > 0.008856) ? XYZ[1]*XYZ[1]*XYZ[1] : (XYZ[1] - (16.0f / 116)) / 7.787;
+    XYZ[0] = (XYZ[0]*XYZ[0]*XYZ[0] > 0.008856) ? XYZ[0]*XYZ[0]*XYZ[0] : (XYZ[0] - (16.0f / 116)) / 7.787;
+    XYZ[2] = (XYZ[2]*XYZ[2]*XYZ[2] > 0.008856) ? XYZ[2]*XYZ[2]*XYZ[2] : (XYZ[2] - (16.0f / 116)) / 7.787;
+
+    RGB[0] = 0.950467 * XYZ[0] *  3.2406 + 1.000000 * XYZ[1] * -1.5372 + 1.088969 * XYZ[2] * -0.4986;
+    RGB[1] = 0.950467 * XYZ[0] * -0.9689 + 1.000000 * XYZ[1] *  1.8758 + 1.088969 * XYZ[2] *  0.0415;
+    RGB[2] = 0.950467 * XYZ[0] *  0.0557 + 1.000000 * XYZ[1] * -0.2040 + 1.088969 * XYZ[2] *  1.0570;
+
+    *r = (255 * ( (RGB[0] > 0.0031308) ? 1.055 * (pow(RGB[0], (1/2.4)) - 0.055) : RGB[0] * 12.92 ));
+    *g = (255 * ( (RGB[1] > 0.0031308) ? 1.055 * (pow(RGB[1], (1/2.4)) - 0.055) : RGB[1] * 12.92 ));
+    *b = (255 * ( (RGB[2] > 0.0031308) ? 1.055 * (pow(RGB[2], (1/2.4)) - 0.055) : RGB[2] * 12.92 ));
+}
+
+void lab2rgb(float L, float A, float B, uint8_t *pr, uint8_t *pg, uint8_t *pb)
+{
+	auto y = (L + 16) / 116;
+	auto x = A / 500 + y;
+	auto z = y - B / 200;
+
+	x = 0.95047f * ((x * x * x > 0.008856f) ? x * x * x : (x - 16.0f / 116.0f) / 7.787f);
+	y = 1.00000f * ((y * y * y > 0.008856f) ? y * y * y : (y - 16.0f / 116.0f) / 7.787f);
+	z = 1.08883f * ((z * z * z > 0.008856f) ? z * z * z : (z - 16.0f / 116.0f) / 7.787f);
+
+	auto r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+	auto g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+	auto b = x * 0.0557 + y * -0.2040 + z * 1.0570;
+
+	r = (r > 0.0031308) ? (1.055 * pow(r, 1.0 / 2.4) - 0.055) : 12.92 * r;
+	g = (g > 0.0031308) ? (1.055 * pow(g, 1.0 / 2.4) - 0.055) : 12.92 * g;
+	b = (b > 0.0031308) ? (1.055 * pow(b, 1.0 / 2.4) - 0.055) : 12.92 * b;
+
+	*pr = max(0, min(1, r)) * 255;
+	*pg = max(0, min(1, g)) * 255;
+	*pb = max(0, min(1, b)) * 255;
+}
+
+auto lab2rgb_lin(float L, float A, float B)
+{
+	auto y = (L + 16) / 116;
+	auto x = A / 500 + y;
+	auto z = y - B / 200;
+
+	x = 0.95047f * ((x * x * x > 0.008856f) ? x * x * x : (x - 16.0f / 116.0f) / 7.787f);
+	y = 1.00000f * ((y * y * y > 0.008856f) ? y * y * y : (y - 16.0f / 116.0f) / 7.787f);
+	z = 1.08883f * ((z * z * z > 0.008856f) ? z * z * z : (z - 16.0f / 116.0f) / 7.787f);
+
+	auto r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+	auto g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+	auto b = x * 0.0557 + y * -0.2040 + z * 1.0570;
+
+	return Color(r, g, b);
+}
+
+/* might be handy, check for integer->float screw-ups like 1/3
+function rgb2lab(rgb){
+  var r = rgb[0] / 255,
+      g = rgb[1] / 255,
+      b = rgb[2] / 255,
+      x, y, z;
+
+  r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+  g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+  b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+
+  x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
+  y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 1.00000;
+  z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+
+  x = (x > 0.008856) ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
+  y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
+  z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
+
+  return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)]
+}
+*/
+
 void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 {
 	auto textFormat = g.GetFactory().CreateTextFormat();
@@ -279,17 +382,138 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 	}
 	g.DrawTextU("Brush RGB", textFormat, x1, y1, textBrush);
 
-	y1 = 100;
+	y1 += 50;
+	{
+		Rect r(0, 0, count, height);
+		r.Offset(x1, y1);
+
+		for (float x = 0; x < count; ++x)
+		{
+			uint8_t sRGB[3];
+
+			lab2rgb(100.0f * x / 255.0f, 0.0f, 0.0f, &sRGB[0], &sRGB[1], &sRGB[2]);
+
+			brush.SetColor(Color::FromBytes(sRGB[0], sRGB[1], sRGB[2]));
+//			brush.SetColor(Color(sRGB[0] / 255.0f, sRGB[1] / 255.0f, sRGB[2] / 255.0f));
+			for (float y = 0; y < height; ++y)
+			{
+				g.FillRectangle(x1 + x, y1 + y, x1 + x + 1, y1 + y + 1, brush);
+			}
+		}
+
+		g.DrawTextU("LAB", textFormat, x1, y1, textBrush);
+	}
+
+	y1 += 50;
+	{
+		Rect r(0, 0, count, height);
+		r.Offset(x1, y1);
+
+		for (float y = 0; y < height; ++y)
+		{
+			GmpiDrawing_API::MP1_POINT p1 = { 0.0f, 0.0f };
+			GmpiDrawing_API::MP1_POINT p2 = { static_cast<float>(count), 0.0f };
+
+			std::vector<GradientStop> stops;
+			const int numStops = 8;
+			for(int i = 0; i < numStops; ++i)
+			{
+				const float L = 100.0f * i / (float)(numStops - 1);
+				stops.push_back({i / (float)(numStops - 1), lab2rgb_lin(L, 0.0f, 0.0f)});
+			}
+
+			auto brush = g.CreateLinearGradientBrush(g.CreateGradientStopCollection(stops), p1, p2);
+
+			g.FillRectangle(x1, y1 + y, x1 + count, y1 + y + 1, brush);
+		}
+
+		g.DrawTextU("LAB (Piecewise)", textFormat, x1, y1, textBrush);
+/*
+			const int numStops = (y / 4) + 2;
+				uint8_t sRGB[3];
+				lab2rgb(L, 0.0f, 0.0f, &sRGB[0], &sRGB[1], &sRGB[2]);
+				stops.push_back({i / (float)(numStops - 1), Color::FromBytes(sRGB[0], sRGB[1], sRGB[2])});
+*/
+	}
+
+
+	y1 += 50;
 
 	for (float x = 0; x < count; ++x)
 	{
+		brush.SetColor(Color(x / 256.0f, x / 256.0f, x / 256.0f));
 		for (float y = 0; y < height; ++y)
 		{
-			brush.SetColor(Color(x / 256.0f, x / 256.0f, x / 256.0f));
 			g.FillRectangle(x1 + x, y1 + y, x1 + x + 1, y1 + y + 1, brush);
 		}
 	}
 	g.DrawTextU("Brush Linear", textFormat, x1, y1, textBrush);
+
+	y1 += 50;
+	{
+		Rect r(0, 0, count, height);
+		r.Offset(x1, y1);
+
+		auto brushFill = g.CreateLinearGradientBrush(Color::Black, Color::White, { 0.0f, 0.0f }, { static_cast<float>(count), 0.0f });
+		g.FillRectangle(r, brushFill);
+		g.DrawTextU("GradientBrush", textFormat, x1, y1, textBrush);
+	}
+
+	y1 += 50;
+	{
+		float err = 0.0f;
+		for (float x = 0; x < count; x += 0.5f)
+		{
+			for (float y = 0; y < height; y += 0.5f)
+			{
+				const float ideal = x / 255.0f;
+				err += ideal;
+
+				float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+				if(err >= r)
+				{
+					brush.SetColor(Color::White);
+					err -= 1.0f;
+				}
+				else
+				{
+					brush.SetColor(Color::Black);
+				}
+				g.FillRectangle(x1 + x, y1 + y, x1 + x + 0.5f, y1 + y + 0.5f, brush);
+			}
+		}
+		g.DrawTextU("Dither", textFormat, x1, y1, textBrush);
+	}
+
+	y1 = 0;
+	x1 = 270;
+	{
+		Rect r(0, 0, count, height);
+		r.Offset(x1, y1);
+
+		GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES props{
+              {x1 + 128.0, y1}, // center
+              {0.0, 0.0},     // gradientOriginOffset
+              100.0f,         // radiusX
+              100.0f          // radiusY
+       };
+
+       GradientStop gradientStops[2] = {
+              {0.0f, Color::Red   },
+              {1.0f, Color::Green }
+       };
+
+       auto gradientStopCollection = g.CreateGradientStopCollection(gradientStops);
+
+       auto brushFill = g.CreateRadialGradientBrush({ props }, {}, gradientStopCollection);
+       if(!brushFill.isNull())
+       {
+	      g.FillRectangle(r, brushFill);
+       }
+
+		g.DrawTextU("Radial GradientBrush", textFormat, x1, y1, textBrush);
+	}
 }
 
 /*
@@ -499,8 +723,32 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 	auto r = getRect();
 
 	// Background Fill.
-	auto brush = g.CreateSolidColorBrush(Color::White);
-	g.FillRectangle(r, brush);
+	auto fallbackBrush = g.CreateSolidColorBrush(Color::White);
+
+	RadialGradientBrushProperties props{
+		{200.0, 200.0}, // center
+		{0.0, 0.0},		// gradientOriginOffset
+		200.0f,			// radiusX
+		200.0f			// radiusY
+	};
+
+	GradientStop gradientStops[] = {
+		{0.0f, Color::White   },
+		{1.0f, Color::Black }
+	};
+
+	auto gradientStopCollection = g.CreateGradientStopCollection(gradientStops);
+
+	auto brushFill = g.CreateRadialGradientBrush({ props }, {}, gradientStopCollection);
+	if(!brushFill.isNull())
+	{
+		g.FillRectangle(r, brushFill);
+	}
+	else
+	{
+		g.FillRectangle(r, fallbackBrush); // falback to plain solid color brush.
+	}
+
 #if 0
 //	if (pinTestType == 0)
 	{
@@ -595,7 +843,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 		TextFormat dtextFormat = g.GetFactory().CreateTextFormat2(dipFontSize); // Default font face.
 
-		brush.SetColor(Color(0, 0, 0));
+		fallbackBrush.SetColor(Color(0, 0, 0));
 
 		// Paths.
 		float y = 20.5;
@@ -637,7 +885,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 			sink.Close();
 
-			g.DrawGeometry(geometry, brush, penWidth);
+			g.DrawGeometry(geometry, fallbackBrush, penWidth);
 
 			if (i != 0) // first one show default.
 			{
@@ -670,7 +918,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 				}
 			}
 
-			g.DrawTextU(text, dtextFormat, textRect, brush);
+			g.DrawTextU(text, dtextFormat, textRect, fallbackBrush);
 		}
 	}
 
@@ -730,14 +978,14 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 					textRect.bottom += textRect.getHeight() * 3.0f; // Note text metrics do not include linegap, so 2x text height is not enough space for two rows of text.
 				}
 
-				brush.SetColor(Color(0.0f, 0.0f, 1.0f));
+				fallbackBrush.SetColor(Color(0.0f, 0.0f, 1.0f));
 				Rect boxRect(textRect);
 				boxRect.Inflate(ceilf(penWidth * 0.5f)); // Box must always end up on whole number plus 0.5 pixel boundaries.
 
-				g.DrawRectangle(boxRect, brush, penWidth);
-				g.DrawTextU(w, dtextFormat, textRect, brush, clipOPtion);
+				g.DrawRectangle(boxRect, fallbackBrush, penWidth);
+				g.DrawTextU(w, dtextFormat, textRect, fallbackBrush, clipOPtion);
 
-				g.DrawTextU(desc, dtextFormat, headingRect, brush); // heading
+				g.DrawTextU(desc, dtextFormat, headingRect, fallbackBrush); // heading
 
 				textRect.top += 20;
 				++penWidth;
@@ -793,39 +1041,39 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 				const float lineRight = textRect.right + 2;
 				const float lineLeft = textRect.left - 2;
 
-				brush.SetColor(Color::LightGray);
-				g.FillRectangle(textRect, brush);
+				fallbackBrush.SetColor(Color::LightGray);
+				g.FillRectangle(textRect, fallbackBrush);
 
 				// Metrics measure from TOP of box not bottom.
 				const float baseLine = textRect.top + fontMetrics.ascent;
 
 				// Descent
-				brush.SetColor(Color::LightBlue);
+				fallbackBrush.SetColor(Color::LightBlue);
 				float y = textRect.top + fontMetrics.ascent + fontMetrics.descent;
-				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), fallbackBrush, lineWidth);
 
 				// Baseline
-				brush.SetColor(Color::Coral);
+				fallbackBrush.SetColor(Color::Coral);
 				y = baseLine;
-				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), fallbackBrush, lineWidth);
 
 				// x-height.
-				brush.SetColor(Color::MediumBlue);
+				fallbackBrush.SetColor(Color::MediumBlue);
 				y = baseLine - fontMetrics.xHeight;
-				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), fallbackBrush, lineWidth);
 
 				// cap-height.
-				brush.SetColor(Color::Green);
+				fallbackBrush.SetColor(Color::Green);
 				y = baseLine - fontMetrics.capHeight;
-				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), fallbackBrush, lineWidth);
 
 				// Ascent. (should be same as top, unless in legacy mode).
-				brush.SetColor(Color::Azure);
+				fallbackBrush.SetColor(Color::Azure);
 				y = baseLine - fontMetrics.ascent;
-				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
+				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), fallbackBrush, lineWidth);
 
-				brush.SetColor(Color::Black);
-				g.DrawTextU(fontFace, textFormat, textRect, brush);
+				fallbackBrush.SetColor(Color::Black);
+				g.DrawTextU(fontFace, textFormat, textRect, fallbackBrush);
 
 				textRect.top += ceilf(dipFontSize * 1.4f);
 
@@ -862,7 +1110,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 //					s << "topgap: " << textSize.height - (fontMetrics.ascent + fontMetrics.descent);
 					s << "box: (" << textRect.getWidth() << ", " << textRect.getHeight() <<")";
 
-					g.DrawTextU(s.str(), textFormatSmall, textRect2, brush);
+					g.DrawTextU(s.str(), textFormatSmall, textRect2, fallbackBrush);
 				}
 			}
 
@@ -879,11 +1127,11 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 					auto textFormat = g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight) fontWeight);
 					Rect textRect2 (x, 64, x + 23, 110);
 
-					brush.SetColor(Color::PapayaWhip);
-					g.FillRectangle(textRect2, brush);
+					fallbackBrush.SetColor(Color::PapayaWhip);
+					g.FillRectangle(textRect2, fallbackBrush);
 
-					brush.SetColor(Color::Black);
-					g.DrawTextU("A", textFormat, textRect2, brush);
+					fallbackBrush.SetColor(Color::Black);
+					g.DrawTextU("A", textFormat, textRect2, fallbackBrush);
 					x += 24;
 				}
 		}
@@ -892,10 +1140,10 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 		// Scale
 		{
-			brush.SetColor(Color::Lime);
+			fallbackBrush.SetColor(Color::Lime);
 			for (float y = 0.5; y < r.getHeight(); y += 8)
 			{
-				g.DrawLine(0, y, 2, y, brush);
+				g.DrawLine(0, y, 2, y, fallbackBrush);
 			}
 		}
 
@@ -975,7 +1223,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 		sink.Close();
 
 		float penWidth = 1;
-		g.DrawGeometry(geometry, brush, penWidth);
+		g.DrawGeometry(geometry, fallbackBrush, penWidth);
 	}
 }
 
