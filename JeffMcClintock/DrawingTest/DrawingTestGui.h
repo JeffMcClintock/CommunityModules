@@ -12,7 +12,7 @@ class DrawingTestGui : public gmpi_gui::MpGuiGfxBase
 	StringGuiPin pinText;
 	BoolGuiPin pinApplyAlphaCorrection;
 	FloatGuiPin pinAdjust;
-
+	StringGuiPin pinListItems;
 //	TestClient testClient;
 
 	void MyApplyGammaCorrection(GmpiDrawing::Bitmap& bitmap);
@@ -28,6 +28,8 @@ public:
 
 	void refresh();
 	void drawGammaTest(GmpiDrawing::Graphics& g);
+
+	void drawAdditiveTest(GmpiDrawing::Graphics& g);
 
 	void drawMacGraphicsTest(GmpiDrawing::Graphics & g);
 

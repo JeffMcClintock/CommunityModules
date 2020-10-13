@@ -16,6 +16,7 @@ GMPI_REGISTER_GUI(MP_SUB_TYPE_GUI2, DrawingTestGui, L"SE Drawing Test" );
 DrawingTestGui::DrawingTestGui()
 {
 	initializePin(pinTestType, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
+	initializePin(pinListItems);
 	initializePin(pinFontface, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
 	initializePin(pinFontsize, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
 	initializePin(pinText, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
@@ -25,6 +26,7 @@ DrawingTestGui::DrawingTestGui()
 
 void DrawingTestGui::refresh()
 {
+	pinListItems = "Text (Classic),2, Gamma, Gradient, MacTest, Text (Fixed), Text Vert Align, Additive";
 	invalidateRect();
 }
 
@@ -197,6 +199,72 @@ void DrawingTestGui::drawGammaTest(GmpiDrawing::Graphics& g)
 			x1 += 250;
 		}
 	}
+}
+
+void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
+{
+	// Using premultiplication to make a purely additive light source.
+	// Alpha = 0 (no reduction on background), color fades from center.
+
+	const int resolution = 1; // 1 or 10
+
+	Color forground = Color::White;
+
+	if(!pinText.getValue().empty())
+	{
+		forground = Color::FromHexString(pinText.getValue());
+	}
+	const float foregroundColor[3] = { forground.b, forground.g, forground.r }; // BGR
+
+	// create bitmap with every intensity vs every alpha.
+	auto bitmapMem = GetGraphicsFactory().CreateImage(100 + resolution, 100 + resolution);
+	{
+		Point center{0.5f * (100 + resolution), 0.5f * (100 + resolution)};
+
+		auto pixelsSource = bitmapMem.lockPixels(true);
+		const auto imageSize = bitmapMem.GetSize();
+		uint8_t* sourcePixels = pixelsSource.getAddress();
+
+		for (float x = 0 ; x <= 100 ; x += resolution)
+		{
+			for (float y = 0; y <= 100; y += resolution)
+			{
+				const auto distanceV = Point(x, y) - center;
+				const auto distance = sqrtf(distanceV.width * distanceV.width + distanceV.height * distanceV.height);
+				const auto brightness = distance / center.x;
+				float alpha = 1.0f - sqrtf(sqrtf((std::max)(0.f,brightness)));
+
+				int alphaVal = (std::max)(0,(std::min)(255, (int)(alpha * 255.0f + 0.5f)));
+
+				int pixelVal[3];
+				for(int i = 0 ; i < 3; ++i)
+				{
+					// apply alpha in lin space.
+					float fg = foregroundColor[i];
+					fg *= alpha; // pre-multiply.
+
+					// then convert to SRGB.
+					pixelVal[i] = se_sdk::FastGamma::float_to_sRGB(fg);
+				}
+
+				// Fill in square with calulated color.
+				for (int xi = (int)x; xi < (int)x + resolution; ++xi)
+				{
+					for (int yi = (int)y; yi < (int)y + resolution; ++yi)
+					{
+						uint8_t* pixel = sourcePixels + ((int) sizeof(uint32_t) * (xi + yi * (int)(imageSize.width)));
+
+						for (int i = 0; i < 3; ++i)
+							pixel[i] = pixelVal[i];
+
+						pixel[3] = 0;// alphaVal;
+					}
+				}
+			}
+		}
+	}
+
+	g.DrawBitmap(bitmapMem, Point(0.f, 0.f), Rect(0.f, 0.f, bitmapMem.GetSizeF().width, bitmapMem.GetSizeF().height));
 }
 
 void DrawingTestGui::drawMacGraphicsTest(GmpiDrawing::Graphics& g)
@@ -485,7 +553,7 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 		}
 		g.DrawTextU("Dither", textFormat, x1, y1, textBrush);
 	}
-
+/*
 	y1 = 0;
 	x1 = 270;
 	{
@@ -514,6 +582,7 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 
 		g.DrawTextU("Radial GradientBrush", textFormat, x1, y1, textBrush);
 	}
+	*/
 }
 
 /*
@@ -606,6 +675,9 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 		auto pixels = bitmap.lockPixels();
 	}
+		break;
+	case 7:
+		drawAdditiveTest(g);
 		break;
 	}
 
@@ -724,7 +796,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 	// Background Fill.
 	auto fallbackBrush = g.CreateSolidColorBrush(Color::White);
-
+/*
 	RadialGradientBrushProperties props{
 		{200.0, 200.0}, // center
 		{0.0, 0.0},		// gradientOriginOffset
@@ -748,6 +820,8 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 	{
 		g.FillRectangle(r, fallbackBrush); // falback to plain solid color brush.
 	}
+	*/
+		g.FillRectangle(r, fallbackBrush); // falback to plain solid color brush.
 
 #if 0
 //	if (pinTestType == 0)
@@ -932,7 +1006,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 		float x = 10.5;
 
-		for (int col = 0; col < 4; ++col)
+		for (int col = 0; col < 5; ++col)
 		{
 			float penWidth = 1.0f;
 			float y = 130.5;
@@ -960,6 +1034,11 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 				dtextFormat.SetWordWrapping(WordWrapping::Wrap);
 				break;
 			case 3:
+				desc = "Clip/Wrap";
+				clipOPtion = (int32_t)DrawTextOptions::Clip;
+				dtextFormat.SetWordWrapping(WordWrapping::Wrap);
+				break;
+			case 4:
 				desc = "No Clip/Wrap";
 				clipOPtion = (int32_t)DrawTextOptions::None;
 				dtextFormat.SetWordWrapping(WordWrapping::NoWrap);
@@ -993,8 +1072,9 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 			dtextFormat.SetWordWrapping(WordWrapping::Wrap);
 			clipOPtion = (int32_t)DrawTextOptions::None;
-			x += 120;
-			headingRect.Offset(120, 0);
+			const float xstep = 106.0f;
+			x += xstep;
+			headingRect.Offset(xstep, 0);
 		}
 	}
 	// Fonts.
