@@ -25,3 +25,4 @@ endif()
 
 add_subdirectory(Bruno_Bordi)
 add_subdirectory(JeffMcClintock)
+add_subdirectory(RJ)
