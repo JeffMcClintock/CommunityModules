@@ -26,7 +26,17 @@ DrawingTestGui::DrawingTestGui()
 
 void DrawingTestGui::refresh()
 {
-	pinListItems = "Text (Classic),2, Gamma, Gradient, MacTest, Text (Fixed), Text Vert Align, Additive";
+	pinListItems =
+		"Text (Classic),"
+		"2,"
+		" Gamma,"
+		" Gradient 1,"			// 4
+		" MacTest,"
+		" Text (Fixed),"
+		" Text Vert Align,"
+		" Additive,"
+		" Gradient 2"
+		;
 	invalidateRect();
 }
 
@@ -585,6 +595,149 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 	*/
 }
 
+void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
+{
+	auto textFormat = g.GetFactory().CreateTextFormat();
+	auto textBrush = g.CreateSolidColorBrush(Color::Orange);
+
+	const int resolution = 1; // 1 or 10
+	const float gamma = 2.2f;
+	float foregroundColor[3] = { 1, 1, 1 }; // BGR
+
+	const auto rect = getRect();
+	const int width = 64;
+	const int height = 64;
+
+	// Use brushes to draw every sRGB intensity.
+	float x1 = 12;
+	float y1 = 12;
+	auto brush = g.CreateSolidColorBrush(Color::Transparent());
+
+	for(int i = 0 ; i < 8 ; ++i)
+	{
+		Rect r(0, 0, width, height);
+		r.Offset(x1, y1);
+
+		Point p1, p2;
+		switch(i)
+		{
+		case 0:
+			p1 = r.getTopLeft();
+			p2 = r.getTopRight();
+			break;
+		case 1:
+			p1 = r.getTopRight();
+			p2 = r.getBottomRight();
+			break;
+		case 2:
+			p1 = r.getBottomRight();
+			p2 = r.getBottomLeft();
+			break;
+		case 3:
+			p1 = r.getBottomLeft();
+			p2 = r.getTopLeft();
+			break;
+		case 4:
+			p1 = r.getTopLeft();
+			p2 = r.getBottomRight();
+			break;
+		case 5:
+			p1 = r.getTopRight();
+			p2 = r.getBottomLeft();
+			break;
+		case 6:
+			p1 = r.getBottomRight();
+			p2 = r.getTopLeft();
+			break;
+		case 7:
+			p1 = r.getBottomLeft();
+			p2 = r.getTopRight();
+			break;
+		}
+
+		auto brushFill = g.CreateLinearGradientBrush(Color::Red, Color::Lime, p1, p2);
+		g.FillRectangle(r, brushFill);
+
+		x1 += width + 12;
+
+		if(x1 + width >= rect.getWidth())
+		{
+			x1 = 12;
+			y1 += height + 12;
+		}
+	}
+
+	for(int i = 0 ;i < 4; ++i)
+	{
+		Rect r(0, 0, width, height);
+		r.Offset(x1, y1);
+		//auto brushFill = g.CreateLinearGradientBrush(Color::Red, Color::Lime, p1, p2);
+		//g.FillRectangle(r, brushFill);
+
+		RadialGradientBrushProperties props{
+			{200.0, 200.0}, // center
+			{0.0, 0.0},		// gradientOriginOffset
+			200.0f,			// radiusX
+			200.0f			// radiusY
+		};
+
+		switch(i)
+		{
+		case 0:
+			props.center = r.getTopLeft();
+			props.radiusX = props.radiusY = 10.0f;
+			break;
+
+		case 1:
+			props.center.x = (r.left + r.right) * 0.5f;
+			props.center.y = r.top;
+			props.radiusX = props.radiusY = 20.0f;
+			break;
+
+		case 2:
+			props.center.x = (r.left + r.right) * 0.5f;
+			props.center.y = (r.top + r.bottom) * 0.5f;
+			props.radiusX = props.radiusY = 30.0f;
+			break;
+
+		case 3:
+			props.center.x = (r.left + r.right) * 0.5f;
+			props.center.y = (r.top + r.bottom) * 0.5f;
+			props.radiusX = props.radiusY = 30.0f;
+			props.gradientOriginOffset = Point(10.0f, 10.0f);
+			break;
+
+		};
+
+		GradientStop gradientStops[] = {
+			{0.0f, Color::Blue   },
+			{1.0f, Color::Orange }
+		};
+
+		auto gradientStopCollection = g.CreateGradientStopCollection(gradientStops);
+
+		auto brushFill = g.CreateRadialGradientBrush({ props }, {}, gradientStopCollection);
+		if(!brushFill.isNull())
+		{
+			g.FillRectangle(r, brushFill);
+		}
+		else
+		{
+//			g.FillRectangle(r, fallbackBrush); // falback to plain solid color brush.
+		}
+
+
+		x1 += width + 12;
+
+		if(x1 + width >= rect.getWidth())
+		{
+			x1 = 12;
+			y1 += height + 12;
+		}
+
+	}
+}
+
 /*
 #include <d2d1.h>
 
@@ -678,6 +831,10 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		break;
 	case 7:
 		drawAdditiveTest(g);
+		break;
+
+	case 8:
+		drawGradient2(g);
 		break;
 	}
 

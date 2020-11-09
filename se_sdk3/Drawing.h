@@ -545,6 +545,21 @@ namespace GmpiDrawing
 			return Point(this->left, this->top);
 		}
 
+		inline Point getTopRight() const
+		{
+			return Point(this->right, this->top);
+		}
+
+		inline Point getBottomLeft() const
+		{
+			return Point(this->left, this->bottom);
+		}
+
+		inline Point getBottomRight() const
+		{
+			return Point(this->right, this->bottom);
+		}
+
 		inline bool ContainsPoint(PointBase<T> point) const
 		{
 			return this->left <= point.x && this->right > point.x && this->top <= point.y && this->bottom > point.y;
