@@ -613,6 +613,7 @@ void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
 	float y1 = 12;
 	auto brush = g.CreateSolidColorBrush(Color::Transparent());
 
+	// Linear gradients
 	for(int i = 0 ; i < 8 ; ++i)
 	{
 		Rect r(0, 0, width, height);
@@ -666,6 +667,34 @@ void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
 			y1 += height + 12;
 		}
 	}
+
+	// newline
+	x1 = 12;
+	y1 += height + 12;
+
+	// linear gradient with off-end behaviour
+	{
+		Point p1(x1 + width + 12 + width/3, y1);
+		Point p2(p1.x + width/3, y1);
+
+		auto brushFill = g.CreateLinearGradientBrush(Color::LightBlue, Color::White, p1, p2);
+
+		for(int i = 0; i < 3; ++i)
+		{
+			Rect r(0, 0, width, height);
+			r.Offset(x1, y1);
+
+			g.FillRectangle(r, brushFill);
+
+			x1 += width + 12;
+		}
+	}
+
+	// radial gradients.
+	
+	// newline
+	x1 = 12;
+	y1 += height + 12;
 
 	for(int i = 0 ;i < 4; ++i)
 	{
