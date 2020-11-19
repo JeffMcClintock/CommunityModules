@@ -388,6 +388,8 @@ function rgb2lab(rgb){
 void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 {
 	auto textFormat = g.GetFactory().CreateTextFormat();
+	textFormat.SetImprovedVerticalBaselineSnapping();
+
 	auto textBrush = g.CreateSolidColorBrush(Color::Orange);
 
 	const int resolution = 1; // 1 or 10
@@ -597,7 +599,12 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 
 void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
 {
+	const auto clipRect = g.GetAxisAlignedClip();
+	_RPT4(_CRT_WARN, "clipRect[ %f %f %f %f]\n", clipRect.left, clipRect.top, clipRect.right, clipRect.bottom);
+
 	auto textFormat = g.GetFactory().CreateTextFormat();
+	textFormat.SetImprovedVerticalBaselineSnapping();
+
 	auto textBrush = g.CreateSolidColorBrush(Color::Orange);
 
 	const int resolution = 1; // 1 or 10
