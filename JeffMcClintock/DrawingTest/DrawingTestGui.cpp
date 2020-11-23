@@ -565,36 +565,6 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 		}
 		g.DrawTextU("Dither", textFormat, x1, y1, textBrush);
 	}
-/*
-	y1 = 0;
-	x1 = 270;
-	{
-		Rect r(0, 0, count, height);
-		r.Offset(x1, y1);
-
-		GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES props{
-              {x1 + 128.0f, y1}, // center
-              {0.0f, 0.0f},     // gradientOriginOffset
-              100.0f,         // radiusX
-              100.0f          // radiusY
-       };
-
-       GradientStop gradientStops[2] = {
-              {0.0f, Color::Red   },
-              {1.0f, Color::Green }
-       };
-
-       auto gradientStopCollection = g.CreateGradientStopCollection(gradientStops);
-
-       auto brushFill = g.CreateRadialGradientBrush({ props }, {}, gradientStopCollection);
-       if(!brushFill.isNull())
-       {
-	      g.FillRectangle(r, brushFill);
-       }
-
-		g.DrawTextU("Radial GradientBrush", textFormat, x1, y1, textBrush);
-	}
-	*/
 }
 
 void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
@@ -703,7 +673,7 @@ void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
 	x1 = 12;
 	y1 += height + 12;
 
-	for(int i = 0 ;i < 4; ++i)
+	for(int i = 0 ;i < 5; ++i)
 	{
 		Rect r(0, 0, width, height);
 		r.Offset(x1, y1);
@@ -736,11 +706,20 @@ void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
 			props.radiusX = props.radiusY = 30.0f;
 			break;
 
+			// circular, offset center
 		case 3:
 			props.center.x = (r.left + r.right) * 0.5f;
 			props.center.y = (r.top + r.bottom) * 0.5f;
 			props.radiusX = props.radiusY = 30.0f;
 			props.gradientOriginOffset = Point(10.0f, 10.0f);
+			break;
+
+			// circular, offset center outside circle
+		case 4:
+			props.center.x = (r.left + r.right) * 0.5f;
+			props.center.y = (r.top + r.bottom) * 0.5f;
+			props.radiusX = props.radiusY = 30.0f;
+			props.gradientOriginOffset = Point(width / 2, width / 2);
 			break;
 
 		};
