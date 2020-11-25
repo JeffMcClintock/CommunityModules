@@ -35,6 +35,7 @@ public:
 
 	// overrides.
 	virtual int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize) override;
+	void brushTransparency(GmpiDrawing::Graphics& g);
 	void drawGradient(GmpiDrawing::Graphics & g);
 	void drawGradient2(GmpiDrawing::Graphics& g);
 	virtual int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override;

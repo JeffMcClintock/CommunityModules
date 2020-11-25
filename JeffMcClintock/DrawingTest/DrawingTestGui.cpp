@@ -28,7 +28,7 @@ void DrawingTestGui::refresh()
 {
 	pinListItems =
 		"Text (Classic),"
-		"2,"
+		"Alpha blending,"
 		" Gamma,"
 		" Gradient 1,"			// 4
 		" MacTest,"
@@ -385,6 +385,89 @@ function rgb2lab(rgb){
 }
 */
 
+void DrawingTestGui::brushTransparency(GmpiDrawing::Graphics& g)
+{
+	auto textFormat = g.GetFactory().CreateTextFormat();
+	textFormat.SetImprovedVerticalBaselineSnapping();
+	auto textBrush = g.CreateSolidColorBrush(Color::Lime);
+
+	// background checkerboard.
+	{
+		auto brush = g.CreateSolidColorBrush(Color::Black);
+		g.FillRectangle(8, 8, 256 + 8, 256 + 8, brush);
+
+		brush.SetColor(Color::White);
+
+		for(int x = 8; x < 256 + 8; x += 8)
+		{
+			for(int y = 8; y < 256 + 8; y += 8)
+			{
+				if((y & 8) == (x & 8))
+				{
+					g.FillRectangle(x, y, x + 8, y + 8, brush);
+				}
+			}
+		}
+	}
+
+	float x1 = 8;
+	float y1 = 16;
+	const int count = 256;
+	const int height = 32;
+	// create bitmap with every transparency.
+	auto bitmapMem = GetGraphicsFactory().CreateImage(count, height);
+	{
+		auto pixelsSource = bitmapMem.lockPixels(true);
+		const auto imageSize = bitmapMem.GetSize();
+		uint8_t* sourcePixels = pixelsSource.getAddress();
+
+		for(int x = 0; x < count; ++x)
+		{
+			const auto pixelAlpha = x;
+			const float alphaf = x / (float)(count-1);
+
+			for(int y = 0; y < height; ++y)
+			{
+				const float intensity = static_cast<float>(y >= height/2);
+				const float premultiplied = intensity * alphaf;
+				const auto pixelValRgba = se_sdk::FastGamma::float_to_sRGB(premultiplied);
+
+				uint8_t* pixel = sourcePixels + sizeof(uint32_t) * (x + y * static_cast<size_t>(imageSize.width));
+
+				for(int i = 0; i < 3; ++i)
+				{
+					pixel[i] = pixelValRgba;
+				}
+				pixel[3] = pixelAlpha;
+			}
+		}
+	}
+
+	g.DrawBitmap(bitmapMem, Point(x1, y1), Rect(0, 0, count, height), GmpiDrawing_API::MP1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+	g.DrawTextU("Bitmap", textFormat, x1, y1, textBrush);
+	// outline
+	g.DrawRectangle({x1, y1, x1+count, y1+height}, textBrush);
+
+	// Use brushes to draw every sRGB intensity.
+	x1 = 8;
+	y1 = 64;
+	auto brush = g.CreateSolidColorBrush(Color::Transparent());
+
+	for(int x = 0; x < count; ++x)
+	{
+		const float alpha = x / (float)(count - 1);
+		for(int y = 0; y < height; ++y)
+		{
+			const float brightness = y < height / 2 ? 0.0f : 1.0f;
+			brush.SetColor(Color(brightness, brightness, brightness, alpha));
+			g.FillRectangle(x1 + x, y1 + y, x1 + x + 1, y1 + y + 1, brush);
+		}
+	}
+	g.DrawTextU("Brush", textFormat, x1, y1, textBrush);
+	// outline
+	g.DrawRectangle({x1, y1, x1+count, y1+height}, textBrush);
+}
+
 void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 {
 	auto textFormat = g.GetFactory().CreateTextFormat();
@@ -438,12 +521,6 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 		}
 	}
 
-	if (pinApplyAlphaCorrection)
-	{
-//		bitmapMem.ApplyAlphaCorrection();
-		//MyApplyGammaCorrection(bitmapMem);
-	}
-
 	g.DrawBitmap(bitmapMem, Point(0,0), Rect(0, 0, count, height));
 	g.DrawTextU("Bitmap RGB", textFormat, 0.0f, 0.0f, textBrush);
 
@@ -495,7 +572,7 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 			GmpiDrawing_API::MP1_POINT p2 = { static_cast<float>(count), 0.0f };
 
 			std::vector<GradientStop> stops;
-			const int numStops = 8;
+			const int numStops = 8;// (std::max)(2, (int)y / 4);
 			for(int i = 0; i < numStops; ++i)
 			{
 				const float L = 100.0f * i / (float)(numStops - 1);
@@ -508,14 +585,7 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 		}
 
 		g.DrawTextU("LAB (Piecewise)", textFormat, x1, y1, textBrush);
-/*
-			const int numStops = (y / 4) + 2;
-				uint8_t sRGB[3];
-				lab2rgb(L, 0.0f, 0.0f, &sRGB[0], &sRGB[1], &sRGB[2]);
-				stops.push_back({i / (float)(numStops - 1), Color::FromBytes(sRGB[0], sRGB[1], sRGB[2])});
-*/
 	}
-
 
 	y1 += 50;
 
@@ -817,8 +887,10 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 	switch(pinTestType.getValue())
 	{
 	case 0:
-	case 1:
 		drawTextTest(g);
+		break;
+	case 1:
+		brushTransparency(g);
 		break;
 	case 2:
 		drawGammaTest(g);
