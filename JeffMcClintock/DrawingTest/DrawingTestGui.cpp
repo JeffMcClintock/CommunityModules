@@ -257,7 +257,7 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 					pixelVal[i] = se_sdk::FastGamma::float_to_sRGB(fg);
 				}
 
-				// Fill in square with calulated color.
+				// Fill in square with calculated color.
 				for (int xi = (int)x; xi < (int)x + resolution; ++xi)
 				{
 					for (int yi = (int)y; yi < (int)y + resolution; ++yi)
@@ -267,7 +267,7 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 						for (int i = 0; i < 3; ++i)
 							pixel[i] = pixelVal[i];
 
-						pixel[3] = 0;// alphaVal;
+						pixel[3] = (std::max)(0, (int)(y - 50.0f));
 					}
 				}
 			}
