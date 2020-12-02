@@ -7,8 +7,6 @@
 
 class DrawingTestLinesGui : public gmpi_gui::MpGuiGfxBase, public TimerClient
 {
-//	GmpiDrawing::Bitmap cachedRender_;
-	GmpiDrawing::BitmapRenderTarget backbuffer;
 	GmpiDrawing::Bitmap backbuffer2;
 
 public:

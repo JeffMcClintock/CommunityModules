@@ -55,7 +55,8 @@ int32_t DrawingTestLinesGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawing
 	Graphics g(drawingContext);
 	auto r = getRect();
 
-	if (backbuffer.isNull())
+	GmpiDrawing::BitmapRenderTarget backbuffer;
+//	if (backbuffer.isNull())
 	{
 		backbuffer = g.CreateCompatibleRenderTarget(Size(r.getWidth(), r.getHeight()));
 		backbuffer2 = g.GetFactory().CreateImage((int32_t)r.getWidth(), (int32_t)r.getHeight());
@@ -64,7 +65,7 @@ int32_t DrawingTestLinesGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawing
 	{
 		auto pixels = backbuffer2.lockPixels();
 		auto imageSize = backbuffer2.GetSize();
-		int totalPixels = (int)imageSize.height * pixels.getBytesPerRow() / sizeof(uint32_t);
+//		int totalPixels = (int)imageSize.height * pixels.getBytesPerRow() / sizeof(uint32_t);
 
 		int32_t* sourcePixels = (int32_t*) pixels.getAddress();
 

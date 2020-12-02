@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<PluginList>
+
+ 
+  
+  <Plugin id="Plotter" name="Plotter" category="ELENA/DSP" helpUrl="ELENA_DSPModules/Plotter.txt">
+    <Audio>
+      <Pin name="Input" datatype="float" rate="audio" direction="in" />
+      <Pin name="Interval (mS)" datatype="float" direction="in" default="30" />
+      <Pin name="Range (V)" datatype="float" direction="in" default="10" />
+    </Audio>
+    <GUI graphicsApi="GmpiGui">
+      <Pin name="Hold" datatype="bool" direction="in" default="0" />
+      <Pin name="BG Top ARGB" datatype="string" direction="in" />
+      <Pin name="BG Bottom ARGB" datatype="string" direction="in" />
+      <Pin name="Plot ARGB" datatype="string" direction="in" />
+      <Pin name="Grid ARGB" datatype="string" direction="in" />
+    </GUI>
+  </Plugin>
+
+
+
+</PluginList>

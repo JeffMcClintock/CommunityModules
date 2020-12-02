@@ -115,7 +115,7 @@ void DrawingTestGui::drawGammaTest(GmpiDrawing::Graphics& g)
 	// create bitmap with every intensity vs every alpha.
 	auto bitmapMem = GetGraphicsFactory().CreateImage(100 + resolution, 100 + resolution);
 	{
-		auto pixelsSource = bitmapMem.lockPixels(true);
+		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		auto imageSize = bitmapMem.GetSize();
 		int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
 
@@ -231,7 +231,7 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 	{
 		Point center{0.5f * (100 + resolution), 0.5f * (100 + resolution)};
 
-		auto pixelsSource = bitmapMem.lockPixels(true);
+		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		const auto imageSize = bitmapMem.GetSize();
 		uint8_t* sourcePixels = pixelsSource.getAddress();
 
@@ -417,7 +417,7 @@ void DrawingTestGui::brushTransparency(GmpiDrawing::Graphics& g)
 	// create bitmap with every transparency.
 	auto bitmapMem = GetGraphicsFactory().CreateImage(count, height);
 	{
-		auto pixelsSource = bitmapMem.lockPixels(true);
+		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		const auto imageSize = bitmapMem.GetSize();
 		uint8_t* sourcePixels = pixelsSource.getAddress();
 
@@ -484,7 +484,7 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 	// create bitmap with every intensity.
 	auto bitmapMem = GetGraphicsFactory().CreateImage(count, count);
 	{
-		auto pixelsSource = bitmapMem.lockPixels(true);
+		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		auto imageSize = bitmapMem.GetSize();
 		int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
 
