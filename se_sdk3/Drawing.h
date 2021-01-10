@@ -1516,6 +1516,11 @@ namespace GmpiDrawing
 		{
 		}
 
+		inline RoundedRect(GmpiDrawing::Rect native, float radiusX, float radiusY) :
+			GmpiDrawing_API::MP1_ROUNDED_RECT({ *((GmpiDrawing_API::MP1_RECT*) & native), radiusX ,radiusY })
+		{
+		}
+
 	};
 
 	// Wrap interfaces in friendly classes.

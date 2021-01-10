@@ -24,6 +24,27 @@ DrawingTestGui::DrawingTestGui()
 	initializePin(pinAdjust, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));	
 }
 
+#include "../shared/xp_dynamic_linking.h"
+
+template<typename T>
+auto parentFolder(T path)
+{
+	T ret;
+
+	auto p = path.find_last_of('\\');
+	if(p == std::string::npos)
+	{
+		 p = path.find_last_of('/');
+	}
+
+	if(p != std::string::npos)
+	{
+		ret = path.substr(0, p);
+	}
+
+	return ret;
+}
+
 void DrawingTestGui::refresh()
 {
 	pinListItems =
@@ -38,6 +59,32 @@ void DrawingTestGui::refresh()
 		" Gradient 2"
 		;
 	invalidateRect();
+
+#if 0
+	// Get the path to this SEM.
+	// e.g.
+	// "C:\Program Files\Common Files\SynthEdit\modules\DrawingTest.sem" (SynthEdit)
+	// "C:\Program Files\Common Files\VST3\Drawing Test\DrawingTest.sem" (VST3)
+	const std::wstring mypath = gmpi_dynamic_linking::MP_GetDllFilename();
+
+	std::wstring semFolder = parentFolder(mypath);
+#if _WIN32
+	std::wstring pluginFolder = semFolder;
+#else
+	std::wstring pluginFolder = parentFolder(semFolder); // on mac SEMS are in "plugins" sub-folder.
+#endif
+
+	// Get the path to the plugins resources.
+	std::string aResource = FindResourceU("background", "Image"); // e.g. "C:\Program Files\Common Files\VST3\Drawing Test\PD303__background.png"
+	std::string resourceFolder = parentFolder(aResource); // e.g. (VST3) "C:\Program Files\Common Files\VST3\Drawing Test"
+
+
+	// Getting the Old API
+	IMpUserInterfaceHost* legacyHost = {};
+	getHost()->queryInterface(MP_IID_UI_HOST, (void**) &legacyHost);
+
+	legacyHost->resolveFilename(L"", 3, L""); // etc
+#endif
 }
 
 void DrawingTestGui::MyApplyGammaCorrection(Bitmap& bitmap)
@@ -731,7 +778,9 @@ void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
 			Rect r(0, 0, width, height);
 			r.Offset(x1, y1);
 
-			g.FillRectangle(r, brushFill);
+			RoundedRect roundRect(r, 5.0f, 5.0f);
+//			g.FillRectangle(r, brushFill);
+			g.FillRoundedRectangle(roundRect, brushFill);
 
 			x1 += width + 12;
 		}
