@@ -3,8 +3,16 @@
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
-trigger:
-- master
+trigger: none
+
+resources:
+  pipelines:
+  - pipeline: RELEASE_PIPELINE // any arbitrary name
+    source: MacOs_Build.    // name of the pipeline shown on azure UI portal
+    trigger:
+    branches:
+      include:
+        - master        // name of branch on which pipeline need to trigger
 
 pool:
   vmImage: 'windows-latest'
