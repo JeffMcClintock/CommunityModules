@@ -28,4 +28,4 @@ steps:
   displayName: 'Publish Artifacts'
   inputs:
     PathtoPublish: '$(build.artifactstagingdirectory)'
-    ArtifactName: 'MacOS Modules'
+    ArtifactName: 'MacOS_Modules'
