@@ -7,12 +7,12 @@ trigger: none
 
 resources:
   pipelines:
-  - pipeline: RELEASE_PIPELINE // any arbitrary name
-    source: MacOs_Build.    // name of the pipeline shown on azure UI portal
+  - pipeline: RELEASE_PIPELINE
+    source: MacOs_Build.
     trigger:
-    branches:
-      include:
-        - master        // name of branch on which pipeline need to trigger
+      branches:
+        include:
+          - master
 
 pool:
   vmImage: 'windows-latest'
