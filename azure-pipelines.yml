@@ -72,6 +72,13 @@ steps:
     testResultsFormat: 'CTest'
     testResultsFiles: 'build/Testing/*/Test.xml'
 
+steps:
+- task: DownloadBuildArtifacts@0
+  displayName: 'Download Mac Build Artifacts'
+  inputs:
+    artifactName: 'mac_assets'
+    downloadPath: '$(build.artifactstagingdirectory)'
+
 - task: FtpUpload@1
   displayName: 'FTP Upload: Modules'
   inputs:
