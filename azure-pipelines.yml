@@ -73,11 +73,15 @@ steps:
     testResultsFiles: 'build/Testing/*/Test.xml'
 
 - task: DownloadBuildArtifacts@0
-  displayName: 'Download Mac Build Artifacts'
   inputs:
+    buildType: 'specific'
+    project: 'c5461b5f-8816-4d6b-842e-7e4e5aee0627'
+    pipeline: '14'
+    specificBuildWithTriggering: true
+    buildVersionToDownload: 'latest'
+    downloadType: 'single'
     artifactName: 'MacOS_Modules'
     downloadPath: '$(build.artifactstagingdirectory)'
-
 - task: FtpUpload@1
   displayName: 'FTP Upload: Modules'
   inputs:
