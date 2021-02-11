@@ -78,7 +78,7 @@ steps:
     credentialsOption: inputs
     serverUrl: 'ftp://ftp.synthedit.com'
     username: synth
-    password: synth1001
+    password: $(ftp_password)
     rootDirectory: '$(build.artifactstagingdirectory)'
     filePatterns: '*.zip'
     remoteDirectory: 'domains/synthedit.com/public_html/modules'
