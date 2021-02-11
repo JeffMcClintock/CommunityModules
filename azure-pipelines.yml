@@ -54,7 +54,13 @@ steps:
     Contents: '**\build\**\*.sem'
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
-
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/modules.zip'
+    replaceExistingArchive: true
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact'
   inputs:
@@ -66,3 +72,14 @@ steps:
     testResultsFormat: 'CTest'
     testResultsFiles: 'build/Testing/*/Test.xml'
 
+- task: FtpUpload@1
+  displayName: 'FTP Upload: Modules'
+  inputs:
+    credentialsOption: inputs
+    serverUrl: 'ftp://ftp.synthedit.com'
+    username: synth
+    password: synth1001
+    rootDirectory: '$(build.artifactstagingdirectory)'
+    filePatterns: '*.zip'
+    remoteDirectory: 'domains/synthedit.com/public_html/modules'
+    trustSSL: true
