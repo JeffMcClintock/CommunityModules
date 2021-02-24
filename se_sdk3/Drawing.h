@@ -1333,9 +1333,16 @@ namespace GmpiDrawing
 			GmpiDrawing_API::MP1_BRUSH_PROPERTIES(native)
 		{
 		}
-		inline BrushProperties()
+
+		BrushProperties()
 		{
 			opacity = 1.0f;
+			transform = (GmpiDrawing_API::MP1_MATRIX_3X2) Matrix3x2::Identity();
+		}
+
+		BrushProperties(float pOpacity)
+		{
+			opacity = pOpacity;
 			transform = (GmpiDrawing_API::MP1_MATRIX_3X2) Matrix3x2::Identity();
 		}
 	};
@@ -1343,11 +1350,17 @@ namespace GmpiDrawing
 	class BitmapBrushProperties : public GmpiDrawing_API::MP1_BITMAP_BRUSH_PROPERTIES
 	{
 	public:
-		inline BitmapBrushProperties(GmpiDrawing_API::MP1_BITMAP_BRUSH_PROPERTIES native) :
+		BitmapBrushProperties(GmpiDrawing_API::MP1_BITMAP_BRUSH_PROPERTIES native) :
 			GmpiDrawing_API::MP1_BITMAP_BRUSH_PROPERTIES(native)
 		{
 		}
 
+		BitmapBrushProperties()
+		{
+			extendModeX = GmpiDrawing_API::MP1_EXTEND_MODE_WRAP;
+			extendModeY = GmpiDrawing_API::MP1_EXTEND_MODE_WRAP;
+			interpolationMode = GmpiDrawing_API::MP1_BITMAP_INTERPOLATION_MODE_LINEAR;
+		}
 	};
 
 	class LinearGradientBrushProperties : public GmpiDrawing_API::MP1_LINEAR_GRADIENT_BRUSH_PROPERTIES
@@ -1383,8 +1396,8 @@ namespace GmpiDrawing
 		}
 
 		RadialGradientBrushProperties(
-			Point pCenter,
-			Point pGradientOriginOffset,
+			GmpiDrawing_API::MP1_POINT pCenter,
+			GmpiDrawing_API::MP1_POINT pGradientOriginOffset,
 			float pRadiusX,
 			float pRadiusY
 		) :
@@ -1393,6 +1406,17 @@ namespace GmpiDrawing
 			radiusX(pRadiusX),
 			radiusY(pRadiusY)
 		{
+		}
+
+		RadialGradientBrushProperties(
+			GmpiDrawing_API::MP1_POINT pCenter,
+			float pRadius,
+			GmpiDrawing_API::MP1_POINT pGradientOriginOffset = {}
+		)
+		{
+			center = pCenter;
+			gradientOriginOffset = pGradientOriginOffset;
+			radiusX = radiusY = pRadius;
 		}
 	};
 
@@ -1484,6 +1508,11 @@ namespace GmpiDrawing
 		{
 		}
 
+		QuadraticBezierSegment(GmpiDrawing_API::MP1_POINT pPoint1, GmpiDrawing_API::MP1_POINT pPoint2)
+		{
+			point1 = pPoint1;
+			point2 = pPoint2;
+		}
 	};
 
 	class Ellipse : public GmpiDrawing_API::MP1_ELLIPSE
@@ -1516,11 +1545,30 @@ namespace GmpiDrawing
 		{
 		}
 
-		inline RoundedRect(GmpiDrawing::Rect native, float radiusX, float radiusY) :
-			GmpiDrawing_API::MP1_ROUNDED_RECT({ *((GmpiDrawing_API::MP1_RECT*) & native), radiusX ,radiusY })
+		inline RoundedRect(GmpiDrawing_API::MP1_RECT pRect, float pRadiusX, float pRadiusY)
 		{
+			rect = pRect;
+			radiusX = pRadiusX;
+			radiusY = pRadiusY;
 		}
 
+		inline RoundedRect(GmpiDrawing_API::MP1_RECT pRect, float pRadius)
+		{
+			rect = pRect;
+			radiusX = radiusY = pRadius;
+		}
+
+		inline RoundedRect(GmpiDrawing_API::MP1_POINT pPoint1, GmpiDrawing_API::MP1_POINT pPoint2, float pRadius)
+		{
+			rect = GmpiDrawing_API::MP1_RECT{ pPoint1.x, pPoint1.y, pPoint2.x, pPoint2.y };
+			radiusX = radiusY = pRadius;
+		}
+
+		inline RoundedRect(float pLeft, float pTop, float pRight, float pBottom, float pRadius)
+		{
+			rect = GmpiDrawing_API::MP1_RECT{ pLeft, pTop, pRight, pBottom };
+			radiusX = radiusY = pRadius;
+		}
 	};
 
 	// Wrap interfaces in friendly classes.
@@ -1824,6 +1872,11 @@ namespace GmpiDrawing
 		inline void SetExtendModeY(ExtendMode extendModeY)
 		{
 			Get()->SetExtendModeY((GmpiDrawing_API::MP1_EXTEND_MODE) extendModeY);
+		}
+
+		inline void SetInterpolationMode(BitmapInterpolationMode interpolationMode)
+		{
+			Get()->SetInterpolationMode((GmpiDrawing_API::MP1_BITMAP_INTERPOLATION_MODE) interpolationMode);
 		}
 	};
 
@@ -2311,8 +2364,11 @@ namespace GmpiDrawing
 		}
 */
 
-		inline BitmapBrush CreateBitmapBrush(Bitmap& bitmap, BitmapBrushProperties& bitmapBrushProperties, BrushProperties& brushProperties)
+		inline BitmapBrush CreateBitmapBrush(Bitmap& bitmap) // N/A on macOS: BitmapBrushProperties& bitmapBrushProperties, BrushProperties& brushProperties)
 		{
+			const BitmapBrushProperties bitmapBrushProperties;
+			const BrushProperties brushProperties;
+
 			BitmapBrush temp;
 			Get()->CreateBitmapBrush(bitmap.Get(), &bitmapBrushProperties, &brushProperties, temp.GetAddressOf());
 			return temp;
@@ -2430,6 +2486,61 @@ namespace GmpiDrawing
 			return temp;
 		}
 
+		inline RadialGradientBrush CreateRadialGradientBrush(GradientStopCollection gradientStopCollection, GmpiDrawing_API::MP1_POINT center, float radius)
+		{
+			BrushProperties brushProperties;
+			RadialGradientBrushProperties radialGradientBrushProperties(center, radius);
+
+			RadialGradientBrush temp;
+			Get()->CreateRadialGradientBrush((GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES*) &radialGradientBrushProperties, &brushProperties, gradientStopCollection.Get(), temp.GetAddressOf());
+			return temp;
+		}
+
+		template <int N>
+		inline RadialGradientBrush CreateRadialGradientBrush(GradientStop(&gradientStops)[N], GmpiDrawing_API::MP1_POINT center, float radius)
+		{
+			BrushProperties brushProperties;
+			RadialGradientBrushProperties radialGradientBrushProperties(center, radius);
+			auto gradientStopCollection = CreateGradientStopCollection(gradientStops);
+
+			RadialGradientBrush temp;
+			Get()->CreateRadialGradientBrush((GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES*) &radialGradientBrushProperties, &brushProperties, gradientStopCollection.Get(), temp.GetAddressOf());
+			return temp;
+		}
+
+		// Simple 2-color gradient.
+		inline RadialGradientBrush CreateRadialGradientBrush(GmpiDrawing_API::MP1_POINT center, float radius, GmpiDrawing_API::MP1_COLOR startColor, GmpiDrawing_API::MP1_COLOR endColor)
+		{
+			GradientStop gradientStops[2];
+			gradientStops[0].color = startColor;
+			gradientStops[0].position = 0.0f;
+			gradientStops[1].color = endColor;
+			gradientStops[1].position = 1.0f;
+
+			auto gradientStopCollection = CreateGradientStopCollection(gradientStops, 2);
+			RadialGradientBrushProperties rp(center, radius);
+			BrushProperties bp;
+			return CreateRadialGradientBrush(rp, bp, gradientStopCollection);
+		}
+
+		// Simple 2-color gradient.
+		inline RadialGradientBrush CreateRadialGradientBrush(Color color1, Color color2, Point center, float radius)
+		{
+			GradientStop gradientStops[2];
+			gradientStops[0].color = color1;
+			gradientStops[0].position = 0.0f;
+			gradientStops[1].color = color2;
+			gradientStops[1].position = 1.0f;
+
+			auto gradientStopCollection = CreateGradientStopCollection(gradientStops, 2);
+
+			RadialGradientBrushProperties radialGradientBrushProperties(center, radius);
+			BrushProperties brushproperties;
+
+			RadialGradientBrush temp;
+			Get()->CreateRadialGradientBrush((GmpiDrawing_API::MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES*) &radialGradientBrushProperties, &brushproperties, gradientStopCollection.Get(), temp.GetAddressOf());
+			return temp;
+		}
 		//inline Mesh CreateMesh()
 		//{
 		//	Mesh temp;
@@ -2467,7 +2578,7 @@ namespace GmpiDrawing
 			Get()->FillRectangle(&rect, brush.Get());
 		}
 
-		inline void FillRectangle(float top, float left, float right, float bottom, Brush& brush)
+		inline void FillRectangle(float top, float left, float right, float bottom, Brush& brush) // TODO!!! using references hinders the caller creating the brush in the function call.
 		{
 			Rect rect(top, left, right, bottom);
 			Get()->FillRectangle(&rect, brush.Get());

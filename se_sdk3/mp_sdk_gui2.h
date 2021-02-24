@@ -27,6 +27,9 @@
 #define	GMPI_GUI_SDK_REVISION 10000 // 1.00
 /* Version History
 	11/09/2014 - V1.00 : Official release.
+
+   TODO
+   * Choose Folder Dialog
 */
 
 #pragma warning(disable : 4100) // "unreferenced formal parameter"

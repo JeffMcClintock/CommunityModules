@@ -640,9 +640,9 @@ unsigned, can't handle negative points. not much practical use.
 		virtual void MP_STDCALL SetInterpolationMode(MP1_BITMAP_INTERPOLATION_MODE interpolationMode) = 0;
 	};
 	// GUID for IBitmapBrush
-	// {4540C6EE-98AB-4C79-B857-66AE64249125}
-	//static const gmpi::MpGuid SE_IID_BITMAPBRUSH_MPGUI =
-	//{ replaceme, 0x98ab, 0x4c79,{ 0xb8, 0x57, 0x66, 0xae, 0x64, 0x24, 0x91, 0x25 } };
+	// {10E6068D-75D7-4C36-89AD-1C8878E70988}
+	static const gmpi::MpGuid SE_IID_BITMAPBRUSH_MPGUI = 
+	{ 0x10e6068d, 0x75d7, 0x4c36, { 0x89, 0xad, 0x1c, 0x88, 0x78, 0xe7, 0x9, 0x88 } };
 
 	class DECLSPEC_NOVTABLE IMpSolidColorBrush : public IMpBrush
 	{
@@ -870,6 +870,29 @@ unsigned, can't handle negative points. not much practical use.
 
 		virtual int32_t MP_STDCALL CreateLinearGradientBrush(const MP1_LINEAR_GRADIENT_BRUSH_PROPERTIES* linearGradientBrushProperties, const MP1_BRUSH_PROPERTIES* brushProperties, const IMpGradientStopCollection* gradientStopCollection, IMpLinearGradientBrush** linearGradientBrush) = 0;
 
+		/*
+			Radial Gradient Brush example.
+
+			RadialGradientBrushProperties props{
+				{100.0, 100.0}, // center
+				{0.0, 0.0},		// gradientOriginOffset
+				200.0f,			// radiusX
+				200.0f			// radiusY
+			};
+
+			GradientStop gradientStops[] = {
+				{0.0f, Color::Red   },
+				{1.0f, Color::Green }
+			};
+
+			auto gradientStopCollection = g.CreateGradientStopCollection(gradientStops);
+
+			auto brushFill = g.CreateRadialGradientBrush({ props }, {}, gradientStopCollection);
+			if(!brushFill.isNull())
+			{
+				g.FillRectangle(getRect(), brushFill);
+			}
+		*/
 		virtual int32_t MP_STDCALL CreateRadialGradientBrush(const MP1_RADIAL_GRADIENT_BRUSH_PROPERTIES* radialGradientBrushProperties, const MP1_BRUSH_PROPERTIES* brushProperties, const IMpGradientStopCollection* gradientStopCollection, IMpRadialGradientBrush** radialGradientBrush) = 0;
 
 		virtual void MP_STDCALL DrawLine(MP1_POINT point0, MP1_POINT point1, const IMpBrush* brush, float strokeWidth = 1.0f, const IMpStrokeStyle* strokeStyle = nullptr) = 0;

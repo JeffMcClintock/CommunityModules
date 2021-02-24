@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2007,2013,2018 SynthEdit Ltd
+/* Copyright (c) 2007-2021 SynthEdit Ltd
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -9,7 +9,7 @@
 *     * Redistributions in binary form must reproduce the above copyright
 *       notice, this list of conditions and the following disclaimer in the
 *       documentation and/or other materials provided with the distribution.
-*     * Neither the name SEM, nor 'Music Plugin Interface' nor the
+*     * Neither the name SEM, nor SynthEdit, nor 'Music Plugin Interface' nor the
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *

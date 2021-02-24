@@ -643,9 +643,9 @@ protected:
 
 public:
 #if defined(_DEBUG)
-	bool debugIsOpen_;
-	bool blockPosExact_;
-	bool debugGraphStartCalled_;
+	bool debugIsOpen_ = false;
+	bool blockPosExact_ = true;
+	bool debugGraphStartCalled_ = false;
 #endif
 };
 

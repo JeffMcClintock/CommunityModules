@@ -127,9 +127,10 @@ namespace GmpiGui
 		{
 			Get()->SetAlignment(alignment);
 		}
-		inline void SetAlignment(GmpiDrawing::TextAlignment alignment)
+		inline void SetAlignment(GmpiDrawing::TextAlignment alignment, GmpiDrawing::WordWrapping wordWrapping = GmpiDrawing::WordWrapping::NoWrap)
 		{
-			Get()->SetAlignment((int32_t)alignment);
+			const int32_t inverseWordWrapping = ((~(int32_t)wordWrapping) & 1) << 16;
+			Get()->SetAlignment((int32_t)alignment | inverseWordWrapping);
 		}
 		inline void SetText(std::string text)
 		{

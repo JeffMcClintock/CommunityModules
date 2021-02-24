@@ -354,15 +354,7 @@ void MpPluginBase::midiHelper( const MpEvent* e )
 						, (const unsigned char*) e->extraData, e->parm2); // midi bytes (sysex)
 	}
 }
-/*
-void MpPluginBase::AudioStreamingChangeHelper(MpEvent* e)
-{
-	assert(e->eventType == EVENT_PIN_STREAMING_START || e->eventType == EVENT_PIN_STREAMING_STOP);
 
-	bool streaming = e->eventType == EVENT_PIN_STREAMING_START;
-	OnStreamingChange(e->parm1, streaming);
-}
-*/
 MpPluginBase::MpPluginBase( ) :
 	blockPos_( 0 )
 	,sleepCount_( 0 )
@@ -370,12 +362,6 @@ MpPluginBase::MpPluginBase( ) :
 	,canSleepManualOverride_( SLEEP_AUTO )
 	,eventsComplete_( true )
 	,recursionFix(false)
-
-	#if defined(_DEBUG)
-	,debugIsOpen_( false )
-	,blockPosExact_( true )
-	,debugGraphStartCalled_( false )
-	#endif
 {
 }
 

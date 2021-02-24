@@ -92,7 +92,7 @@ namespace GmpiSdk
 			Object() {}
 			Object(gmpi::IMpUnknown* other) : m_ptr(other) {}
 			Object(Object const & other) : m_ptr(other.m_ptr) {}
-			Object(Object && other) : m_ptr(std::move(other.m_ptr)) {}
+			Object(Object && other) noexcept : m_ptr(std::move(other.m_ptr)) {}
 			//void Copy(Object const & other) { m_ptr = other.m_ptr; }
 			void Copy(gmpi::IMpUnknown* other) { m_ptr = other; }
 			void Move(Object && other) { m_ptr = std::move(other.m_ptr); }
