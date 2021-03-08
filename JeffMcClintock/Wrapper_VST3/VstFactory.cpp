@@ -8,16 +8,17 @@
 #include <assert.h>
 #include "mp_sdk_common.h"
 #include "unicode_conversion.h"
-//#include "AEffectWrapper.h"
-//#include "./Vst2Wrapper.h"
 #include "xplatform.h"
 #include "string_utilities.h"
 #include "xp_dynamic_linking.h"
 
 #if !defined(SE_TARGET_WAVES)
+#include "pluginterfaces/vst/ivstaudioprocessor.h"
+#include "public.sdk/source/vst/hosting/plugprovider.h"
+
 #include "FileFinder.h"
-//#include "./Vst2WrapperGui.h"
-//#include "VST2WrapperController.h"
+#include "./EditButtonGui.h"
+#include "ControllerWrapper.h"
 #include "./VstwrapperfailGui.h"
 #include "./AaVstWrapperDiagGui.h"
 
@@ -27,6 +28,7 @@
 
 #endif
 
+
 #define INFO_PLUGIN_ID "SE: VST3 WRAPPER"
 #define L_INFO_PLUGIN_ID L"SE: VST3 WRAPPER"
 
@@ -34,12 +36,17 @@ using namespace std;
 using namespace gmpi;
 using namespace JmUnicodeConversions;
 
+using namespace Steinberg;
+using namespace Steinberg::Vst;
+
+const char* VstFactory::pluginIdPrefix = "wvVST3WRAP:";
+
 // IMpShellFactory: Query a plugin's info. Should occur only during a user-initiated re-scan.
 int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXml)
 {
 #if !defined(SE_TARGET_WAVES)
 
-	IString* returnString = 0;
+	gmpi::IString* returnString = 0;
 
 	if (MP_OK != iReturnXml->queryInterface(MP_IID_RETURNSTRING, reinterpret_cast<void**>( &returnString)))
 	{
@@ -48,7 +55,7 @@ int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXm
 
 	if (index == 0) // User-initiated rescan.
 	{
-		wavesShellLocations.clear();
+//		pluginIdMap.clear();
 		ScanVsts();
 	}
 	else
@@ -69,10 +76,23 @@ int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXm
 	return gmpi::MP_FAIL;
 }
 
+std::string VstFactory::uuidFromWrapperID(const wchar_t* uniqueId)
+{
+	constexpr int prefixLength = 11;
+	assert(strlen(pluginIdPrefix) >= prefixLength);
+
+	if(wcslen(uniqueId) <= prefixLength)
+	{
+		return {};
+	}
+
+	return WStringToUtf8( uniqueId + prefixLength );
+}
+
 int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iReturnXml)
 {
 #if !defined(SE_TARGET_WAVES)
-	IString* returnXml = 0;
+	gmpi::IString* returnXml{};
 
 	if (MP_OK != iReturnXml->queryInterface(MP_IID_RETURNSTRING, reinterpret_cast<void**>(&returnXml)))
 	{
@@ -84,33 +104,38 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 		loadPluginInfo();
 	}
 
-	int vstUniqueId = 0;
-	if (wcslen(uniqueId) > 11)
+	const auto uuid = uuidFromWrapperID(uniqueId);
+	const auto path = WStringToUtf8( getShellFromId(uuid) );
+
+	std::string error;
+	auto module = VST3::Hosting::Module::create (path, error);
+	if (!module)
 	{
-		wchar_t* idx;
-		vstUniqueId = wcstol(uniqueId + 11, &idx, 16);
+		std::string reason = "Could not create Module for file:";
+		reason += path;
+		reason += "\nError: ";
+		reason += error;
+// Displays message box and quits process.
+//		IPlatform::instance ().kill (-1, reason);
+		return gmpi::MP_FAIL;
 	}
 
-	assert(false);
-/* TODO !!!
-	// load plugin, get full XML.
-	AEffectWrapper ae;
-
-	ae.LoadDll(getShellFromId(vstUniqueId), vstUniqueId);
-	
-	if (!ae.IsLoaded())
+	auto classID = VST3::UID::fromString(uuid);
+	if(!classID)
 	{
 		return gmpi::MP_FAIL;
 	}
 
-
-	ae.dispatcher(effOpen);
-	std::string xmlFull = XmlFromPlugin(&ae, wrapperVersion);
-
-	returnXml->setData(xmlFull.data(), (int32_t)xmlFull.size());
-
-	return gmpi::MP_OK;
-	*/
+	auto factory = module->getFactory();
+	for (auto& classInfo : factory.classInfos ())
+	{
+		if (classInfo.ID() == *classID && classInfo.category() == kVstAudioEffectClass)
+		{
+			const std::string xmlFull = XmlFromPlugin(factory, classInfo);
+			returnXml->setData(xmlFull.data(), (int32_t)xmlFull.size());
+			return gmpi::MP_OK;
+		}
+	}
 #endif
 
 	return gmpi::MP_FAIL;
@@ -139,26 +164,21 @@ vector< std::wstring >getSearchPaths()
 }
 #endif
 
-void VstFactory::LocateWavesShell()
+void VstFactory::ShallowScanVsts()
 {
 #if !defined(SE_TARGET_WAVES)
-	// TODO: !!! In the case of multiple WaveShells, use NEWEST one (biggest version number). !!!
-
-	// Time to re-scan VSTs.
 	std::wstring excludeMyself = StripFilename(gmpi_dynamic_linking::MP_GetDllFilename());
 
 	auto searchPaths = getSearchPaths();
 	for (auto itSp = searchPaths.begin(); itSp != searchPaths.end(); ++itSp)
 	{
-		ScanForWavesShell(*itSp, excludeMyself); // Will use only first WavesShell.
+		RecursiveScanVsts(*itSp, excludeMyself);
 	}
 #endif
 }
 
 void VstFactory::ScanVsts()
 {
-	LocateWavesShell();
-
 	scannedPLugins = true;
 
 #if !defined(SE_TARGET_WAVES)
@@ -169,79 +189,73 @@ void VstFactory::ScanVsts()
 	// Always add 'Info' plugin
 	{
 		ostringstream oss;
-		oss << "<PluginList><Plugin id=\"" << INFO_PLUGIN_ID << "\" name=\"Wrapper Info\" category=\"VST3 Plugins\" >";
-		oss << "<GUI graphicsApi=\"GmpiGui\"><Pin/></GUI>";
-		oss << "</Plugin></PluginList>";
+		oss << "<PluginList><Plugin id=\"" << INFO_PLUGIN_ID << "\" name=\"Wrapper Info\" category=\"VST3 Plugins\" >"
+			"<GUI graphicsApi=\"GmpiGui\"><Pin/></GUI>"
+			"</Plugin></PluginList>";
 
 		plugins.push_back({ INFO_PLUGIN_ID, "", oss.str() });
 	}
 
-	for (auto& i : wavesShellLocations)
-	{
-		ScanDll(i.second, i.first.c_str());
-	}
+	ShallowScanVsts();
+
 	savePluginInfo();
 
 #endif
 }
 
-// Search for Waves shell, stopping at first one found. Not recursive.
-void VstFactory::ScanForWavesShell(const std::wstring& searchPath, const std::wstring& excludePath)
-{
-#if !defined(SE_TARGET_WAVES)
-//	float bestVersion = 0;
+//// Search for Waves shell, stopping at first one found. Not recursive.
+//void VstFactory::ScanForWavesShell(const std::wstring& searchPath, const std::wstring& excludePath)
+//{
+//#if !defined(SE_TARGET_WAVES)
+//
+//	auto searchMask = searchPath + L"*.vst3";
+//	for (FileFinder it = toPlatformString(searchMask).c_str(); !it.done(); ++it)
+//	{
+//		if (!(*it).isFolder)
+//		{
+//			auto fullFilename = searchPath + JmUnicodeConversions::toWstring((*it).filename);
+////			if (fullFilename.find(L"WaveShell") != std::string::npos && fullFilename.find(L"StudioRack") == std::string::npos && fullFilename.find(excludePath) != 0)
+//			{
+//				std::string shortFilename = JmUnicodeConversions::toString((*it).filename);
+//				pluginIdMap.insert(std::make_pair(shortFilename, fullFilename));
+//			}
+//		}
+//	}
+//#endif
+//}
 
-	auto searchMask = searchPath + L"*.vst3";
-	for (FileFinder it = toPlatformString(searchMask).c_str(); !it.done(); ++it)
-	{
-		if (!(*it).isFolder)
-		{
-			auto fullFilename = searchPath + JmUnicodeConversions::toWstring((*it).filename);
-			if (fullFilename.find(L"WaveShell") != std::string::npos && fullFilename.find(L"StudioRack") == std::string::npos && fullFilename.find(excludePath) != 0)
-			{
-				/*
-				auto p1 = fullFilename.find_first_of(L"0123456789");
-				auto p2 = fullFilename.find_first_not_of(L"0123456789.", p1);
-				float version = stof(fullFilename.substr(p1, p2 - p1));
-
-				if (version > bestVersion)
-				{
-					bestVersion = version;
-					wavesShellLocation = fullFilename;
-				}
-				*/
-
-				std::string shortFilename = JmUnicodeConversions::toString((*it).filename);
-				wavesShellLocations.insert(std::make_pair(shortFilename, fullFilename));
-			}
-		}
-	}
-#endif
-}
-
-/*
 void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::wstring& excludePath)
 {
 #if !defined(SE_TARGET_WAVES)
-	auto searchMask = searchPath + L"*.dll";
+	if(searchPath.find(excludePath) != std::string::npos)
+	{
+		return;
+	}
+
+	auto searchMask = combinePathAndFile(searchPath, std::wstring(L"*.*"));
 	for (FileFinder it = toPlatformString( searchMask ).c_str(); !it.done(); ++it)
 	{
+		if((*it).isDots())
+		{
+			continue;
+		}
+
 		if ((*it).isFolder)
 		{
 			RecursiveScanVsts(searchPath + JmUnicodeConversions::toWstring((*it).filename), excludePath);
 		}
 		else
 		{
-			auto fullFilename = searchPath + JmUnicodeConversions::toWstring((*it).filename);
-			if (fullFilename.find(excludePath) != 0)
+			auto fullFilename = combinePathAndFile(searchPath, JmUnicodeConversions::toWstring((*it).filename));
+			if ((*it).filename.find(L".vst3") == (*it).filename.size() - 5)
 			{
+				//std::string shortFilename = JmUnicodeConversions::toString((*it).filename);
 				ScanDll(fullFilename);
 			}
 		}
 	}
 #endif
 }
-*/
 
 struct backgroundData
 {
@@ -252,86 +266,53 @@ struct backgroundData
 
 #if !defined(SE_TARGET_WAVES)
 
-void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path, const char* shellName)
+void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 {
-	if (full_path.find(L"WaveShell") == std::string::npos)
+	const auto path = WStringToUtf8(full_path);
+
+	std::string error;
+	auto module = VST3::Hosting::Module::create(path, error);
+	if (!module)
 	{
-		return; // Only interested in Wavesshell.
+		std::string reason = "Could not create Module for file:";
+		reason += path;
+		reason += "\nError: ";
+		reason += error;
+// Displays message box and quits process.
+//		IPlatform::instance ().kill (-1, reason);
+		return;
 	}
 
-
-	assert(false); // TODO!!!
-#if 0
-	AEffectWrapper plugin;
-	plugin.LoadDll(full_path);
-
-	if (plugin.IsLoaded())
+	const char* category = "VST3 Plugins";
+	const bool isWavesShell = path.find("WaveShell") != std::string::npos;
+	if(isWavesShell)
 	{
-		plugin.dispatcher(effOpen);
-
-		bool isShellPlugin = plugin.dispatcher(effGetPlugCategory, 0, 0, NULL, 0.0f) == kPlugCategShell;
-
-		if (isShellPlugin)
+		auto lastSlash = path.find_last_of('/');
+		if(lastSlash == std::string::npos)
 		{
-			//			plugin.dispatcher(effOpen); // Assume we need to open shell?
-
-			vector < pair<int32_t, string > > pluginList;
-			int index = 0;
-			VstIntPtr uniqueId = 0;
-			string name;
-
-			// Waves5 continues with the next plug after the last loaded
-			// that's not what we want - workaround: swallow all remaining
-			//while (uniqueId = plugin.ShellGetNextPlugin(name)) {}
-
-#if 1 // quick name-only scan.
-			do
-			{
-				uniqueId = plugin.ShellGetNextPlugin(name);
-
-				if (uniqueId != 0)
-				{
-					AddPluginName(shellName, uniqueId, name);
-				}
-			} while (uniqueId != 0);
-#else // full detailed scan
-			do
-			{
-				uniqueId = plugin.ShellGetNextPlugin(name);
-
-				if (uniqueId != 0)
-				{
-					pluginList.push_back(pair<int32_t, string>(uniqueId, name));
-				}
-			} while (uniqueId != 0);
-
-			for (auto p : pluginList)
-			{
-				{
-					AEffectWrapper subPlugin;
-					subPlugin.InitFromShell(plugin.getDllHandle(), *(dat->full_path), p.first);
-					if (subPlugin.IsLoaded())
-					{
-						subPlugin.dispatcher(effOpen);
-						dat->factory->AddPlugin(dat->full_path, &subPlugin);
-					}
-				}
-			}
-#endif
+			lastSlash = path.find_last_of('\\');
 		}
-		else
+		if(lastSlash == std::string::npos)
 		{
-			// Standard VST. Will never happen in Waves.
-			AddPlugin(/* dat->full_path, */&plugin);
+			lastSlash = 0;
 		}
 
-		//		plugin.dispatcher(effClose);
+		category = path.c_str() + lastSlash;
 	}
-#endif
+
+	auto factory = module->getFactory ();
+	for (auto& classInfo : factory.classInfos ())
+	{
+		if (classInfo.category () == kVstAudioEffectClass)
+		{
+			AddPluginName(category, classInfo.ID().toString(), classInfo.name(), full_path); // a quick scan of name-only.
+		}
+	}
 }
 #endif
 
-void VstFactory::AddPluginName(const char* shellName, std::string uuid, const std::string& name)
+// For shallow scan, just record name and id.
+void VstFactory::AddPluginName(const char* category, std::string uuid, const std::string& name, const std::wstring& shellPath)
 {
 	// Plugin ID's must be unique. Skip multiple waveshells.
 	for (auto& p : plugins)
@@ -347,36 +328,63 @@ void VstFactory::AddPluginName(const char* shellName, std::string uuid, const st
 	}
 
 	ostringstream oss;
+	oss <<
+		"<PluginList>"
+			"<Plugin id=\"" << pluginIdPrefix << uuid << "\" name=\"" << name << "\" category=\"" << category << "/\" >"
+			"<Audio/>"
+			"<Controller/>"
+			"<GUI graphicsApi=\"GmpiGui\" />"
+			"</Plugin>"
+		"</PluginList>";
 
-	oss << "<PluginList>";
-
-	// Wrapper
-	oss << "<Plugin id=\"wvVST2WRAP:" << uuid << "\" name=\"" << name << "\" category=\"" << shellName << "/\" >";
-	oss << "<Audio/>";
-	oss << "<Controller/>";
-	oss << "<GUI graphicsApi=\"GmpiGui\" />";
-	oss << "</Plugin>";
-
-	oss << "</PluginList>";
-
-	plugins.push_back(pluginInfo(name, uuid, oss.str()));
+	plugins.push_back({ name, uuid, oss.str(), shellPath });
 }
 
-std::string VstFactory::XmlFromPlugin(void/*AEffectWrapper*/* plugin)
+std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& classInfo)
 {
-	assert(false); // TODO!!!
 	ostringstream oss;
-#if 0
-	// Gather parameter names.
-	auto numParams = plugin->getNumParams();
-	vector<string> paramNames;
-	for (int i = 0; i < numParams; ++i)
+
+	auto plugProvider = owned (new Steinberg::Vst::PlugProvider (factory, classInfo, true));
+
+	auto editController = owned(plugProvider->getController());
+	if (!editController)
 	{
-		paramNames.push_back(plugin->getParameterName(i));
+//		error = "No EditController found (needed for allowing editor) in file " + path;
+//		IPlatform::instance ().kill (-1, error);
+		return {};
+	}
+//	editController->release (); // plugProvider does an addRef
+
+/* not sure what this is
+	// set optional component handler on edit controller
+	if (flags & kSetComponentHandler)
+	{
+		SMTG_DBPRT0 ("setComponentHandler is used\n");
+		editController->setComponentHandler (&gComponentHandler);
+	}
+*/
+
+	/* not much easier
+	const bool useChunkPresets = true;
+	const bool useGuiPins = false;
+	const auto uniqueIdU = WStringToUtf8(uniqueId); // TODO minimize all this string conversions !!!!
+	auto controller = std::make_unique<ControllerWrapper>(getShellFromId(uniqueIdU).c_str(), uuidFromWrapperID(uniqueId), useChunkPresets, useGuiPins);
+	*/
+
+	// TODO!!!: Hide and handle MIDI CC dummy parameters
+
+	// Gather parameter names.
+	vector<string> paramNames;
+	const auto parameterCount = editController->getParameterCount();
+	for(int i = 0; i < parameterCount; ++i)
+	{
+		Steinberg::Vst::ParameterInfo info{};
+		editController->getParameterInfo(i, info);
+
+		paramNames.push_back(WStringToUtf8(info.title));
 	}
 
-
-	oss << "<PluginList><Plugin id=\"wvVST2WRAP:" << std::hex << plugin->getUniqueID() << "\" name=\"" << plugin->getName() << "\" category=\"VST2 (Waves)\" >";
+	oss << "<PluginList><Plugin id=\"" << pluginIdPrefix << classInfo.ID().toString() << "\" name=\"" << classInfo.name() << "\" category=\"VST3 (Waves)\" >";
 
 	// Parameter to store state.
 	oss << "<Parameters>";
@@ -384,10 +392,7 @@ std::string VstFactory::XmlFromPlugin(void/*AEffectWrapper*/* plugin)
 	int i = 0;
 	for (auto name : paramNames)
 	{
-		oss << "<Parameter id=\"" << std::dec << i << "\" name=\"" << name << "\" datatype=\"float\" metadata=\",,1,0\"";
-		if (wrapperVersion == 2)
-			oss << " persistant=\"false\" ";
-		oss << " />";
+		oss << "<Parameter id=\"" << std::dec << i << "\" name=\"" << name << "\" datatype=\"float\" metadata=\",,1,0\" />";
 		++i;
 	}
 
@@ -403,13 +408,72 @@ std::string VstFactory::XmlFromPlugin(void/*AEffectWrapper*/* plugin)
 	// Controller.
 	oss << "<Controller/>";
 
+	// instansiate Processor
+//	IAudioProcessor* audioEffect{};
+		auto component = owned(plugProvider->getComponent());
+		if(!component)
+		{
+			//		error = "No EditController found (needed for allowing editor) in file " + path;
+			//		IPlatform::instance ().kill (-1, error);
+			return {};
+		}
+#if 0
+
+		const int32 numInputs = component->getBusCount (kAudio, kInput);
+		const int32 numOutputs = component->getBusCount (kAudio, kOutput);
+		const int32 numMidiInputs = component->getBusCount (kEvent, kInput);
+
+//		component->queryInterface(IAudioProcessor::iid, (void**)&audioEffect);
+//		component->release();
+#endif
+
+	int numInputs{};
+	int numOutputs{};
+	int numMidiInputs{};
+
+	BusInfo busInfo = {};
+	const int busIndex{};
+	if (component->getBusInfo (kAudio, kInput, busIndex, busInfo) == kResultTrue)
+	{
+		numInputs = busInfo.channelCount;
+/*
+		auto busName = VST3::StringConvert::convert (busInfo.name);
+
+		if (busName.empty ())
+		{
+//			addErrorMessage (testResult, printf ("Bus %d has no name!!!", busIndex));
+			return false;
+		}
+*/
+
+/*
+		addMessage (
+			testResult,
+			printf ("     %s[%d]: \"%s\" (%s-%s) ", busDirection == kInput ? "In " : "Out",
+				    busIndex, busName.data (), busInfo.busType == kMain ? "Main" : "Aux",
+				    busInfo.kDefaultActive ? "Default Active" : "Default Inactive"));
+*/
+	}
+
+	if(component->getBusInfo(kAudio, kOutput, busIndex, busInfo) == kResultTrue)
+	{
+		numOutputs = busInfo.channelCount;
+	}
+
+	if(component->getBusInfo(kEvent, kInput, busIndex, busInfo) == kResultTrue)
+	{
+		numMidiInputs = busInfo.channelCount;
+	}
+
 	// Audio.
 	oss << "<Audio>";
 
 	// Add Power and Tempo pins.
+	// TODO !!! revise these, need auto sleep? it was a bit buggy i think
+//		<Pin name = "Auto Sleep" datatype = "bool" isMinimised="true" />
+
 	oss << R"XML(
 		<Pin name = "Power/Bypass" datatype = "bool" default = "1" />
-		<Pin name = "Auto Sleep" datatype = "bool" isMinimised="true" />
 		<Pin name = "Host BPM" datatype = "float" hostConnect = "Time/BPM" />
 		<Pin name = "Host SP" datatype = "float" hostConnect = "Time/SongPosition" />
 		<Pin name = "Host Transport" datatype = "bool" hostConnect = "Time/TransportPlaying" />
@@ -421,19 +485,25 @@ std::string VstFactory::XmlFromPlugin(void/*AEffectWrapper*/* plugin)
 	auto aeffectPointerParamId = i;
 	oss << "<Pin name=\"effectptr\" datatype=\"blob\" parameterId=\"" << aeffectPointerParamId << "\" private=\"true\" />";
 
-	if (plugin->CanDo("receiveVstMidiEvent"))
+	if(numMidiInputs)
+	{
 		oss << "<Pin name=\"MIDI In\" direction=\"in\" datatype=\"midi\" />";
+	}
 
-	for (int i = 0; i < plugin->getNumInputs(); ++i)
+	// Direct parameter access via MIDI
+	oss << "<Pin name=\"Parameter Access\" direction=\"in\" datatype=\"midi\" />";
+
+	for (int i = 0; i < numInputs; ++i)
 		oss << "<Pin name=\"Signal In\" datatype=\"float\" rate=\"audio\" />";
 
-	for (int i = 0; i < plugin->getNumOutputs(); ++i)
+	for (int i = 0; i < numOutputs; ++i)
 		oss << "<Pin name=\"Signal Out\" direction=\"out\" datatype=\"float\" rate=\"audio\" />";
 
+/* old way
 	// DSP controls for setting normalised parameter values.
 	for (int i = 0; i < plugin->getNumParams(); ++i)
 		oss << "<Pin name=\"" << plugin->getParameterName(i) << "\" datatype=\"float\" metadata=\",,1,0\" default=\"-1\"/>";
-
+*/
 	oss << "</Audio>";
 
 	// GUI.
@@ -445,43 +515,27 @@ std::string VstFactory::XmlFromPlugin(void/*AEffectWrapper*/* plugin)
 	oss << "</GUI>";
 
 	oss << "</Plugin></PluginList>";
-#endif
+
 	return oss.str();
 }
 
-void VstFactory::AddPlugin(/*const std::wstring* full_path,*/ AEffectWrapper* plugin)
-{
-	assert(false); // TODO!!!
-#if 0
-	// Plugin ID's must be unique. Skip multiple waveshells.
-	auto uniqueId = plugin->getUniqueID();
-	for (auto& p : plugins)
-	{
-		if (p.uniqueId_ == uniqueId)
-			return;
-	}
-
-	plugins.push_back(pluginInfo(/**full_path,*/ plugin->getName(), plugin->getUniqueID(), XmlFromPlugin(plugin)));
-#endif
-}
-
-// Determine settings file: C:\Users\Jeff\AppData\Local\Plugin\Preferences.xml
+// Determine settings file: C:\Users\Jeff\AppData\Local\SeVst3Wrapper\ScannedPlugins.xml
 std::wstring VstFactory::getSettingFilePath()
 {
 #if !defined(SE_TARGET_WAVES) && defined(_WIN32)
 	wchar_t mySettingsPath[MAX_PATH];
 	SHGetFolderPathW( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, &(mySettingsPath[0]) );
 	std::wstring meSettingsFile( &(mySettingsPath[0]) );
-	meSettingsFile += L"/SeVst2Wrapper";
+	meSettingsFile += L"\\SeVst3Wrapper";
 
 	// Create folder if not already.
 	_wmkdir(meSettingsFile.c_str());
 
-	meSettingsFile += L"/ScannedPlugins.xml";
+	meSettingsFile += L"\\ScannedPlugins.xml";
 
 	return meSettingsFile;
 #else
-	return wstring(L"");
+	return {};
 #endif
 }
 
@@ -489,8 +543,8 @@ std::wstring VstFactory::getSettingFilePath()
 std::string VstFactory::getDiagnostics()
 {
 	std::ostringstream oss;
-
-	if (wavesShellLocations.empty())
+/* todo
+	if (pluginIdMap.empty())
 	{
 		oss << "Can't locate *WaveShell*.*\nSearched:\n";
 
@@ -504,7 +558,7 @@ std::string VstFactory::getDiagnostics()
 	{
 		oss << "WaveShells located:";
 		bool first = true;
-		for (auto& it : wavesShellLocations)
+		for (auto& it : pluginIdMap)
 		{
 			if (!first)
 			{
@@ -526,7 +580,7 @@ std::string VstFactory::getDiagnostics()
 			}
 		}
 	}
-
+*/
 //	oss << "Can't open VST Plugin. (not a vst plugin). (";
 	return oss.str();
 }
@@ -543,6 +597,7 @@ void VstFactory::savePluginInfo()
 			myfile << p.name_ << "\n";
 			myfile << p.uuid_ << "\n";
 			myfile << p.xmlBrief_ << "\n";
+			myfile << WStringToUtf8(p.shellPath_) << "\n";
 		}
 		myfile.close();
 	}
@@ -555,20 +610,21 @@ void VstFactory::loadPluginInfo()
 	ifstream myfile(getSettingFilePath());
 	if( myfile.is_open() )
 	{
-		string name;
-		string id;
-		string xml;
+		string name, id, xml, path;
 		std::getline(myfile, name);
 		while( !myfile.eof() )
 		{
 			std::getline(myfile, id);
 			std::getline(myfile, xml);
-			plugins.push_back(pluginInfo(name, id, xml));
+			std::getline(myfile, path);
+			plugins.push_back({ name, id, xml, Utf8ToWstring(path) });
+
+			// next plugin.
 			std::getline(myfile, name);
 		}
 		myfile.close();
 		scannedPLugins = true;
-		LocateWavesShell();
+		ShallowScanVsts();
 	}
 	else
 	{
@@ -577,7 +633,7 @@ void VstFactory::loadPluginInfo()
 #endif
 }
 
-#if !defined(SE_TARGET_WAVES)
+#if !defined(SE_TARGET_WAVES) // TODO!!! try to replace this, so the wrapper is universal, mayby have runtime detection of context (in a wavesplugin of not)
 
 #ifdef _WIN32
 
@@ -682,20 +738,9 @@ std::wstring VstFactory::getShellFromId(const std::string& uuid)
 {
 	for (auto& p : plugins)
 	{
-		if (p.uuid_ == uuid)
+		if(p.uuid_ == uuid)
 		{
-			auto p1 = p.xmlBrief_.find("category");
-			p1 = p.xmlBrief_.find_first_of('\"', p1) + 1;
-			auto p2 = p.xmlBrief_.find_first_of("/\"", p1);
-			auto shellName = p.xmlBrief_.substr(p1, p2 - p1);
-
-			for (auto& s : wavesShellLocations)
-			{
-				if (s.first == shellName)
-				{
-					return s.second;
-				}
-			}
+			return p.shellPath_;
 		}
 	}
 	return L"";
@@ -737,28 +782,20 @@ int32_t VstFactory::createInstance(
 	}
 #endif
 
-	int vstUniqueId = 0;
-	bool useChunkPresets = false;
-	bool useGuiPins = true;
-	if( wcslen(uniqueId) > 11 )
-	{
-		wchar_t* idx;
-		vstUniqueId = wcstol(uniqueId + 11, &idx, 16);
-
-		useChunkPresets = uniqueId[0] != L'S';
-		useGuiPins = uniqueId[0] != L'w';
-	}
+	const auto vstUniqueId = uuidFromWrapperID(uniqueId);
+	const bool useChunkPresets = false;
+	const bool useGuiPins = true;
 
 	for( auto& pluginInfo : plugins )
 	{
-assert(false); // !!! TODO
-#if 0
 		if( pluginInfo.uuid_ == vstUniqueId )
 		{
 			switch( subType )
 			{
 			case MP_SUB_TYPE_AUDIO:
 			{
+assert(false); // !!! TODO
+#if 0
 				auto wp = new Vst2Wrapper(pluginInfo.uniqueId_, useChunkPresets);
 
 				if( host != nullptr )
@@ -769,13 +806,15 @@ assert(false); // !!! TODO
 				*returnInterface = static_cast<void*>( wp );
 
 				return gmpi::MP_OK;
-				break;
+#endif
 			}
+			break;
 
 #if !defined(SE_TARGET_WAVES)
 			case MP_SUB_TYPE_CONTROLLER:
 			{
-				auto wp = new VST2WrapperController(getShellFromId(pluginInfo.uniqueId_), pluginInfo.uniqueId_, useChunkPresets, useGuiPins);
+				const auto uniqueIdU = WStringToUtf8(uniqueId); // TODO minimize all this string conversions !!!!
+				auto wp = new ControllerWrapper(getShellFromId(vstUniqueId).c_str(), vstUniqueId, useChunkPresets, useGuiPins);
 
 				if( host != nullptr )
 				{
@@ -785,17 +824,18 @@ assert(false); // !!! TODO
 				*returnInterface = static_cast<void*>( wp );
 
 				return gmpi::MP_OK;
-				break;
 			}
+			break;
+#endif
 
 			case MP_SUB_TYPE_GUI2:
 			{
-				if (wavesShellLocations.empty())
-				{
-					break;
-				}
+				//if (pluginIdMap.empty())
+				//{
+				//	break;
+				//}
 
-				auto wp = new Vst2WrapperGui(pluginInfo.uniqueId_, useGuiPins);
+				auto wp = new EditButtonGui();
 
 				if( host != nullptr )
 				{
@@ -805,43 +845,39 @@ assert(false); // !!! TODO
 				*returnInterface = static_cast<gmpi_gui_api::IMpGraphics*>( wp );
 
 				return gmpi::MP_OK;
-				break;
 			}
-#endif
+			break;
+
 			default:
 				return gmpi::MP_FAIL;
 				break;
 			}
 		}
-#endif
 	}
 
 #if !defined(SE_TARGET_WAVES)
 	if (subType == MP_SUB_TYPE_GUI2)
 	{
 		string err("Error");
-		if (wavesShellLocations.empty())
+		//if (pluginIdMap.empty())
+		//{
+		//	err = "Can't Locate WavesShell";
+		//}
+		//else
 		{
-			err = "Can't Locate WavesShell";
-		}
-		else
-		{
-			err = "Can't find Waves Plugin:";
-			char buffer[50] = "";
-			sprintf(buffer, "%X", vstUniqueId);
-			err += buffer;
-			//err += "\nShell:" + WStringToUtf8(wavesShellLocation);
+			err = "Can't find Waves Plugin:" + vstUniqueId;
+			err += "\n";
 
 			bool first = true;
-			for (auto& it : wavesShellLocations)
-			{
-				if (!first)
-				{
-					err += ", ";
-				}
-				err += WStringToUtf8(it.second);
-				first = false;
-			}
+			//for (auto& it : pluginIdMap)
+			//{
+			//	if (!first)
+			//	{
+			//		err += ", ";
+			//	}
+			//	err += WStringToUtf8(it.second);
+			//	first = false;
+			//}
 		}
 
 		auto wp = new VstwrapperfailGui(err);

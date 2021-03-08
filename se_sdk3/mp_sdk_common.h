@@ -122,7 +122,7 @@ namespace gmpi
 #if defined(_WIN32)
 #include "windows.h"
 #define MP_PLATFORM_WIN32	1
-#define MP_STDCALL		_stdcall
+#define MP_STDCALL		__stdcall
 #endif
 
 

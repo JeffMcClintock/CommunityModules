@@ -26,6 +26,10 @@
 CONTRIBUTORS:
 Jeff McClintock
 Lee Louque
+Sasha Radojevic
+
+   TODO
+   * Draw bitmap with blending modes (e.g. additive)
 */
 
 /*

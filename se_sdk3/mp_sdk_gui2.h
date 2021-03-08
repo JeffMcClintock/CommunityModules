@@ -354,7 +354,7 @@ namespace gmpi_gui
 		}
 		bool getCapture()
 		{
-			int32_t c;
+			int32_t c{};
 			getGuiHost()->getCapture(c);
 			return c != 0;
 		}

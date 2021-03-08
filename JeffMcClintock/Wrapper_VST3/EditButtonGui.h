@@ -1,0 +1,47 @@
+#ifndef TEXTENTRY4GUI_H_INCLUDED
+#define TEXTENTRY4GUI_H_INCLUDED
+
+#include "mp_sdk_gui2.h"
+#include "../shared/ImageMetadata.h"
+#include "VstFactory.h"
+#include "TimerManager.h"
+#include "Drawing.h"
+#include "public.sdk/source/vst/hosting/plugprovider.h"
+
+class EditButtonGui : public gmpi_gui::MpGuiGfxBase
+{
+	static const int border = 2;
+	GmpiDrawing::TextFormat dtextFormat;
+
+	std::string shellPluginId_;
+	std::string filename_;
+
+	bool initialized_;
+//	Steinberg::IPtr<Steinberg::Vst::PlugProvider> pluginProvider_;
+	Steinberg::Vst::PlugProvider* pluginProvider_ = {};
+	static const int controllertPtrPinId = 0;
+
+	std::shared_ptr<class WindowController> windowController;
+
+public:
+	EditButtonGui();
+
+	// overrides.
+	int32_t MP_STDCALL initialize() override;
+	int32_t MP_STDCALL setPin(int32_t pinId, int32_t voice, int32_t size, const void* data) override;
+
+	int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override;
+	int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize) override;
+	int32_t MP_STDCALL onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
+	int32_t MP_STDCALL onPointerUp(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
+
+	int32_t MP_STDCALL populateContextMenu(float x, float y, gmpi::IMpUnknown* contextMenuItemsSink) override;
+	int32_t MP_STDCALL onContextMenu(int32_t selection) override;
+
+	GmpiDrawing::TextFormat& getTextFormat();
+	void openVstGui();
+};
+
+#endif
+
+

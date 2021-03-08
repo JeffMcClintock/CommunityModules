@@ -7,7 +7,10 @@
 #include "../shared/xplatform.h"
 #include <map>
 #include <vector>
-//#include "AEffectWrapper.h"
+
+#if !defined(SE_TARGET_WAVES)
+#include "public.sdk/source/vst/hosting/module.h"
+#endif
 
 // Control all parameters externally via DSP and GUI pins. (usual method is store state from plugin via getChunck/setChunk).
 #define VST_WRAPPER_EXTERNAL_CONTROL_STRATEGY
@@ -20,24 +23,26 @@ typedef class gmpi::IMpUnknown* (*MP_CreateFunc2)();
 class VstFactory* GetVstFactory();
 
 
-// VstFactory - a singleton object.  The plugin registers it's ID with the factory.
+// VstFactory - a singleton object. The plugin registers it's ID with the factory.
 class VstFactory : public gmpi::IMpShellFactory
 {
 	struct pluginInfo
 	{
-		pluginInfo( std::string name, std::string uuid, std::string xml) : xmlBrief_(xml), name_(name), uuid_(uuid)
-		{}
+		//pluginInfo( std::string name, std::string uuid, std::string xml) : xmlBrief_(xml), name_(name), uuid_(uuid)
+		//{}
 		std::string uuid_;
 		std::string name_;
 		std::string xmlBrief_;
+		std::wstring shellPath_;
 	};
 
 	std::vector< pluginInfo > plugins;
 	std::vector< std::string > duplicates;
 	bool scannedPLugins = {};
 #if !defined(SE_TARGET_WAVES)
-	std::map< std::string, std::wstring > wavesShellLocations;
+//	std::map< std::string, std::wstring > pluginIdMap;
 #endif
+	static const char* pluginIdPrefix;
 
 public:
 	virtual ~VstFactory(void) {};
@@ -62,17 +67,19 @@ public:
 
 	// IMpShellFactory: Query a plugin's info.
 	virtual int32_t MP_STDCALL getPluginIdentification(int32_t index, IMpUnknown* iReturnXml) override;	// ID and name only.
+	std::string uuidFromWrapperID(const wchar_t* uniqueId);
 	virtual int32_t MP_STDCALL getPluginInformation(const wchar_t* iid, IMpUnknown* iReturnXml) override;		// Full pin details.
 
-	void AddPlugin(/*const std::wstring* full_path,*/ class AEffectWrapper* plugin);
-	void AddPluginName(const char* shellName, std::string uuid, const std::string& name);
-	std::string XmlFromPlugin(void/*AEffectWrapper*/* plugin);
+//	void AddPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& info);
+	void AddPluginName(const char* category, std::string uuid, const std::string& name, const std::wstring& shellPath);
+	std::string XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& info);
 #if !defined(SE_TARGET_WAVES)
+/*
 	std::wstring getWavesShellLocation()
 	{
 		std::wstring r;
 		bool first = true;
-		for (auto& it : wavesShellLocations)
+		for (auto& it : pluginIdMap)
 		{
 			if (!first)
 			{
@@ -83,16 +90,18 @@ public:
 		}
 		return r;
 	}
-
+*/
 	std::string getDiagnostics();
 	std::wstring getShellFromId(const std::string& uuid);
 #endif
 
 private:
-	void LocateWavesShell();
+	void ShallowScanVsts();
 	void ScanVsts();
-	void ScanDll(const std::wstring& load_filename, const char* shellName);
-	void ScanForWavesShell(const std::wstring& searchPath, const std::wstring& excludePath);
+	void ScanDll(const std::wstring& load_filename);
+//	void ScanForWavesShell(const std::wstring& searchPath, const std::wstring& excludePath);
+
+	void RecursiveScanVsts(const std::wstring& searchPath, const std::wstring& excludePath);
 
 	std::wstring getSettingFilePath();
 

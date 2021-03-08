@@ -36,6 +36,11 @@ public:
 		platform_string filename;
 		platform_string fullPath;
 		bool isFolder = false;
+
+		bool isDots() const
+		{
+			return filename == _T(".") || filename == _T("..");
+		}
 	};
 
 #if defined(_WIN32)

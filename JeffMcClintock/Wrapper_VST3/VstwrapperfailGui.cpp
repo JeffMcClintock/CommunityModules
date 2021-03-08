@@ -12,13 +12,15 @@ VstwrapperfailGui::VstwrapperfailGui(std::string pErrorMsg) : errorMsg(pErrorMsg
 
 int32_t VstwrapperfailGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext )
 {
-	Graphics dc(drawingContext);
+	Graphics g(drawingContext);
 
-	auto r = getRect();
+	const auto r = getRect();
+	ClipDrawingToBounds x(g, r);
+
 	auto textFormat = GetGraphicsFactory().CreateTextFormat();
-	auto brush = dc.CreateSolidColorBrush(Color::Red);
+	auto brush = g.CreateSolidColorBrush(Color::Red);
 
-	dc.DrawTextU(errorMsg, textFormat,r,brush);
+	g.DrawTextU(errorMsg, textFormat,r,brush);
 
 	return gmpi::MP_OK;
 }
