@@ -28,8 +28,6 @@ class VstFactory : public gmpi::IMpShellFactory
 {
 	struct pluginInfo
 	{
-		//pluginInfo( std::string name, std::string uuid, std::string xml) : xmlBrief_(xml), name_(name), uuid_(uuid)
-		//{}
 		std::string uuid_;
 		std::string name_;
 		std::string xmlBrief_;

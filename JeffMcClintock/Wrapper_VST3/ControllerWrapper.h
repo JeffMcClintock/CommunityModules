@@ -24,7 +24,7 @@ public:
 	ControllerWrapper(const wchar_t* filename, const std::string& uuid, bool ppresetsUseChunks, bool phasGuiParameterPins);
 	~ControllerWrapper()
 	{
-		int x = 9;
+//		int x = 9;
 	}
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 	virtual int32_t MP_STDCALL setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size) override;

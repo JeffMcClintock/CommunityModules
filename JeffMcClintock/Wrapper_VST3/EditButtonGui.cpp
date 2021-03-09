@@ -101,12 +101,9 @@ int32_t EditButtonGui::initialize()
 
 int32_t EditButtonGui::setPin(int32_t pinId, int32_t voice, int32_t size, const void* data)
 {
-	if (controllertPtrPinId == pinId)
+	if (controllertPtrPinId == pinId && size == sizeof(pluginProvider_))
 	{
-		if (size == sizeof(void*))
-		{
-			pluginProvider_ = *(Steinberg::Vst::PlugProvider**)data;
-		}
+		pluginProvider_ = *(Steinberg::Vst::PlugProvider**)data;
 	}
 
 	return GuiPinOwner::setPin2(pinId, voice, size, data);

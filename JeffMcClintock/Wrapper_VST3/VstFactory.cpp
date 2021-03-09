@@ -13,12 +13,13 @@
 #include "xp_dynamic_linking.h"
 
 #if !defined(SE_TARGET_WAVES)
-#include "pluginterfaces/vst/ivstaudioprocessor.h"
+//#include "pluginterfaces/vst/ivstaudioprocessor.h"
 #include "public.sdk/source/vst/hosting/plugprovider.h"
 
 #include "FileFinder.h"
 #include "./EditButtonGui.h"
 #include "ControllerWrapper.h"
+#include "ProcessorWrapper.h"
 #include "./VstwrapperfailGui.h"
 #include "./AaVstWrapperDiagGui.h"
 
@@ -27,7 +28,6 @@
 #endif
 
 #endif
-
 
 #define INFO_PLUGIN_ID "SE: VST3 WRAPPER"
 #define L_INFO_PLUGIN_ID L"SE: VST3 WRAPPER"
@@ -760,7 +760,7 @@ int32_t VstFactory::createInstance(
 		loadPluginInfo();
 	}
 
-	*returnInterface = 0; // if we fail for any reason, default return-val to NULL.
+	*returnInterface = nullptr; // if we fail for any reason, default return-val to NULL.
 
 #if !defined(SE_TARGET_WAVES)
 	if (wcscmp(uniqueId, L_INFO_PLUGIN_ID) == 0)
@@ -794,9 +794,7 @@ int32_t VstFactory::createInstance(
 			{
 			case MP_SUB_TYPE_AUDIO:
 			{
-assert(false); // !!! TODO
-#if 0
-				auto wp = new Vst2Wrapper(pluginInfo.uniqueId_, useChunkPresets);
+				auto wp = new ProcessorWrapper();// pluginInfo.uuid_, useChunkPresets);
 
 				if( host != nullptr )
 				{
@@ -806,7 +804,6 @@ assert(false); // !!! TODO
 				*returnInterface = static_cast<void*>( wp );
 
 				return gmpi::MP_OK;
-#endif
 			}
 			break;
 
@@ -830,14 +827,9 @@ assert(false); // !!! TODO
 
 			case MP_SUB_TYPE_GUI2:
 			{
-				//if (pluginIdMap.empty())
-				//{
-				//	break;
-				//}
-
 				auto wp = new EditButtonGui();
 
-				if( host != nullptr )
+				if(host)
 				{
 					wp->setHost(host);
 				}
@@ -868,7 +860,7 @@ assert(false); // !!! TODO
 			err = "Can't find Waves Plugin:" + vstUniqueId;
 			err += "\n";
 
-			bool first = true;
+			//bool first = true;
 			//for (auto& it : pluginIdMap)
 			//{
 			//	if (!first)
