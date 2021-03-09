@@ -8,6 +8,7 @@
 class ControllerWrapper : public gmpi::IMpController, public TimerClient
 {
 protected:
+	std::shared_ptr<VST3::Hosting::Module> dll;
 	Steinberg::IPtr<Steinberg::Vst::PlugProvider> pluginProvider_;
 	int32_t handle_;
 	std::wstring filename_;
@@ -24,7 +25,7 @@ public:
 	ControllerWrapper(const wchar_t* filename, const std::string& uuid, bool ppresetsUseChunks, bool phasGuiParameterPins);
 	~ControllerWrapper()
 	{
-//		int x = 9;
+		pluginProvider_ = nullptr; // ensure it's destroyed before dll is automatically unloaded.
 	}
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 	virtual int32_t MP_STDCALL setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size) override;

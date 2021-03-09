@@ -157,7 +157,9 @@ int32_t ControllerWrapper::open()
 		return MP_OK;
 	}
 
-//	auto ae = owned(pluginProvider_->getController());
+
+	auto component = owned(pluginProvider_->getComponent()); // getting component causes instansiation of entire plugin.
+
 	auto pluginProviderPtr = pluginProvider_.get();
 	auto ae = owned(pluginProvider_->getController());
 
@@ -275,8 +277,8 @@ AEffectWrapper* ControllerWrapper::LoadPlugin(std::string path, std::string uuid
 		//pAEffectWrapper->LoadDll(filename, shellPluginId);
 		{
 			std::string error;
-			auto module = VST3::Hosting::Module::create(path, error);
-			if(!module)
+			dll = VST3::Hosting::Module::create(path, error);
+			if(!dll)
 			{
 				std::string reason = "Could not create Module for file:";
 				reason += path;
@@ -293,12 +295,12 @@ AEffectWrapper* ControllerWrapper::LoadPlugin(std::string path, std::string uuid
 				return 0;//gmpi::MP_FAIL;
 			}
 
-			auto factory = module->getFactory();
+			auto factory = dll->getFactory();
 			for(auto& classInfo : factory.classInfos())
 			{
 				if(classInfo.ID() == *classID && classInfo.category() == kVstAudioEffectClass) //kVstComponentControllerClass)//kVstAudioEffectClass)
 				{
-					pluginProvider_.reset(new Steinberg::Vst::PlugProvider(factory, classInfo, true));
+					pluginProvider_.reset(new Steinberg::Vst::PlugProvider(factory, classInfo, false));// true));
 //
 //					native_ = pluginProvider_->getController();
 //					if(!native_)

@@ -299,11 +299,11 @@ bool ProcessorWrapper::setupBuffers (int numBusses, AudioBusBuffers* audioBuffer
 
 			if(dir == kInput)
 			{
-				inputBuffers.assign(busInfo.channelCount, 0);
+				inputChannelCount = busInfo.channelCount;
 			}
 			else
 			{
-				outputBuffers.assign(busInfo.channelCount, 0);
+				outputChannelCount = busInfo.channelCount;
 			}
 /* todo
 			if ((busInfo.flags & BusInfo::kDefaultActive) != 0)
@@ -660,6 +660,7 @@ void ProcessorWrapper::subProcessPreSleep(int32_t count, const gmpi::MpEvent* ev
 
 	ProcessPlugin(count);
 
+	/*
 	// Silence detection.
 	const float INSIGNIFICANT_SIGNAL_LEVEL = 0.000001f;
 
@@ -677,6 +678,7 @@ void ProcessorWrapper::subProcessPreSleep(int32_t count, const gmpi::MpEvent* ev
 			++o;
 		}
 	}
+	*/
 }
 
 void ProcessorWrapper::subProcess(int32_t count, const gmpi::MpEvent* events)
@@ -771,7 +773,7 @@ void ProcessorWrapper::onSetPins(void)
 	}
 	else
 	{
-		bool inputIsActive = !OnOffSwitchEnabled || inputStreaming;
+		//bool inputIsActive = !OnOffSwitchEnabled || inputStreaming;
 
 		if (true) // inputIsActive)
 		{

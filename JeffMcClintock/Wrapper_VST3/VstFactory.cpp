@@ -41,6 +41,11 @@ using namespace Steinberg::Vst;
 
 const char* VstFactory::pluginIdPrefix = "wvVST3WRAP:";
 
+VstFactory::VstFactory()
+{
+	Steinberg::gStandardPluginContext = &pluginContext;
+}
+
 // IMpShellFactory: Query a plugin's info. Should occur only during a user-initiated re-scan.
 int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXml)
 {
@@ -105,7 +110,16 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 	}
 
 	const auto uuid = uuidFromWrapperID(uniqueId);
-	const auto path = WStringToUtf8( getShellFromId(uuid) );
+
+	std::string path;
+	for (auto& p : plugins)
+	{
+		if(p.uuid_ == uuid)
+		{
+			path = WStringToUtf8(p.shellPath_);
+			break;
+		}
+	}
 
 	std::string error;
 	auto module = VST3::Hosting::Module::create (path, error);
@@ -154,7 +168,7 @@ vector< std::wstring >getSearchPaths()
 	std::wstring commonFilesFolder(myPath);
 
 	// "C:\Program Files (x86)\Common Files\VST3
-	searchPaths.push_back(commonFilesFolder + L"\\VST3\\");
+	searchPaths.push_back(commonFilesFolder + L"\\VST3");
 #else
     searchPaths.push_back(L"/Library/Audio/Plug-ins/VST3/");
     searchPaths.push_back(L"~/Library/Audio/Plug-ins/VST3/");
@@ -240,16 +254,15 @@ void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::ws
 			continue;
 		}
 
+		const auto fullFilename = combinePathAndFile(searchPath, JmUnicodeConversions::toWstring((*it).filename));
 		if ((*it).isFolder)
 		{
-			RecursiveScanVsts(searchPath + JmUnicodeConversions::toWstring((*it).filename), excludePath);
+			RecursiveScanVsts(fullFilename, excludePath);
 		}
 		else
 		{
-			auto fullFilename = combinePathAndFile(searchPath, JmUnicodeConversions::toWstring((*it).filename));
 			if ((*it).filename.find(L".vst3") == (*it).filename.size() - 5)
 			{
-				//std::string shortFilename = JmUnicodeConversions::toString((*it).filename);
 				ScanDll(fullFilename);
 			}
 		}
@@ -363,13 +376,6 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 		editController->setComponentHandler (&gComponentHandler);
 	}
 */
-
-	/* not much easier
-	const bool useChunkPresets = true;
-	const bool useGuiPins = false;
-	const auto uniqueIdU = WStringToUtf8(uniqueId); // TODO minimize all this string conversions !!!!
-	auto controller = std::make_unique<ControllerWrapper>(getShellFromId(uniqueIdU).c_str(), uuidFromWrapperID(uniqueId), useChunkPresets, useGuiPins);
-	*/
 
 	// TODO!!!: Hide and handle MIDI CC dummy parameters
 
@@ -733,20 +739,6 @@ int32_t VstFactory::queryInterface(const MpGuid& iid, void** returnInterface)
 	return MP_NOSUPPORT;
 }
 
-#if !defined(SE_TARGET_WAVES)
-std::wstring VstFactory::getShellFromId(const std::string& uuid)
-{
-	for (auto& p : plugins)
-	{
-		if(p.uuid_ == uuid)
-		{
-			return p.shellPath_;
-		}
-	}
-	return L"";
-}
-#endif
-
 // Support older version of SE which pass host at construction.
 int32_t VstFactory::createInstance(
 	const wchar_t* uniqueId,
@@ -811,7 +803,7 @@ int32_t VstFactory::createInstance(
 			case MP_SUB_TYPE_CONTROLLER:
 			{
 				const auto uniqueIdU = WStringToUtf8(uniqueId); // TODO minimize all this string conversions !!!!
-				auto wp = new ControllerWrapper(getShellFromId(vstUniqueId).c_str(), vstUniqueId, useChunkPresets, useGuiPins);
+				auto wp = new ControllerWrapper(pluginInfo.shellPath_.c_str(), vstUniqueId, useChunkPresets, useGuiPins);
 
 				if( host != nullptr )
 				{

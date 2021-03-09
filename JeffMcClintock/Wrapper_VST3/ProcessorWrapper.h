@@ -54,6 +54,8 @@ class ProcessorWrapper : public MpBase2
 	Steinberg::Vst::HostProcessData processData;
 	Steinberg::Vst::ProcessSetup processSetup;
 //	FUnknown hostContext;
+	int inputChannelCount = {};
+	int outputChannelCount = {};
 
 	bool useChunkPresets;
 	bool OnOffSwitchEnabled;
@@ -98,14 +100,24 @@ private:
 
 	inline void	ProcessPlugin(int count)
 	{
-		for (size_t i = 0; i < AudioIns.size(); ++i)
+		for (int i = 0; i < inputChannelCount; ++i)
 		{
-			inputBuffers[i] = getBuffer(*(AudioIns[i]));
+			processData.setChannelBuffer(
+				Steinberg::Vst::kInput,
+				0,
+				i,
+	            getBuffer(*(AudioIns[i]))
+			);
 		}
 
-		for (size_t i = 0; i < AudioOuts.size(); ++i)
+		for (int i = 0; i < outputChannelCount; ++i)
 		{
-			outputBuffers[i] = getBuffer(*(AudioOuts[i]));
+			processData.setChannelBuffer(
+				Steinberg::Vst::kOutput,
+				0,
+				i,
+	            getBuffer(*(AudioOuts[i]))
+			);
 		}
 
 		processData.inputEvents = &vstEventList;
@@ -175,9 +187,6 @@ private:
 	std::vector< std::unique_ptr<AudioInPin> > AudioIns;
 	std::vector< std::unique_ptr<AudioOutPin> > AudioOuts;
 	std::vector< std::unique_ptr<FloatInPin> > ParameterPins;
-
-	std::vector< float* > inputBuffers;
-	std::vector< float* > outputBuffers;
 
 	BoolInPin pinOnOffSwitch;
 	BlobInPin pinAeffectPointer;

@@ -16,6 +16,12 @@
 #define VST_WRAPPER_EXTERNAL_CONTROL_STRATEGY
 //#define VST_WRAPPER_BLOB_STORAGE_STRATEGY
 
+#include "public.sdk\source\vst\hosting\hostclasses.h"
+namespace Steinberg
+{
+	extern Steinberg::FUnknown* gStandardPluginContext;
+}
+
 using namespace gmpi;
 
 typedef class gmpi::IMpUnknown* (*MP_CreateFunc2)();
@@ -37,13 +43,12 @@ class VstFactory : public gmpi::IMpShellFactory
 	std::vector< pluginInfo > plugins;
 	std::vector< std::string > duplicates;
 	bool scannedPLugins = {};
-#if !defined(SE_TARGET_WAVES)
-//	std::map< std::string, std::wstring > pluginIdMap;
-#endif
 	static const char* pluginIdPrefix;
+	Steinberg::Vst::HostApplication pluginContext;
 
 public:
-	virtual ~VstFactory(void) {};
+	VstFactory(void);
+	virtual ~VstFactory(void) {}
 
 	/* IMpUnknown methods */
 	virtual int32_t MP_STDCALL queryInterface(const MpGuid& iid, void** returnInterface);
@@ -68,7 +73,6 @@ public:
 	std::string uuidFromWrapperID(const wchar_t* uniqueId);
 	virtual int32_t MP_STDCALL getPluginInformation(const wchar_t* iid, IMpUnknown* iReturnXml) override;		// Full pin details.
 
-//	void AddPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& info);
 	void AddPluginName(const char* category, std::string uuid, const std::string& name, const std::wstring& shellPath);
 	std::string XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& info);
 #if !defined(SE_TARGET_WAVES)
@@ -90,14 +94,12 @@ public:
 	}
 */
 	std::string getDiagnostics();
-	std::wstring getShellFromId(const std::string& uuid);
 #endif
 
 private:
 	void ShallowScanVsts();
 	void ScanVsts();
 	void ScanDll(const std::wstring& load_filename);
-//	void ScanForWavesShell(const std::wstring& searchPath, const std::wstring& excludePath);
 
 	void RecursiveScanVsts(const std::wstring& searchPath, const std::wstring& excludePath);
 
