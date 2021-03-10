@@ -1,12 +1,10 @@
 #include "ControllerWrapper.h"
-//#include "Vst2Wrapper.h"
-//#include "./EditButtonGui.h"
 #include "unicode_conversion.h"
 #if !defined(SE_TARGET_WAVES)
-//#include "pluginterfaces/vst/ivstaudioprocessor.h"
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 #endif
+
 using namespace gmpi;
 
 ControllerWrapper::ControllerWrapper(const wchar_t* filename, const std::string& uuid, bool ppresetsUseChunks, bool phasGuiParameterPins) :
@@ -157,17 +155,18 @@ int32_t ControllerWrapper::open()
 		return MP_OK;
 	}
 
-
 	auto component = owned(pluginProvider_->getComponent()); // getting component causes instansiation of entire plugin.
 
-	auto pluginProviderPtr = pluginProvider_.get();
+//	auto pluginProviderPtr = pluginProvider_.get();
 	auto ae = owned(pluginProvider_->getController());
 
-	// Pass VST plugin address to Process and GUI.
+	// Pass pointer to 'this' to Process and GUI.
 	const int chunkParamId = ae->getParameterCount();
 	const int controllerPtrParamId = chunkParamId + 1;
 	const int voiceId = 0;
-	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &pluginProviderPtr, sizeof(pluginProviderPtr));
+//	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &pluginProviderPtr, sizeof(pluginProviderPtr));
+	const auto me = this;
+	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &me, sizeof(void*));
 
 //	if (presetsUseChunks)
 	{
@@ -221,9 +220,9 @@ int32_t ControllerWrapper::setHost(gmpi::IMpUnknown* host)
 
 	assert(!pluginProvider_); // don't call twice.
 
-	auto ae = LoadPlugin( JmUnicodeConversions::WStringToUtf8(filename_), shellPluginId_);
+	/*auto ae =*/ LoadPlugin( JmUnicodeConversions::WStringToUtf8(filename_), shellPluginId_);
 
-	if( ae == nullptr ) // VST not installed.
+	if( pluginProvider_ == nullptr ) // VST not installed.
 	{
 		return MP_FAIL;
 	}
@@ -239,14 +238,14 @@ int32_t ControllerWrapper::setHost(gmpi::IMpUnknown* host)
 #if defined (SE_TARGET_WAVES)
 AEffectWrapperWaves* ControllerWrapper::LoadVst2Plugin(intptr_t instance, const wvFM::WCStPath& filename, VstIntPtr shellPluginId)
 #else
-AEffectWrapper* ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
+int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 #endif
 {
 
 #if defined (SE_TARGET_WAVES)
 	AEffectWrapperWaves* pAEffectWrapper = 0;
 #else
-	AEffectWrapper* pAEffectWrapper = 0;
+//	AEffectWrapper* pAEffectWrapper = 0;
 #endif
 	
 //	assert(pluginInstance.get() == nullptr);
@@ -301,16 +300,7 @@ AEffectWrapper* ControllerWrapper::LoadPlugin(std::string path, std::string uuid
 				if(classInfo.ID() == *classID && classInfo.category() == kVstAudioEffectClass) //kVstComponentControllerClass)//kVstAudioEffectClass)
 				{
 					pluginProvider_.reset(new Steinberg::Vst::PlugProvider(factory, classInfo, false));// true));
-//
-//					native_ = pluginProvider_->getController();
-//					if(!native_)
-//					{
-//						//		error = "No EditController found (needed for allowing editor) in file " + path;
-//						//		IPlatform::instance ().kill (-1, error);
-//						return {};
-//					}
-////					native_->release(); // plugProvider does an addRef
-					return 0;// gmpi::MP_OK;
+					return 0;
 				}
 			}
 
@@ -344,8 +334,47 @@ AEffectWrapper* ControllerWrapper::LoadPlugin(std::string path, std::string uuid
 		}
 #endif
 	}
-	return pAEffectWrapper;
+	return 0;// pAEffectWrapper;
 }
+
+void ControllerWrapper::OpenGui()
+{
+	auto nativeController = owned(pluginProvider_->getController());
+
+	if (!nativeController) // VST not installed?
+	{
+		return;
+	}
+
+	auto view = owned (nativeController->createView(Steinberg::Vst::ViewType::kEditor));
+	if (!view)
+	{
+//		IPlatform::instance ().kill (-1, "EditController does not provide its own editor");
+		return;
+	}
+
+	ViewRect plugViewSize {};
+	auto result = view->getSize (&plugViewSize);
+	if (result != kResultTrue)
+	{
+//		IPlatform::instance ().kill (-1, "Could not get editor view size");
+		return;
+	}
+
+	auto viewRect = ViewRectToRect (plugViewSize);
+
+	windowController = std::make_shared<WindowController> (view);
+	auto window = IPlatform::instance ().createWindow (
+	    "Editor", viewRect.size, view->canResize () == kResultTrue, windowController);
+	if (!window)
+	{
+//		IPlatform::instance ().kill (-1, "Could not create window");
+		return;
+	}
+
+	window->show ();
+}
+
 
 bool ControllerWrapper::OnTimer()
 {

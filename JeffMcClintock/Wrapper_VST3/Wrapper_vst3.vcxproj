@@ -231,6 +231,7 @@
     <ClCompile Include="ProcessorWrapper.cpp" />
     <ClCompile Include="VstFactory.cpp" />
     <ClCompile Include="VstwrapperfailGui.cpp" />
+    <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fdebug.h" />
@@ -263,6 +264,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="VstFactory.h" />
     <ClInclude Include="VstwrapperfailGui.h" />
+    <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Wrapper_vst3.rc" />

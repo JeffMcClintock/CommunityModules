@@ -15,13 +15,10 @@ class EditButtonGui : public gmpi_gui::MpGuiGfxBase
 
 	std::string shellPluginId_;
 	std::string filename_;
-
 	bool initialized_;
-//	Steinberg::IPtr<Steinberg::Vst::PlugProvider> pluginProvider_;
-	Steinberg::Vst::PlugProvider* pluginProvider_ = {};
-	static const int controllertPtrPinId = 0;
 
-	std::shared_ptr<class WindowController> windowController;
+	class ControllerWrapper* controller_ = {};
+	static const int controllertPtrPinId = 0;
 
 public:
 	EditButtonGui();
@@ -39,7 +36,6 @@ public:
 	int32_t MP_STDCALL onContextMenu(int32_t selection) override;
 
 	GmpiDrawing::TextFormat& getTextFormat();
-	void openVstGui();
 };
 
 #endif
