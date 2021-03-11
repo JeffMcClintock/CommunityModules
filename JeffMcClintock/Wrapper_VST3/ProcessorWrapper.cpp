@@ -2,6 +2,7 @@
 #include "../se_sdk3/mp_midi.h"
 #include "../shared/xplatform.h"
 #include <algorithm>
+#include "ControllerWrapper.h"
 
 #if defined(SE_TARGET_WAVES)
 #include "../../ug_base.h"
@@ -17,8 +18,6 @@ using namespace Steinberg;
 using namespace Steinberg::Vst;
 
 ProcessorWrapper::ProcessorWrapper() :
-//	 shellPluginId_(0)
-//	 vstEffect_(nullptr)
 	 useChunkPresets(false)
 	, OnOffSwitchEnabled(false)
 	, bypassMode(true)
@@ -36,6 +35,8 @@ ProcessorWrapper::ProcessorWrapper() :
 	vstTime_.tempo = 100;
 	vstTime_.timeSigDenominator = 4;
 	vstTime_.timeSigNumerator = 4;
+
+	processData.processContext = &vstTime_;
 }
 
 ProcessorWrapper::~ProcessorWrapper()
@@ -43,12 +44,6 @@ ProcessorWrapper::~ProcessorWrapper()
 	if( component_ )
 	{
 		component_->setActive(false);
-		component_->release();
-	}
-
-	if( vstEffect_ )
-	{
-		vstEffect_->release();
 	}
 }
 
@@ -121,6 +116,12 @@ int32_t ProcessorWrapper::open()
 					ParameterPins.push_back( std::unique_ptr<FloatInPin>( new FloatInPin() ));
 
 					initializePin(idx, *(ParameterPins.back()));
+
+					if(!firstParameterPinIndex)
+					{
+						firstParameterPinIndex = idx;
+					}
+
 					break;
 
 				case MP_BLOB:
@@ -144,6 +145,7 @@ int32_t ProcessorWrapper::open()
 			++idx;
 		}
 	}
+
 
 	vstTime_.sampleRate = (double)getSampleRate();
 
@@ -179,6 +181,8 @@ int32_t ProcessorWrapper::open()
 #endif
 #endif
 
+	processData.inputEvents = &vstEventList;
+	processData.inputParameterChanges = &parameterEvents;
 	return MP_OK;
 }
 
@@ -189,7 +193,7 @@ void ProcessorWrapper::initVst()
 	vstEffect_ = {};
 	component_ = {};
 
-	if (!pluginProvider_)
+	if (!controller_ || !controller_->pluginProvider_)
 	{
 		return;
 	}
@@ -206,19 +210,22 @@ void ProcessorWrapper::initVst()
 			vstEffect_->dispatcher(effSetChunk, true, size, data);
 		}
 #endif
-		component_ = pluginProvider_->getComponent();
+		component_.reset(controller_->pluginProvider_->getComponent());
 
 		if (!component_)
 		{
 			return;
 		}
 
-		component_->queryInterface(IAudioProcessor::iid, (void**)&vstEffect_);
+		{
+			Steinberg::Vst::IAudioProcessor* vstEffect = {};
+			component_->queryInterface(IAudioProcessor::iid, (void**)&vstEffect);
+			vstEffect_.reset(vstEffect);
+		}
 
 		if (!vstEffect_)
 		{
-			component_->release();
-			component_ = {};
+			component_ = nullptr;
 			return;
 		}
 
@@ -259,29 +266,6 @@ void ProcessorWrapper::initVst()
 
 		bypassMode = false;
 		currentVstSubProcess = &ProcessorWrapper::subProcess;
-
-
-		/*
-		vstEffect_->setHost(this);
-
-		vstEffect_->Resume();
-
-		inputBuffers.assign(vstEffect_->getNumInputs(), 0);
-		outputBuffers.assign(vstEffect_->getNumOutputs(), 0);
-
-		tailSamples = (std::max)(32, static_cast<int>( vstEffect_->dispatcher(effGetTailSize) + getBlockSize() ));
-
-#if !defined(SE_TARGET_WAVES)
-		for (size_t i = 0; i < ParameterPins.size(); ++i)
-		{
-			auto value = ParameterPins[i]->getValue();
-			if (value > -0.5f) // -1 has special meaning - "ignore" DSP pin, use parameter value from preset.
-			{
-				vstEffect_->setParameter(static_cast<int>(i), value);
-			}
-		}
-#endif
-*/
 	}
 }
 
@@ -362,6 +346,12 @@ bool ProcessorWrapper::setupBuffers (AudioBusBuffers& audioBuffers)
 		//	return false;
 	}
 	return true;
+}
+
+void ProcessorWrapper::addParameterEvent(int clock, int id, float value)
+{
+	Steinberg::int32 returnIndexUnused = {};
+	parameterEvents.addParameterData(id, returnIndexUnused)->addPoint(clock, value, returnIndexUnused);
 }
 
 void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char* midiData, int size)
@@ -459,6 +449,7 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 #endif
 
 	vstEventList.events.clear();
+	parameterEvents.clear();
 
 	blockPos_ = 0;
 	int lblockPos = blockPos_;
@@ -515,8 +506,15 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 		e = next_event;
 		do
 		{
-			processEvent(e); // notify all pins_ values
-			if (e->eventType == EVENT_MIDI)
+			if(e->eventType == EVENT_PIN_SET && e->parm1 >= firstParameterPinIndex)
+			{
+				addParameterEvent(
+					e->timeDelta,
+					e->parm1 - firstParameterPinIndex,
+					*(float*)(&e->parm3)
+				);
+			}
+			else if (e->eventType == EVENT_MIDI)
 			{
 				if (e->extraData == 0) // short msg
 				{
@@ -528,6 +526,10 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 					onMidiMessage(e->parm2 // pin
 						, e->timeDelta, (const unsigned char*)e->extraData, e->parm2); // midi bytes (sysex)
 				}
+			}
+			else
+			{
+				processEvent(e); // notify all pins_ values
 			}
 			e = e->next;
 		} while (e != 0 && e->timeDelta == lblockPos);
@@ -725,10 +727,12 @@ void ProcessorWrapper::onSetPins(void)
 	}
 
 #if !defined(SE_TARGET_WAVES)
-	if (pinAeffectPointer.isUpdated() && pinAeffectPointer.getValue().getSize() == sizeof(vstEffect_) )
+	if (pinAeffectPointer.isUpdated() && pinAeffectPointer.getValue().getSize() == sizeof(controller_) )
 	{
-		assert(pluginProvider_ == nullptr);
-		pluginProvider_ = *(Steinberg::Vst::PlugProvider**)pinAeffectPointer.getValue().getData();
+//		assert(pluginProvider_ == nullptr);
+//		pluginProvider_ = *(Steinberg::Vst::PlugProvider**)pinAeffectPointer.getValue().getData();
+
+		controller_ = *(ControllerWrapper**)pinAeffectPointer.getValue().getData();
 
 		initVst();
 	}

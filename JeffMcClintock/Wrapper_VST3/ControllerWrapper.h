@@ -6,27 +6,45 @@
 #include "public.sdk/source/vst/hosting/plugprovider.h"
 #include "WindowManager.h"
 
+class VstComponentHandler : public Steinberg::FObject, public Steinberg::Vst::IComponentHandler
+{
+public:
+	class ControllerWrapper* controller_;
+
+	// IComponentHandler
+	tresult PLUGIN_API beginEdit(Steinberg::Vst::ParamID id) override;
+	tresult PLUGIN_API performEdit (Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override;
+	tresult PLUGIN_API endEdit (Steinberg::Vst::ParamID id) override;
+	tresult PLUGIN_API restartComponent (int32 flags) override;
+
+	//---Interface---------
+	OBJ_METHODS (VstComponentHandler, Steinberg::FObject)
+	DEFINE_INTERFACES
+		DEF_INTERFACE (Steinberg::Vst::IComponentHandler)
+	END_DEFINE_INTERFACES (Steinberg::FObject)
+	REFCOUNT_METHODS (Steinberg::FObject)
+};
+
 class ControllerWrapper : public gmpi::IMpController, public TimerClient
 {
 protected:
 	std::shared_ptr<VST3::Hosting::Module> dll;
-	int32_t handle_;
 	std::wstring filename_;
 	std::string shellPluginId_;
-	gmpi::IMpControllerHost* host_;
 	std::shared_ptr<WindowController> windowController;
+	VstComponentHandler componentHandler;
 
-	bool stateDirty;
 	bool inhibitFeedback;
-	bool presetsUseChunks;
-	bool hasGuiParameterPins;
 	bool isSynthEditPresetEmpty;
 	bool isOpen;
 
 public:
+	int32_t handle_;
+	bool stateDirty;
+	gmpi::IMpControllerHost* host_ = {};
 	Steinberg::IPtr<Steinberg::Vst::PlugProvider> pluginProvider_;
 
-	ControllerWrapper(const wchar_t* filename, const std::string& uuid, bool ppresetsUseChunks, bool phasGuiParameterPins);
+	ControllerWrapper(const wchar_t* filename, const std::string& uuid);
 	~ControllerWrapper()
 	{
 		if(windowController)

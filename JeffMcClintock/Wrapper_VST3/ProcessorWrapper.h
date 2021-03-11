@@ -3,6 +3,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include "../se_sdk3/mp_sdk_audio.h"
 #include "../shared/xplatform.h"
 #include "public.sdk\source\vst\vstaudioeffect.h"
@@ -12,10 +13,97 @@
 #include "pluginterfaces\vst\ivstaudioprocessor.h"
 #include "public.sdk\source\vst\hosting\processdata.h"
 #include "base\source\fobject.h"
+#include "pluginterfaces\vst\ivstparameterchanges.h"
 
 #if defined( _WIN32 ) && defined( _DEBUG )
 //#define DEBUG_VST2_SIGNAL_LEVEL
 #endif
+
+struct myParamValueQueue : public Steinberg::FObject, public Steinberg::Vst::IParamValueQueue
+{
+	myParamValueQueue(Steinberg::Vst::ParamID id) : paramId(id) {}
+
+	Steinberg::Vst::ParamID paramId = {};
+	std::vector< std::pair<Steinberg::int32, Steinberg::Vst::ParamValue> > events;
+
+	Steinberg::Vst::ParamID PLUGIN_API getParameterId () override
+	{
+		return paramId;
+	}
+
+	/** Returns count of points in the queue. */
+	Steinberg::int32 PLUGIN_API getPointCount () override
+	{
+		return static_cast<Steinberg::int32>(events.size());
+	}
+
+	Steinberg::tresult PLUGIN_API getPoint (Steinberg::int32 index, Steinberg::int32& sampleOffset /*out*/, Steinberg::Vst::ParamValue& value /*out*/) override
+	{
+		sampleOffset = events[index].first;
+		value = events[index].second;
+		return 0;
+	}
+
+	/** Adds a new value at the end of the queue, its index is returned. */
+	Steinberg::tresult PLUGIN_API addPoint (Steinberg::int32 sampleOffset, Steinberg::Vst::ParamValue value, Steinberg::int32& index /*out*/) override
+	{
+		index = static_cast<Steinberg::int32>(events.size());
+		events.push_back({ sampleOffset, value });
+		return 0;
+	}
+
+	//---Interface---------
+	OBJ_METHODS (myParamValueQueue, Steinberg::FObject)
+	DEFINE_INTERFACES
+		DEF_INTERFACE (Steinberg::Vst::IParamValueQueue)
+	END_DEFINE_INTERFACES (Steinberg::FObject)
+	REFCOUNT_METHODS (Steinberg::FObject)
+};
+
+struct myParameterChanges : public Steinberg::FObject, public Steinberg::Vst::IParameterChanges
+{
+	std::vector<myParamValueQueue> queues;
+
+	Steinberg::int32 PLUGIN_API getParameterCount() override
+	{
+		return static_cast<Steinberg::int32>(queues.size());
+	}
+
+	Steinberg::Vst::IParamValueQueue* PLUGIN_API getParameterData(Steinberg::int32 index) override
+	{
+		return &queues[index];
+	}
+
+	Steinberg::Vst::IParamValueQueue* PLUGIN_API addParameterData(const Steinberg::Vst::ParamID& id, Steinberg::int32& index /*out*/) override
+	{
+		index = 0;
+
+		for(int i = 0; i < queues.size(); ++i)
+		{
+			if(queues[i].getParameterId() == id)
+			{
+				index = i;
+				return &queues[i];
+			}
+		}
+
+		index = static_cast<Steinberg::int32>(queues.size());
+		queues.push_back(id);
+		return &queues.back();
+	}
+
+	void clear()
+	{
+		queues.clear();
+	}
+
+	//---Interface---------
+	OBJ_METHODS (myParameterChanges, Steinberg::FObject)
+	DEFINE_INTERFACES
+		DEF_INTERFACE (Steinberg::Vst::IParameterChanges)
+	END_DEFINE_INTERFACES (Steinberg::FObject)
+	REFCOUNT_METHODS (Steinberg::FObject)
+};
 
 struct myEventList : public Steinberg::FObject, public Steinberg::Vst::IEventList
 {
@@ -46,14 +134,15 @@ struct myEventList : public Steinberg::FObject, public Steinberg::Vst::IEventLis
 
 class ProcessorWrapper : public MpBase2
 {
-	Steinberg::Vst::IComponent* component_ = {};
-	Steinberg::Vst::IAudioProcessor* vstEffect_ = {};
+	Steinberg::IPtr<Steinberg::Vst::IComponent> component_;
+	Steinberg::IPtr<Steinberg::Vst::IAudioProcessor> vstEffect_;
 	Steinberg::Vst::ProcessContext vstTime_;
-	Steinberg::Vst::PlugProvider* pluginProvider_ = {};
 	myEventList vstEventList;
+	myParameterChanges parameterEvents;
 	Steinberg::Vst::HostProcessData processData;
 	Steinberg::Vst::ProcessSetup processSetup;
-//	FUnknown hostContext;
+	class ControllerWrapper* controller_ = {};
+
 	int inputChannelCount = {};
 	int outputChannelCount = {};
 
@@ -120,8 +209,8 @@ private:
 			);
 		}
 
-		processData.inputEvents = &vstEventList;
 		processData.numSamples = count;
+
 		vstEffect_->process(processData);
 
 		vstTime_.projectTimeSamples += count;
@@ -181,6 +270,8 @@ private:
 		vstTime_.projectTimeSamples += count;
 	}
 
+	void addParameterEvent(int clock, int index, float value);
+
 	MidiInPin pinMidi;
 	MidiInPin pinParameterAccess;
 
@@ -198,6 +289,8 @@ private:
 	IntInPin pinDenominator;
 	BoolInPin pinHostTransport;
 	FloatInPin pinHostBarStart;
+
+	int firstParameterPinIndex = {};
 };
 
 #endif

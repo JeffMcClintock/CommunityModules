@@ -4,20 +4,139 @@
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 #endif
+#include "pluginterfaces\base\ibstream.h"
 
 using namespace gmpi;
+using namespace Steinberg;
+using namespace Steinberg::Vst;
 
-ControllerWrapper::ControllerWrapper(const wchar_t* filename, const std::string& uuid, bool ppresetsUseChunks, bool phasGuiParameterPins) :
+// for writting.
+class MyBufferStream : public Steinberg::FObject, public IBStream
+{
+public:
+	MyBufferStream() {}
+	virtual ~MyBufferStream() {}
+
+	//---from IBStream------------------
+	tresult PLUGIN_API read (void* buffer, int32 numBytes, int32* numBytesRead = nullptr) SMTG_OVERRIDE
+	{
+		return 0;
+	}
+	tresult PLUGIN_API write(void* buffer, int32 numBytes, int32* numBytesWritten = nullptr) SMTG_OVERRIDE
+	{
+		if(numBytesWritten)
+		{
+			*numBytesWritten = numBytes;
+		}
+
+		writePos_ += numBytes;
+		buffer_.insert(buffer_.end(), (uint8_t*)buffer, ((uint8_t*)buffer) + numBytes);
+		return 0;
+	}
+	tresult PLUGIN_API seek(int64 pos, int32 mode, int64* result = nullptr) SMTG_OVERRIDE
+	{
+		return 0;
+	}
+	tresult PLUGIN_API tell(int64* pos) SMTG_OVERRIDE
+	{
+		return 0;
+	}
+
+	std::vector<uint8_t> buffer_;
+	int writePos_ = {};
+
+	//---Interface---------
+	OBJ_METHODS (MyBufferStream, Steinberg::FObject)
+	DEFINE_INTERFACES
+		DEF_INTERFACE (IBStream)
+	END_DEFINE_INTERFACES (Steinberg::FObject)
+	REFCOUNT_METHODS (Steinberg::FObject)
+};
+
+// for reading.
+class MyViewStream : public Steinberg::FObject, public IBStream
+{
+public:
+	MyViewStream(uint8_t* buffer, int32_t size) : buffer_(buffer), size_(size) {}
+	virtual ~MyViewStream() {}
+
+	//---from IBStream------------------
+	tresult PLUGIN_API read (void* buffer, int32 numBytes, int32* numBytesRead = nullptr) SMTG_OVERRIDE
+	{
+		const auto remaining = size_ - readPos_;
+		numBytes = (std::min)((int)numBytes, remaining);
+		if(numBytesRead)
+		{
+			*numBytesRead = numBytes;
+		}
+		memcpy(buffer, buffer_ + readPos_, numBytes);
+		readPos_ += numBytes;
+
+		return 0;
+	}
+	tresult PLUGIN_API write(void* buffer, int32 numBytes, int32* numBytesWritten = nullptr) SMTG_OVERRIDE
+	{
+		return 0;
+	}
+	tresult PLUGIN_API seek(int64 pos, int32 mode, int64* result = nullptr) SMTG_OVERRIDE
+	{
+		switch(mode)
+		{
+		case kIBSeekSet:
+			readPos_ = (std::min)((int)pos, size_);
+			break;
+
+		case kIBSeekCur:
+			{
+				const auto remaining = size_ - readPos_;
+				pos = (std::min)((int)pos, remaining);
+				readPos_ += pos;
+			}
+			break;
+
+		case kIBSeekEnd:
+			readPos_ = size_;
+			break;
+
+		default:
+			return 1;
+			break;
+		}
+
+		return 0;
+	}
+
+	tresult PLUGIN_API tell(int64* pos) SMTG_OVERRIDE
+	{
+		if(pos)
+		{
+			*pos = readPos_;
+		}
+		return 0;
+	}
+
+	const uint8_t* buffer_ = {};
+	int readPos_ = {};
+	int size_ = {};
+
+	//---Interface---------
+	OBJ_METHODS (MyBufferStream, Steinberg::FObject)
+	DEFINE_INTERFACES
+		DEF_INTERFACE (IBStream)
+	END_DEFINE_INTERFACES (Steinberg::FObject)
+	REFCOUNT_METHODS (Steinberg::FObject)
+};
+
+ControllerWrapper::ControllerWrapper(const wchar_t* filename, const std::string& uuid) :
 handle_(0)
 , filename_(filename)
 , shellPluginId_(uuid)
 , host_(0)
 , stateDirty(false)
 , inhibitFeedback(false)
-, presetsUseChunks(ppresetsUseChunks)
-, hasGuiParameterPins(phasGuiParameterPins)
 , isOpen(false)
 {
+	componentHandler.controller_ = this;
 }
 
 int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size)
@@ -25,82 +144,90 @@ int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId
 	// Avoid altering plugin state until we can determin if we are restoring a saved preset, or keeping init preset.
 	if(!isOpen)
 		return MP_OK;
-#if 0 // TODO!!!
-	if( inhibitFeedback == false && fieldId == 0 ) // FT_VALUE
+
+	if(!inhibitFeedback && fieldId == 0) // FT_VALUE
 	{
-		auto ae = pluginInstance.get();
+		int32_t moduleHandle = -1;
+		int32_t moduleParameterId = -1;
+		host_->getParameterModuleAndParamId(parameterHandle, &moduleHandle, &moduleParameterId);
 
-		if( ae != nullptr )
+		auto controller = owned(pluginProvider_->getController());
+		auto component = owned(pluginProvider_->getComponent());
+
+		if(!controller || !component)
 		{
-			int32_t moduleHandle = -1;
-			int32_t moduleParameterId = -1;
-			host_->getParameterModuleAndParamId(parameterHandle, &moduleHandle, &moduleParameterId);
+			return MP_FAIL;
+		}
 
-			if (hasGuiParameterPins && moduleParameterId < ae->getNumParams()) // Normal float parameters.
+		const auto chunkParamId = controller->getParameterCount(); // todo cache this.!!!
+		if(chunkParamId != moduleParameterId)
+		{
+			return MP_OK;
+		}
+
+		if(size < sizeof(int32_t)) // Size of zero implies first-time init, no preset stored yet.
+		{
+			isSynthEditPresetEmpty = true;
+		}
+		else
+		{
+#if 0//defined (_DEBUG) & defined(_WIN32)
+			auto effectName = ae->getName();
+
+			_RPT0(_CRT_WARN, "{ ");
+			auto d = (unsigned char*)data;
+			for(int i = 0; i < 12; ++i)
 			{
-				assert(size == sizeof(float));
-				ae->setParameter(moduleParameterId, *(float*)data);
+				_RPT1(_CRT_WARN, "%02x ", (int)d[i]);
 			}
-			else
-			{
-				// Blob pin.
-				if (presetsUseChunks)
-				{
-					int chunkParamId = hasGuiParameterPins ? ae->getNumParams() : 0;
-					if (chunkParamId == moduleParameterId ) // ignore aeffect ptr.
-					{
-						if (size == 0) // Size of zero implies first-time init, no preset stored yet.
-						{
-							isSynthEditPresetEmpty = true;
-						}
-						else
-						{
-#if defined (_DEBUG) & defined(_WIN32)
-							auto effectName = ae->getName();
-
-							_RPT0(_CRT_WARN, "{ ");
-							auto d = (unsigned char*)data;
-							for (int i = 0; i < 12; ++i)
-							{
-								_RPT1(_CRT_WARN, "%02x ", (int)d[i]);
-							}
-							_RPT2(_CRT_WARN, "}; set: %s H %d\n", effectName.c_str(), moduleHandle);
+			_RPT2(_CRT_WARN, "}; set: %s H %d\n", effectName.c_str(), moduleHandle);
 #endif
-							// Load preset chunk.
-							const int isPreset = 1; // 0 = all presets.
-							void* chunkPtr = nullptr;
-							ae->dispatcher(effSetChunk, isPreset, size, (void*)data);
-						}
-					}
-				}
-			}
+			// Load preset chunk.
+			const auto controllerStateSize = *((int32_t*)data);
+			const auto controllaDataPtr = ((uint8_t*)data) + sizeof(int32_t);
+			MyViewStream s(controllaDataPtr, controllerStateSize);
+			controller->setState(&s);
+
+			const auto streamPos = sizeof(int32_t) + controllerStateSize;
+			const auto processorStateSize = size - streamPos;
+			const auto processorDataPtr = ((uint8_t*)data) + streamPos;
+			MyViewStream s2(processorDataPtr, static_cast<int32_t>(processorStateSize));
+			component->setState(&s2);
+
+			MyViewStream s3(processorDataPtr, static_cast<int32_t>(processorStateSize));
+			controller->setComponentState(&s3);
 		}
 	}
-#endif
+
 	return MP_OK;
 }
 
 int32_t ControllerWrapper::preSaveState()
 {
-#if 0 // TODO!!!
-	if (presetsUseChunks)
+#if 1 // TODO!!!
 	{
 		inhibitFeedback = true;
-		auto ae = pluginInstance.get();
+		auto controller = owned(pluginProvider_->getController());
+		auto component = owned(pluginProvider_->getComponent());
 
-		if (ae != nullptr)
+		if(!controller || !component)
 		{
-			// Save presets.
-			const int isPreset = 1; // 0 = all presets.
-			void* chunkPtr = nullptr;
-			auto chunkSize = ae->dispatcher(effGetChunk, isPreset, 0, &chunkPtr);
+			return MP_FAIL;
+		}
+		{
+			// get controller state. usually blank.
+			MyBufferStream stream;
+			int32_t controllerStateSize = {};
+			stream.write(&controllerStateSize, sizeof(controllerStateSize));
+			controller->getState(&stream);
 
-			if (chunkPtr == nullptr) // 'Bomb the beat' returns NULL in demo version (but doesn't return chunk size 0)
-			{
-				chunkPtr = &chunkPtr; // point at valid memory rather than null.
-				chunkSize = 0;
-			}
-#if defined (_DEBUG) & defined(_WIN32)
+			// update size of data written so far.
+			*((int32_t*)stream.buffer_.data()) = static_cast<int32_t>(stream.buffer_.size() - sizeof(int32_t));
+
+			// get processor state.
+			component->getState(&stream);
+
+#if 0 //defined (_DEBUG) & defined(_WIN32)
 			_RPT0(_CRT_WARN, "{ ");
 			auto d = (unsigned char*)chunkPtr;
 			for (int i = 0; i < 12; ++i)
@@ -129,12 +256,9 @@ int32_t ControllerWrapper::preSaveState()
 #endif
 
 			const int voiceId = 0;
-			int paramId = 0;
+			auto paramId = controller->getParameterCount();
 
-			if(hasGuiParameterPins)
-				paramId = ae->getNumParams();
-
-			host_->setParameter(host_->getParameterHandle(handle_, paramId), MP_FT_VALUE, voiceId, (char*)chunkPtr, (int32_t) chunkSize);
+			host_->setParameter(host_->getParameterHandle(handle_, paramId), MP_FT_VALUE, voiceId, (char*)stream.buffer_.data(), (int32_t) stream.buffer_.size());
 			// _RPT1(_CRT_WARN, "ControllerWrapper:: Saved State: %d bytes\n", chunkSize);
 		}
 
@@ -156,22 +280,30 @@ int32_t ControllerWrapper::open()
 	}
 
 	auto component = owned(pluginProvider_->getComponent()); // getting component causes instansiation of entire plugin.
+	auto controller = owned(pluginProvider_->getController());
 
-//	auto pluginProviderPtr = pluginProvider_.get();
-	auto ae = owned(pluginProvider_->getController());
+	controller->setComponentHandler(&componentHandler);
 
 	// Pass pointer to 'this' to Process and GUI.
-	const int chunkParamId = ae->getParameterCount();
+	const int chunkParamId = controller->getParameterCount();
 	const int controllerPtrParamId = chunkParamId + 1;
 	const int voiceId = 0;
-//	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &pluginProviderPtr, sizeof(pluginProviderPtr));
 	const auto me = this;
-	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &me, sizeof(void*));
+	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &me, sizeof(me));
 
-//	if (presetsUseChunks)
 	{
-		//if (hasGuiParameterPins)
-		//	chunkParamId = ae->getNumParams();
+		// always have to pass initial state from processor to controller.
+		{
+			assert(controller && component);
+
+			// get processor state.
+			MyBufferStream stream;
+			component->getState(&stream);
+
+			// pass to controller
+			MyViewStream s3(stream.buffer_.data(), static_cast<int32_t>(stream.buffer_.size()));
+			controller->setComponentState(&s3);
+		}
 
 		// Test if host has a valid chunk preset.
 		isSynthEditPresetEmpty = false;
@@ -182,27 +314,7 @@ int32_t ControllerWrapper::open()
 		{
 			preSaveState();
 		}
-
-		// Wrapper type 2 has non-persistant float parameters, so always sync from VST to SE plugin when opening.
-		//if (hasGuiParameterPins)
-		//{
-		//	// Sync VST params -> SE Params
-		//	for (auto parameterId = ae->getNumParams() - 1; parameterId > 0; --parameterId)
-		//	{
-		//		float value = ae->getParameter(parameterId);
-		//		host_->setParameter(host_->getParameterHandle(handle_, parameterId), MP_FT_VALUE, voiceId, (const void*)&value, (int32_t) sizeof(value));
-		//	}
-		//}
 	}
-	//else
-	//{
-	//	// Sync VST params <- SE Params.
-	//	// non-chunk type VST Wrapper will open with a zeroed preset when inserted, but you can select a valid preset which will save OK.
-	//	for (auto parameterId = ae->getNumParams() - 1; parameterId > 0; --parameterId)
-	//	{
-	//		host_->updateParameter(host_->getParameterHandle(handle_, parameterId), MP_FT_VALUE, voiceId);
-	//	}
-	//}
 #endif
 	return MP_OK;
 }
@@ -375,12 +487,11 @@ void ControllerWrapper::OpenGui()
 	window->show ();
 }
 
-
 bool ControllerWrapper::OnTimer()
 {
 	if( stateDirty )
 	{
-		if (presetsUseChunks)
+//		if (presetsUseChunks)
 		{
 			preSaveState();
 		}
@@ -389,3 +500,60 @@ bool ControllerWrapper::OnTimer()
 	}
 	return false;
 }
+
+tresult VstComponentHandler::beginEdit(ParamID paramId)
+{
+	const bool value = true;
+	const int voiceId = 0;
+
+	controller_->host_->setParameter(
+		controller_->host_->getParameterHandle(controller_->handle_, paramId),
+		MP_FT_GRAB,
+		voiceId,
+		(const void*)&value,
+		(int32_t) sizeof(value)
+	);
+
+	return 0;
+}
+
+tresult VstComponentHandler::performEdit (ParamID paramId, ParamValue valueNormalized)
+{
+	controller_->stateDirty = true;
+
+	// Sync VST param -> SE Param
+	const float valueNormalizedF = static_cast<float>(valueNormalized);
+	const int voiceId = 0;
+	controller_->host_->setParameter(
+		controller_->host_->getParameterHandle(controller_->handle_, paramId),
+		MP_FT_NORMALIZED,
+		voiceId,
+		(const void*)&valueNormalizedF,
+		(int32_t) sizeof(valueNormalizedF)
+	);
+
+	return 0;
+}
+
+tresult VstComponentHandler::endEdit (ParamID paramId)
+{
+	const bool value = true;
+	const int voiceId = 0;
+
+	controller_->host_->setParameter(
+		controller_->host_->getParameterHandle(controller_->handle_, paramId),
+		MP_FT_GRAB,
+		voiceId,
+		(const void*)&value,
+		(int32_t) sizeof(value)
+	);
+
+	return 0;
+}
+
+tresult VstComponentHandler::restartComponent (int32 flags)
+{
+	return 0;
+}
+
+

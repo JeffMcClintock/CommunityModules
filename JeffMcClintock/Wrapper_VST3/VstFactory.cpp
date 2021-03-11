@@ -170,8 +170,8 @@ vector< std::wstring >getSearchPaths()
 	// "C:\Program Files (x86)\Common Files\VST3
 	searchPaths.push_back(commonFilesFolder + L"\\VST3");
 #else
-    searchPaths.push_back(L"/Library/Audio/Plug-ins/VST3/");
-    searchPaths.push_back(L"~/Library/Audio/Plug-ins/VST3/");
+    searchPaths.push_back(L"/Library/Audio/Plug-ins/VST3");
+    searchPaths.push_back(L"~/Library/Audio/Plug-ins/VST3");
 #endif
     
 	return searchPaths;
@@ -207,7 +207,7 @@ void VstFactory::ScanVsts()
 			"<GUI graphicsApi=\"GmpiGui\"><Pin/></GUI>"
 			"</Plugin></PluginList>";
 
-		plugins.push_back({ INFO_PLUGIN_ID, "", oss.str() });
+		plugins.push_back({ INFO_PLUGIN_ID, "Info", oss.str(), L"" });
 	}
 
 	ShallowScanVsts();
@@ -310,7 +310,7 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 			lastSlash = 0;
 		}
 
-		category = path.c_str() + lastSlash;
+		category = path.c_str() + lastSlash + 1;
 	}
 
 	auto factory = module->getFactory ();
@@ -350,7 +350,7 @@ void VstFactory::AddPluginName(const char* category, std::string uuid, const std
 			"</Plugin>"
 		"</PluginList>";
 
-	plugins.push_back({ name, uuid, oss.str(), shellPath });
+	plugins.push_back({ uuid, name, oss.str(), shellPath });
 }
 
 std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& classInfo)
@@ -415,7 +415,6 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	oss << "<Controller/>";
 
 	// instansiate Processor
-//	IAudioProcessor* audioEffect{};
 		auto component = owned(plugProvider->getComponent());
 		if(!component)
 		{
@@ -505,11 +504,12 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	for (int i = 0; i < numOutputs; ++i)
 		oss << "<Pin name=\"Signal Out\" direction=\"out\" datatype=\"float\" rate=\"audio\" />";
 
-/* old way
-	// DSP controls for setting normalised parameter values.
-	for (int i = 0; i < plugin->getNumParams(); ++i)
-		oss << "<Pin name=\"" << plugin->getParameterName(i) << "\" datatype=\"float\" metadata=\",,1,0\" default=\"-1\"/>";
-*/
+	// DSP pins for receiving normalised parameter values from GUI.
+	for(int i = 0; i < parameterCount; ++i)
+	{
+		oss << "<Pin datatype=\"float\" parameterId=\"" << i << "\" />";
+	}
+
 	oss << "</Audio>";
 
 	// GUI.
@@ -623,7 +623,7 @@ void VstFactory::loadPluginInfo()
 			std::getline(myfile, id);
 			std::getline(myfile, xml);
 			std::getline(myfile, path);
-			plugins.push_back({ name, id, xml, Utf8ToWstring(path) });
+			plugins.push_back({ id, name, xml, Utf8ToWstring(path) });
 
 			// next plugin.
 			std::getline(myfile, name);
@@ -803,7 +803,7 @@ int32_t VstFactory::createInstance(
 			case MP_SUB_TYPE_CONTROLLER:
 			{
 				const auto uniqueIdU = WStringToUtf8(uniqueId); // TODO minimize all this string conversions !!!!
-				auto wp = new ControllerWrapper(pluginInfo.shellPath_.c_str(), vstUniqueId, useChunkPresets, useGuiPins);
+				auto wp = new ControllerWrapper(pluginInfo.shellPath_.c_str(), vstUniqueId);
 
 				if( host != nullptr )
 				{
