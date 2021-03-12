@@ -31,6 +31,8 @@
 
 #define INFO_PLUGIN_ID "SE: VST3 WRAPPER"
 #define L_INFO_PLUGIN_ID L"SE: VST3 WRAPPER"
+#define PARAM_SET_PLUGIN_ID "SE: VST3 Param Set"
+#define L_PARAM_SET_PLUGIN_ID L"SE: VST3 Param Set"
 
 using namespace std;
 using namespace gmpi;
@@ -209,6 +211,21 @@ void VstFactory::ScanVsts()
 
 		plugins.push_back({ INFO_PLUGIN_ID, "Info", oss.str(), L"" });
 	}
+	{
+		const auto xml =
+R"xml(
+<PluginList>
+<Plugin id="SE: VST3 Param Set" name="VST3 Param Set" category="VST3 Plugins">
+<Audio>
+<Pin name="Signal In" datatype="float" />
+<Pin name="Param Idx" datatype="int" default="0" />
+<Pin name="ParamBuss" datatype="midi" direction="out" />
+</Audio>
+</Plugin>
+</PluginList>
+)xml"; 
+		plugins.push_back({ PARAM_SET_PLUGIN_ID, "Info", xml, L"" });
+	}
 
 	ShallowScanVsts();
 
@@ -216,27 +233,6 @@ void VstFactory::ScanVsts()
 
 #endif
 }
-
-//// Search for Waves shell, stopping at first one found. Not recursive.
-//void VstFactory::ScanForWavesShell(const std::wstring& searchPath, const std::wstring& excludePath)
-//{
-//#if !defined(SE_TARGET_WAVES)
-//
-//	auto searchMask = searchPath + L"*.vst3";
-//	for (FileFinder it = toPlatformString(searchMask).c_str(); !it.done(); ++it)
-//	{
-//		if (!(*it).isFolder)
-//		{
-//			auto fullFilename = searchPath + JmUnicodeConversions::toWstring((*it).filename);
-////			if (fullFilename.find(L"WaveShell") != std::string::npos && fullFilename.find(L"StudioRack") == std::string::npos && fullFilename.find(excludePath) != 0)
-//			{
-//				std::string shortFilename = JmUnicodeConversions::toString((*it).filename);
-//				pluginIdMap.insert(std::make_pair(shortFilename, fullFilename));
-//			}
-//		}
-//	}
-//#endif
-//}
 
 void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::wstring& excludePath)
 {
@@ -355,20 +351,18 @@ void VstFactory::AddPluginName(const char* category, std::string uuid, const std
 
 std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& classInfo)
 {
-	ostringstream oss;
-
 	auto plugProvider = owned (new Steinberg::Vst::PlugProvider (factory, classInfo, true));
-
 	auto editController = owned(plugProvider->getController());
+
 	if (!editController)
 	{
 //		error = "No EditController found (needed for allowing editor) in file " + path;
 //		IPlatform::instance ().kill (-1, error);
 		return {};
 	}
-//	editController->release (); // plugProvider does an addRef
 
-/* not sure what this is
+// not sure what this is
+/*
 	// set optional component handler on edit controller
 	if (flags & kSetComponentHandler)
 	{
@@ -376,7 +370,6 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 		editController->setComponentHandler (&gComponentHandler);
 	}
 */
-
 	// TODO!!!: Hide and handle MIDI CC dummy parameters
 
 	// Gather parameter names.
@@ -390,6 +383,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 		paramNames.push_back(WStringToUtf8(info.title));
 	}
 
+	ostringstream oss;
 	oss << "<PluginList><Plugin id=\"" << pluginIdPrefix << classInfo.ID().toString() << "\" name=\"" << classInfo.name() << "\" category=\"VST3 (Waves)\" >";
 
 	// Parameter to store state.
@@ -496,7 +490,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	}
 
 	// Direct parameter access via MIDI
-	oss << "<Pin name=\"Parameter Access\" direction=\"in\" datatype=\"midi\" />";
+	oss << "<Pin name=\"ParamBuss\" direction=\"in\" datatype=\"midi\" />";
 
 	for (int i = 0; i < numInputs; ++i)
 		oss << "<Pin name=\"Signal In\" datatype=\"float\" rate=\"audio\" />";
@@ -774,6 +768,23 @@ int32_t VstFactory::createInstance(
 	}
 #endif
 
+	if (wcscmp(uniqueId, L_PARAM_SET_PLUGIN_ID) == 0)
+	{
+		if (subType == MP_SUB_TYPE_AUDIO)
+		{
+			auto wp = new Vst3ParamSet();
+
+			if (host)
+			{
+				wp->setHost(host);
+			}
+
+			*returnInterface = static_cast<gmpi::IMpPlugin2*>(wp);
+
+			return gmpi::MP_OK;
+		}
+		return gmpi::MP_FAIL;
+	}
 	const auto vstUniqueId = uuidFromWrapperID(uniqueId);
 	const bool useChunkPresets = false;
 	const bool useGuiPins = true;
@@ -786,7 +797,7 @@ int32_t VstFactory::createInstance(
 			{
 			case MP_SUB_TYPE_AUDIO:
 			{
-				auto wp = new ProcessorWrapper();// pluginInfo.uuid_, useChunkPresets);
+				auto wp = new ProcessorWrapper();
 
 				if( host != nullptr )
 				{

@@ -229,6 +229,7 @@
     <ClCompile Include="ControllerWrapper.cpp" />
     <ClCompile Include="EditButtonGui.cpp" />
     <ClCompile Include="ProcessorWrapper.cpp" />
+    <ClCompile Include="Vst3ParamSet.cpp" />
     <ClCompile Include="VstFactory.cpp" />
     <ClCompile Include="VstwrapperfailGui.cpp" />
     <ClCompile Include="WindowManager.cpp" />

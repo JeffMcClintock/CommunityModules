@@ -14,6 +14,8 @@
 #include "public.sdk\source\vst\hosting\processdata.h"
 #include "base\source\fobject.h"
 #include "pluginterfaces\vst\ivstparameterchanges.h"
+#include "../se_sdk3/mp_sdk_audio.h"
+#include "mp_midi.h"
 
 #if defined( _WIN32 ) && defined( _DEBUG )
 //#define DEBUG_VST2_SIGNAL_LEVEL
@@ -130,6 +132,38 @@ struct myEventList : public Steinberg::FObject, public Steinberg::Vst::IEventLis
 		DEF_INTERFACE (IEventList)
 	END_DEFINE_INTERFACES (Steinberg::FObject)
 	REFCOUNT_METHODS (Steinberg::FObject)
+};
+
+
+using namespace gmpi;
+
+class Vst3ParamSet : public MpBase2
+{
+	FloatInPin pinFloatIn;
+	IntInPin pinParamIdx;
+	MidiOutPin pinParameterAccessOut;
+
+public:
+	Vst3ParamSet()
+	{
+		initializePin( pinFloatIn );
+		initializePin( pinParamIdx );
+		initializePin( pinParameterAccessOut );
+	}
+
+	void onSetPins(void) override
+	{
+		// Check which pins are updated.
+		if( pinFloatIn.isUpdated() )
+		{
+			// Send MIDI HD-Protocol Note Expression message. Not tested.
+			const int channel = 0;
+			GmpiMidiHdProtocol::Midi2 msg;
+			const int32_t intControllerVal20 = 0x0FFF & (int32_t)(pinFloatIn.getValue() * (float)0x0FFF);
+			GmpiMidiHdProtocol::setMidiMessage(msg, GmpiMidi::MIDI_ControlChange, intControllerVal20, 0xFF, pinParamIdx.getValue());
+			pinParameterAccessOut.send(msg.data(), msg.size());
+		}
+	}
 };
 
 class ProcessorWrapper : public MpBase2
@@ -291,6 +325,7 @@ private:
 	FloatInPin pinHostBarStart;
 
 	int firstParameterPinIndex = {};
+	int parameterAccessPinIndex = {};
 };
 
 #endif

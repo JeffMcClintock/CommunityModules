@@ -350,7 +350,7 @@ void MpPluginBase::midiHelper( const MpEvent* e )
 	}
 	else
 	{
-		onMidiMessage(e->parm2 // pin
+		onMidiMessage(e->parm1 // pin
 						, (const unsigned char*) e->extraData, e->parm2); // midi bytes (sysex)
 	}
 }

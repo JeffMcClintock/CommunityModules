@@ -514,7 +514,7 @@ tresult VstComponentHandler::beginEdit(ParamID paramId)
 		(int32_t) sizeof(value)
 	);
 
-	return 0;
+	return kResultOk;
 }
 
 tresult VstComponentHandler::performEdit (ParamID paramId, ParamValue valueNormalized)
@@ -532,7 +532,7 @@ tresult VstComponentHandler::performEdit (ParamID paramId, ParamValue valueNorma
 		(int32_t) sizeof(valueNormalizedF)
 	);
 
-	return 0;
+	return kResultOk;
 }
 
 tresult VstComponentHandler::endEdit (ParamID paramId)
@@ -548,12 +548,12 @@ tresult VstComponentHandler::endEdit (ParamID paramId)
 		(int32_t) sizeof(value)
 	);
 
-	return 0;
+	return kResultOk;
 }
 
 tresult VstComponentHandler::restartComponent (int32 flags)
 {
-	return 0;
+	return kResultOk;
 }
 
 

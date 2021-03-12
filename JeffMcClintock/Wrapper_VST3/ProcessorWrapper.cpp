@@ -53,11 +53,13 @@ int32_t ProcessorWrapper::open()
 
 	// Setup IO.
 	gmpi_sdk::mp_shared_ptr<gmpi::IMpPinIterator> it;
-	if (MP_OK == getHost()->createPinIterator(it.asIMpUnknownPtr()))
+	if(MP_OK == getHost()->createPinIterator(it.asIMpUnknownPtr()))
 	{
+		std::vector<int> midiPinsIdxs;
+
 		int r = it->first();
 		int idx = 0;
-		while (r == MP_OK)
+		while(r == MP_OK)
 		{
 			int32_t direction;
 			int32_t datatype;
@@ -66,11 +68,11 @@ int32_t ProcessorWrapper::open()
 			it->getPinId(id);
 			it->getPinDatatype(datatype);
 
-			if (direction == gmpi::MP_IN)
+			if(direction == gmpi::MP_IN)
 			{
 				// enum EPlugDataType { DT_ENUM, DT_TEXT, DT_MIDI2, DT_DOUBLE, DT_BOOL, DT_FSAMPLE, DT_FLOAT, DT_VST_PARAM, DT_INT, DT_INT64, DT_BLOB, DT_NONE=-1 };  //plug datatype
 
-				switch (datatype)
+				switch(datatype)
 				{
 					// NEW, Older exports won't include these pins, so only initialize them if pinOnOffSwitch detected (it's the only bool).
 				case MP_BOOL:
@@ -100,20 +102,13 @@ int32_t ProcessorWrapper::open()
 					break;
 
 				case MP_MIDI:
-					if(pinMidi.getId() == -1)
-					{
-						initializePin(idx, pinMidi);
-					}
-					else
-					{
-						initializePin(idx, pinParameterAccess);
-					}
+					midiPinsIdxs.push_back(idx);
 					break;
 
 					// This does not apply when Parameter pins are on GUI.
 				case MP_FLOAT32:
-// not VS2012		ParameterPins.push_back(make_unique<FloatInPin>());
-					ParameterPins.push_back( std::unique_ptr<FloatInPin>( new FloatInPin() ));
+					// not VS2012		ParameterPins.push_back(make_unique<FloatInPin>());
+					ParameterPins.push_back(std::unique_ptr<FloatInPin>(new FloatInPin()));
 
 					initializePin(idx, *(ParameterPins.back()));
 
@@ -130,7 +125,7 @@ int32_t ProcessorWrapper::open()
 
 				default: // MP_AUDIO
 // not VS2012		AudioIns.push_back(make_unique<AudioInPin>());
-					AudioIns.push_back( std::unique_ptr<AudioInPin>( new AudioInPin() ));
+					AudioIns.push_back(std::unique_ptr<AudioInPin>(new AudioInPin()));
 					initializePin(idx, *(AudioIns.back()));
 					break;
 				}
@@ -138,14 +133,20 @@ int32_t ProcessorWrapper::open()
 			else
 			{
 				//AudioOuts.push_back(make_unique<AudioOutPin>());
-				AudioOuts.push_back( std::unique_ptr<AudioOutPin>( new AudioOutPin() ));
+				AudioOuts.push_back(std::unique_ptr<AudioOutPin>(new AudioOutPin()));
 				initializePin(idx, *(AudioOuts.back()));
 			}
 			r = it->next();
 			++idx;
 		}
-	}
 
+		if(midiPinsIdxs.size() == 2)
+		{
+			initializePin(midiPinsIdxs.front(), pinMidi);
+		}
+		parameterAccessPinIndex = midiPinsIdxs.back();
+		initializePin(parameterAccessPinIndex, pinParameterAccess);
+	}
 
 	vstTime_.sampleRate = (double)getSampleRate();
 
@@ -172,13 +173,11 @@ int32_t ProcessorWrapper::open()
 		(*it)->setStreaming(true);
 	}
 
-#if _MSC_VER >= 1600 // Not Avail in VS2005.
 	unsigned int unused;
 #if defined (_WIN32) && !defined(_WIN64)
 	_controlfp_s(&unused, fpState, MCW_PC | _MCW_DN);
 #else
 	_controlfp_s(&unused, fpState, _MCW_DN);
-#endif
 #endif
 
 	processData.inputEvents = &vstEventList;
@@ -361,6 +360,27 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 
 	timeDelta = max(timeDelta, 0); // should never be nesc, but is safer to do
 
+	if(pin == parameterAccessPinIndex)
+	{
+		if(GmpiMidiHdProtocol::isWrappedHdProtocol(midiData, size))
+		{
+			int channelGroup{};
+			int keyNumber{};
+			int val_12b{};
+			int val_20b{};
+			int status{};
+			int midiChannel{};
+
+			GmpiMidiHdProtocol::DecodeHdMessage(midiData, size, status, midiChannel, channelGroup, keyNumber, val_12b, val_20b);
+
+			constexpr float recip = 1.0f / (float)0x0FFF;
+			const float normalised = (float)val_20b * recip;
+
+			addParameterEvent(timeDelta, val_12b, normalised);
+		}
+		return;
+	}
+
 	// 1.1, complaints system msg needed.		if( !is_system_msg ) // FMHeaven crashes if sent system messages
 	// pass to plug. !! NEED TO CHECK IT SUPPORTS EVENTS!!
 	const int b1 = midiData[0];
@@ -523,7 +543,7 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 				}
 				else
 				{
-					onMidiMessage(e->parm2 // pin
+					onMidiMessage(e->parm1 // pin
 						, e->timeDelta, (const unsigned char*)e->extraData, e->parm2); // midi bytes (sysex)
 				}
 			}
