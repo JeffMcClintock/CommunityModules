@@ -13,8 +13,7 @@
 #include "xp_dynamic_linking.h"
 
 #if !defined(SE_TARGET_WAVES)
-//#include "pluginterfaces/vst/ivstaudioprocessor.h"
-#include "public.sdk/source/vst/hosting/plugprovider.h"
+//#include "public.sdk/source/vst/hosting/plugprovider.h"
 
 #include "FileFinder.h"
 #include "./EditButtonGui.h"
@@ -43,10 +42,10 @@ using namespace Steinberg::Vst;
 
 const char* VstFactory::pluginIdPrefix = "wvVST3WRAP:";
 
-VstFactory::VstFactory()
-{
-	Steinberg::gStandardPluginContext = &pluginContext;
-}
+//VstFactory::VstFactory()
+//{
+//	Steinberg::gStandardPluginContext = &pluginContext;
+//}
 
 // IMpShellFactory: Query a plugin's info. Should occur only during a user-initiated re-scan.
 int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXml)
@@ -351,10 +350,14 @@ void VstFactory::AddPluginName(const char* category, std::string uuid, const std
 
 std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& classInfo)
 {
-	auto plugProvider = owned (new Steinberg::Vst::PlugProvider (factory, classInfo, true));
-	auto editController = owned(plugProvider->getController());
+//	auto plugProvider = owned (new Steinberg::Vst::PlugProvider (factory, classInfo, true));
 
-	if (!editController)
+	myPluginProvider plugProvider;
+	plugProvider.setup(factory, classInfo);
+
+//	auto editController = owned(plugProvider->getController());
+
+	if (!plugProvider.controller)
 	{
 //		error = "No EditController found (needed for allowing editor) in file " + path;
 //		IPlatform::instance ().kill (-1, error);
@@ -374,11 +377,11 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 
 	// Gather parameter names.
 	vector<string> paramNames;
-	const auto parameterCount = editController->getParameterCount();
+	const auto parameterCount = plugProvider.controller->getParameterCount();
 	for(int i = 0; i < parameterCount; ++i)
 	{
 		Steinberg::Vst::ParameterInfo info{};
-		editController->getParameterInfo(i, info);
+		plugProvider.controller->getParameterInfo(i, info);
 
 		paramNames.push_back(WStringToUtf8(info.title));
 	}
@@ -409,8 +412,8 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	oss << "<Controller/>";
 
 	// instansiate Processor
-		auto component = owned(plugProvider->getComponent());
-		if(!component)
+//		auto component = owned(plugProvider->getComponent());
+		if(!plugProvider.component)
 		{
 			//		error = "No EditController found (needed for allowing editor) in file " + path;
 			//		IPlatform::instance ().kill (-1, error);
@@ -432,7 +435,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 
 	BusInfo busInfo = {};
 	const int busIndex{};
-	if (component->getBusInfo (kAudio, kInput, busIndex, busInfo) == kResultTrue)
+	if (plugProvider.component->getBusInfo (kAudio, kInput, busIndex, busInfo) == kResultTrue)
 	{
 		numInputs = busInfo.channelCount;
 /*
@@ -454,12 +457,12 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 */
 	}
 
-	if(component->getBusInfo(kAudio, kOutput, busIndex, busInfo) == kResultTrue)
+	if(plugProvider.component->getBusInfo(kAudio, kOutput, busIndex, busInfo) == kResultTrue)
 	{
 		numOutputs = busInfo.channelCount;
 	}
 
-	if(component->getBusInfo(kEvent, kInput, busIndex, busInfo) == kResultTrue)
+	if(plugProvider.component->getBusInfo(kEvent, kInput, busIndex, busInfo) == kResultTrue)
 	{
 		numMidiInputs = busInfo.channelCount;
 	}

@@ -17,10 +17,10 @@
 //#define VST_WRAPPER_BLOB_STORAGE_STRATEGY
 
 #include "public.sdk\source\vst\hosting\hostclasses.h"
-namespace Steinberg
-{
-	extern Steinberg::FUnknown* gStandardPluginContext;
-}
+//namespace Steinberg
+//{
+//	extern Steinberg::FUnknown* gStandardPluginContext;
+//}
 
 using namespace gmpi;
 
@@ -47,7 +47,7 @@ class VstFactory : public gmpi::IMpShellFactory
 	Steinberg::Vst::HostApplication pluginContext;
 
 public:
-	VstFactory(void);
+//	VstFactory(void);
 	virtual ~VstFactory(void) {}
 
 	/* IMpUnknown methods */

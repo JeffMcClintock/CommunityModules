@@ -204,7 +204,6 @@
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\thread\source\flock.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\pluginterfaces\base\coreiids.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\pluginterfaces\base\funknown.cpp" />
-    <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\samples\vst-hosting\editorhost\source\editorhost.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\samples\vst-hosting\editorhost\source\platform\win32\platform.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\samples\vst-hosting\editorhost\source\platform\win32\window.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\common\commoniids.cpp" />
@@ -214,7 +213,6 @@
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\module.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\module_win32.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\pluginterfacesupport.cpp" />
-    <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\plugprovider.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\processdata.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\utility\stringconvert.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\vstinitiids.cpp" />
@@ -239,13 +237,11 @@
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fobject.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fstring.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\pluginterfaces\base\funknown.h" />
-    <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\samples\vst-hosting\editorhost\source\editorhost.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\samples\vst-hosting\editorhost\source\platform\win32\window.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\connectionproxy.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\hostclasses.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\module.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\pluginterfacesupport.h" />
-    <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\plugprovider.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\processdata.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\utility\stringconvert.h" />
     <ClInclude Include="..\..\se_sdk3\mp_sdk_audio.h" />

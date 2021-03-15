@@ -3,7 +3,10 @@
 #include "../se_sdk3/TimerManager.h"
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/base/smartpointer.h"
-#include "public.sdk/source/vst/hosting/plugprovider.h"
+#include "public.sdk\source\vst\hosting\hostclasses.h"
+#include "pluginterfaces/vst/ivstmessage.h"
+#include "public.sdk\source\vst\hosting\module.h"
+#include "pluginterfaces\vst\ivstcomponent.h"
 #include "WindowManager.h"
 
 class VstComponentHandler : public Steinberg::FObject, public Steinberg::Vst::IComponentHandler
@@ -25,6 +28,108 @@ public:
 	REFCOUNT_METHODS (Steinberg::FObject)
 };
 
+struct myPluginProvider
+{
+	IPtr<Steinberg::Vst::IComponent> component;
+	IPtr<Steinberg::Vst::IEditController> controller;
+	Steinberg::Vst::HostApplication pluginContext;
+
+	~myPluginProvider()
+	{
+		terminatePlugin();
+	}
+
+	void terminatePlugin()
+	{
+		disconnectComponents ();
+
+		bool controllerIsComponent = false;
+		if (component)
+		{
+			controllerIsComponent = FUnknownPtr<Steinberg::Vst::IEditController> (component).getInterface () != nullptr;
+			component->terminate ();
+		}
+
+		if (controller && controllerIsComponent == false)
+			controller->terminate ();
+
+		component = nullptr;
+		controller = nullptr;
+	}
+
+	bool connectComponents()
+	{
+		//if (!component || !controller)
+		//	return false;
+
+		FUnknownPtr<Steinberg::Vst::IConnectionPoint> compICP (component);
+		FUnknownPtr<Steinberg::Vst::IConnectionPoint> contrICP (controller);
+
+		return compICP
+			&& contrICP
+			&& kResultOk == compICP->connect(contrICP)
+			&& kResultOk == contrICP->connect(compICP);
+	}
+
+	bool disconnectComponents()
+	{
+		//if (!component || !controller)
+		//	return false;
+
+		FUnknownPtr<Steinberg::Vst::IConnectionPoint> compICP (component);
+		FUnknownPtr<Steinberg::Vst::IConnectionPoint> contrICP (controller);
+
+		return compICP
+			&& contrICP
+			&& kResultOk == compICP->disconnect(contrICP)
+			&& kResultOk == contrICP->disconnect(compICP);
+	}
+
+	bool setup(VST3::Hosting::PluginFactory& factory, VST3::Hosting::ClassInfo classInfo)
+	{
+		bool res = false;
+
+		//---create Plug-in here!--------------
+		// create its component part
+		component = factory.createInstance<Steinberg::Vst::IComponent> (classInfo.ID ());
+		if (component)
+		{
+			// initialize the component with our context
+			res = (component->initialize (&pluginContext) == kResultOk);
+
+			// try to create the controller part from the component
+			// (for Plug-ins which did not succeed to separate component from controller)
+			if (component->queryInterface (Steinberg::Vst::IEditController::iid, (void**)&controller) != kResultTrue)
+			{
+				TUID controllerCID;
+
+				// ask for the associated controller class ID
+				if (component->getControllerClassId (controllerCID) == kResultTrue)
+				{
+					// create its controller part created from the factory
+					controller = factory.createInstance<Steinberg::Vst::IEditController> (VST3::UID (controllerCID));
+					if (controller)
+					{
+						// initialize the component with our context
+						res = (controller->initialize (&pluginContext) == kResultOk);
+					}
+				}
+			}
+		}
+		//else if (errorStream)
+		//{
+		//	*errorStream << "Failed to create instance of " << classInfo.name () << "!\n";
+		//}
+
+		if(res)
+		{
+			connectComponents();
+		}
+
+		return res;
+	}
+};
+
 class ControllerWrapper : public gmpi::IMpController, public TimerClient
 {
 protected:
@@ -39,10 +144,10 @@ protected:
 	bool isOpen;
 
 public:
+	myPluginProvider plugin;
 	int32_t handle_;
 	bool stateDirty;
 	gmpi::IMpControllerHost* host_ = {};
-	Steinberg::IPtr<Steinberg::Vst::PlugProvider> pluginProvider_;
 
 	ControllerWrapper(const wchar_t* filename, const std::string& uuid);
 	~ControllerWrapper()
@@ -51,8 +156,9 @@ public:
 		{
 			windowController->destroyView();
 		}
-		pluginProvider_ = nullptr; // ensure it's destroyed before dll is automatically unloaded.
+		plugin.terminatePlugin();
 	}
+
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 	virtual int32_t MP_STDCALL setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size) override;
 	virtual int32_t MP_STDCALL preSaveState() override;

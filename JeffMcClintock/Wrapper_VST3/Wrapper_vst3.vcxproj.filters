@@ -34,9 +34,6 @@
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\module_win32.cpp">
       <Filter>VST3_SDK</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\plugprovider.cpp">
-      <Filter>VST3_SDK</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fobject.cpp">
       <Filter>VST3_SDK</Filter>
     </ClCompile>
@@ -53,9 +50,6 @@
       <Filter>VST3_SDK</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\thread\source\flock.cpp">
-      <Filter>VST3_SDK</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\samples\vst-hosting\editorhost\source\editorhost.cpp">
       <Filter>VST3_SDK</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\hostclasses.cpp">
@@ -134,9 +128,6 @@
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\utility\stringconvert.h">
       <Filter>VST3_SDK</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\plugprovider.h">
-      <Filter>VST3_SDK</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fobject.h">
       <Filter>VST3_SDK</Filter>
     </ClInclude>
@@ -147,9 +138,6 @@
       <Filter>VST3_SDK</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fdebug.h">
-      <Filter>VST3_SDK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\samples\vst-hosting\editorhost\source\editorhost.h">
       <Filter>VST3_SDK</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\hostclasses.h">

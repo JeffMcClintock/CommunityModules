@@ -192,7 +192,7 @@ void ProcessorWrapper::initVst()
 	vstEffect_ = {};
 	component_ = {};
 
-	if (!controller_ || !controller_->pluginProvider_)
+	if (!controller_ || !controller_->plugin.controller)
 	{
 		return;
 	}
@@ -209,7 +209,7 @@ void ProcessorWrapper::initVst()
 			vstEffect_->dispatcher(effSetChunk, true, size, data);
 		}
 #endif
-		component_.reset(controller_->pluginProvider_->getComponent());
+		component_ = controller_->plugin.component;
 
 		if (!component_)
 		{
@@ -258,7 +258,6 @@ void ProcessorWrapper::initVst()
 
 			processData.numOutputs = numBusses;
 		}
-
 
 //		component_->initialize(&hostContext);
 		component_->setActive(true);
@@ -749,9 +748,6 @@ void ProcessorWrapper::onSetPins(void)
 #if !defined(SE_TARGET_WAVES)
 	if (pinAeffectPointer.isUpdated() && pinAeffectPointer.getValue().getSize() == sizeof(controller_) )
 	{
-//		assert(pluginProvider_ == nullptr);
-//		pluginProvider_ = *(Steinberg::Vst::PlugProvider**)pinAeffectPointer.getValue().getData();
-
 		controller_ = *(ControllerWrapper**)pinAeffectPointer.getValue().getData();
 
 		initVst();

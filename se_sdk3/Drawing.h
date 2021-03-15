@@ -2724,7 +2724,7 @@ namespace GmpiDrawing
 		// don't care about rect, only position. DEPRECATED, works only when text is left-aligned.
 		inline void DrawTextU(std::string utf8String, TextFormat_readonly textFormat, float x, float y, Brush brush, DrawTextOptions options = DrawTextOptions::None)
 		{
-#ifdef _WIN32
+#ifdef _RPT0
 			_RPT0(_CRT_WARN, "DrawTextU(std::string, TextFormat, float, float ...) DEPRECATED, works only when text is left-aligned.\n");
 #endif
 			const int32_t flags = static_cast<int32_t>(options);

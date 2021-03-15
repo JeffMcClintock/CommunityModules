@@ -6,7 +6,6 @@
 #include "VstFactory.h"
 #include "TimerManager.h"
 #include "Drawing.h"
-#include "public.sdk/source/vst/hosting/plugprovider.h"
 
 class EditButtonGui : public gmpi_gui::MpGuiGfxBase
 {

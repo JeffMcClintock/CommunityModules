@@ -102,7 +102,7 @@ int32_t EditButtonGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContex
 
 	std::string txt = "EDIT";
 
-	if (!controller_ || !controller_->pluginProvider_)
+	if (!controller_ || !controller_->plugin.controller)
 	{
 		txt = "LOADFAIL";
 		brush.SetColor(GmpiDrawing::Color::Red);

@@ -9,7 +9,6 @@
 #include "public.sdk\source\vst\vstaudioeffect.h"
 #include "pluginterfaces\vst\ivstprocesscontext.h"
 #include "pluginterfaces\vst\ivstevents.h"
-#include "public.sdk/source/vst/hosting/plugprovider.h"
 #include "pluginterfaces\vst\ivstaudioprocessor.h"
 #include "public.sdk\source\vst\hosting\processdata.h"
 #include "base\source\fobject.h"
