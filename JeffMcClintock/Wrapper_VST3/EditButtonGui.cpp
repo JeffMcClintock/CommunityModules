@@ -6,43 +6,6 @@ using namespace gmpi;
 using namespace JmUnicodeConversions;
 using namespace gmpi_gui_api;
 
-
-EditButtonGui::EditButtonGui() :
- initialized_(false)
-{
-}
-
-int32_t EditButtonGui::initialize()
-{
-	initialized_ = true;
-
-	auto r = MpGuiBase2::initialize();
-
-#if 0
-	if (vstEffect_ != nullptr && hasGuiParameterPins_)
-	{
-		int pinIdx = 1;
-		int paramCount = vstEffect_->getNumParams();
-		for (int i = 0; i < paramCount; ++i)
-		{
-			float v = vstEffect_->getParameter(i);
-
-			if (pinParamValues[i] != v) // avoid feedback loops due to precision issue in plugin.
-			{
-				pinParamValues[i] = v;
-				getHost()->pinTransmit(pinIdx, sizeof(v), &v);
-			}
-			++pinIdx;
-
-			auto ws = Utf8ToWstring(vstEffect_->getParameterDisplay(i));
-			getHost()->pinTransmit(pinIdx, static_cast<int32_t>(ws.size() * sizeof(wchar_t)), ws.data());
-			++pinIdx;
-		}
-	}
-#endif
-	return r;
-}
-
 int32_t EditButtonGui::setPin(int32_t pinId, int32_t voice, int32_t size, const void* data)
 {
 	if (controllertPtrPinId == pinId && size == sizeof(void*))

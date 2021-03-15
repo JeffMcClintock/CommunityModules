@@ -131,10 +131,6 @@ ControllerWrapper::ControllerWrapper(const wchar_t* filename, const std::string&
 handle_(0)
 , filename_(filename)
 , shellPluginId_(uuid)
-, host_(0)
-, stateDirty(false)
-, inhibitFeedback(false)
-, isOpen(false)
 {
 	componentHandler.controller_ = this;
 }
@@ -201,74 +197,68 @@ int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId
 
 int32_t ControllerWrapper::preSaveState()
 {
-#if 1 // TODO!!!
+	inhibitFeedback = true;
+
+	if(!plugin.controller || !plugin.component)
 	{
-		inhibitFeedback = true;
-//		auto controller = owned(pluginProvider_->getController());
-//		auto component = owned(pluginProvider_->getComponent());
+		return MP_FAIL;
+	}
+	{
+		// get controller state. usually blank.
+		MyBufferStream stream;
+		int32_t controllerStateSize = {};
+		stream.write(&controllerStateSize, sizeof(controllerStateSize));
+		plugin.controller->getState(&stream);
 
-		if(!plugin.controller || !plugin.component)
-		{
-			return MP_FAIL;
-		}
-		{
-			// get controller state. usually blank.
-			MyBufferStream stream;
-			int32_t controllerStateSize = {};
-			stream.write(&controllerStateSize, sizeof(controllerStateSize));
-			plugin.controller->getState(&stream);
+		// update size of data written so far.
+		*((int32_t*)stream.buffer_.data()) = static_cast<int32_t>(stream.buffer_.size() - sizeof(int32_t));
 
-			// update size of data written so far.
-			*((int32_t*)stream.buffer_.data()) = static_cast<int32_t>(stream.buffer_.size() - sizeof(int32_t));
-
-			// get processor state.
-			plugin.component->getState(&stream);
+		// get processor state.
+		plugin.component->getState(&stream);
 
 #if 0 //defined (_DEBUG) & defined(_WIN32)
-			_RPT0(_CRT_WARN, "{ ");
-			auto d = (unsigned char*)chunkPtr;
-			for (int i = 0; i < 12; ++i)
-			{
-				_RPT1(_CRT_WARN, "%02x ", (int)d[i]);
-			}
-			_RPT0(_CRT_WARN, "}; get\n");
+		_RPT0(_CRT_WARN, "{ ");
+		auto d = (unsigned char*)chunkPtr;
+		for (int i = 0; i < 12; ++i)
+		{
+			_RPT1(_CRT_WARN, "%02x ", (int)d[i]);
+		}
+		_RPT0(_CRT_WARN, "}; get\n");
 #endif
 
 #if 0 // ifdef _DEBUG
-			// Waves Grand Rhapsody needs to load child plugin preset from the ALG,
-			// print preset out in handy format to be pasted into ALG source code. (prints to debug window).
+		// Waves Grand Rhapsody needs to load child plugin preset from the ALG,
+		// print preset out in handy format to be pasted into ALG source code. (prints to debug window).
+		{
+			_RPT0(_CRT_WARN, "{ ");
+			const unsigned char* d = (const unsigned char*)chunkPtr;
+			for (int i = 0 ; i < chunkSize; ++i)
 			{
-				_RPT0(_CRT_WARN, "{ ");
-				const unsigned char* d = (const unsigned char*)chunkPtr;
-				for (int i = 0 ; i < chunkSize; ++i)
+				if ((i % 20) == 0)
 				{
-					if ((i % 20) == 0)
-					{
-						_RPT0(_CRT_WARN, "\n");
-					}
-					_RPT1(_CRT_WARN, "0x%02x, ", d[i]);
+					_RPT0(_CRT_WARN, "\n");
 				}
-				_RPT0(_CRT_WARN, "};\n");
+				_RPT1(_CRT_WARN, "0x%02x, ", d[i]);
 			}
-#endif
-
-			const int voiceId = 0;
-			auto paramId = plugin.controller->getParameterCount();
-
-			host_->setParameter(host_->getParameterHandle(handle_, paramId), MP_FT_VALUE, voiceId, (char*)stream.buffer_.data(), (int32_t) stream.buffer_.size());
-			// _RPT1(_CRT_WARN, "ControllerWrapper:: Saved State: %d bytes\n", chunkSize);
+			_RPT0(_CRT_WARN, "};\n");
 		}
-
-		stateDirty = false;
-		inhibitFeedback = false;
-	}
 #endif
+
+		const int voiceId = 0;
+		auto paramId = plugin.controller->getParameterCount();
+
+		host_->setParameter(host_->getParameterHandle(handle_, paramId), MP_FT_VALUE, voiceId, (char*)stream.buffer_.data(), (int32_t) stream.buffer_.size());
+		// _RPT1(_CRT_WARN, "ControllerWrapper:: Saved State: %d bytes\n", chunkSize);
+	}
+
+	stateDirty = false;
+	inhibitFeedback = false;
+
 	return MP_OK;
 }
 
 int32_t ControllerWrapper::open()
 {
-#if 1 // TODO!!!
 	isOpen = true;
 
 	if (!plugin.controller) // VST not installed?
@@ -309,7 +299,7 @@ int32_t ControllerWrapper::open()
 			preSaveState();
 		}
 	}
-#endif
+
 	return MP_OK;
 }
 
@@ -319,14 +309,12 @@ int32_t ControllerWrapper::setHost(gmpi::IMpUnknown* host)
 
 	if( host_ == 0 )
 	{
-		return MP_NOSUPPORT; //  throw "host Interfaces not supported";
+		return MP_NOSUPPORT; //  host Interfaces not supported
 	}
 
 	host_->getHandle(handle_);
 
-//	assert(!pluginProvider_); // don't call twice.
-
-	/*auto ae =*/ LoadPlugin( JmUnicodeConversions::WStringToUtf8(filename_), shellPluginId_);
+	LoadPlugin( JmUnicodeConversions::WStringToUtf8(filename_), shellPluginId_);
 
 	if( !plugin.controller ) // VST not installed.
 	{
@@ -342,19 +330,11 @@ int32_t ControllerWrapper::setHost(gmpi::IMpUnknown* host)
 }
 
 #if defined (SE_TARGET_WAVES)
-AEffectWrapperWaves* ControllerWrapper::LoadVst2Plugin(intptr_t instance, const wvFM::WCStPath& filename, VstIntPtr shellPluginId)
+AEffectWrapperWaves* ControllerWrapper::LoadVst2Plugin(intptr_t instance, const wvFM::WCStPath& filename, std::string uuid)
 #else
 int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 #endif
 {
-
-#if defined (SE_TARGET_WAVES)
-	AEffectWrapperWaves* pAEffectWrapper = 0;
-#else
-//	AEffectWrapper* pAEffectWrapper = 0;
-#endif
-	
-//	assert(pluginInstance.get() == nullptr);
 
 	{
 #if defined (SE_TARGET_WAVES)
@@ -378,32 +358,25 @@ int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 #if !defined (_WAVES_PROCESS_TARGET ) && defined (SE_TARGET_WAVES)
 		pAEffectWrapper->LoadDll(filename, dllHandle, shellPluginId);
 #elif !defined (SE_TARGET_WAVES) // instead of all this shit, have a seperate class for waves vs SE
-		//pAEffectWrapper = new AEffectWrapper();
-		//pAEffectWrapper->LoadDll(filename, shellPluginId);
 		{
 			std::string error;
 			dll = VST3::Hosting::Module::create(path, error);
 			if(!dll)
 			{
-				std::string reason = "Could not create Module for file:";
-				reason += path;
-				reason += "\nError: ";
-				reason += error;
-				// Displays message box and quits process.
-				//		IPlatform::instance ().kill (-1, reason);
-				return 0;// gmpi::MP_FAIL;
+				// Could not create Module for file
+				return 0;
 			}
 
-			auto classID = VST3::UID::fromString(uuid);
+			const auto classID = VST3::UID::fromString(uuid);
 			if(!classID)
 			{
-				return 0;//gmpi::MP_FAIL;
+				return 0;
 			}
 
 			auto factory = dll->getFactory();
 			for(auto& classInfo : factory.classInfos())
 			{
-				if(classInfo.ID() == *classID && classInfo.category() == kVstAudioEffectClass) //kVstComponentControllerClass)//kVstAudioEffectClass)
+				if(classInfo.ID() == *classID && classInfo.category() == kVstAudioEffectClass)
 				{
 					plugin.setup(factory, classInfo);
 					return 0;
@@ -439,13 +412,11 @@ int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 		}
 #endif
 	}
-	return 0;// pAEffectWrapper;
+	return 0;
 }
 
 void ControllerWrapper::OpenGui()
 {
-//	auto nativeController = owned(pluginProvider_->getController());
-
 	if (!plugin.controller) // VST not installed?
 	{
 		return;
@@ -454,7 +425,7 @@ void ControllerWrapper::OpenGui()
 	auto view = owned (plugin.controller->createView(Steinberg::Vst::ViewType::kEditor));
 	if (!view)
 	{
-//		IPlatform::instance ().kill (-1, "EditController does not provide its own editor");
+		// EditController does not provide its own editor
 		return;
 	}
 
@@ -462,18 +433,19 @@ void ControllerWrapper::OpenGui()
 	auto result = view->getSize (&plugViewSize);
 	if (result != kResultTrue)
 	{
-//		IPlatform::instance ().kill (-1, "Could not get editor view size");
+		// Could not get editor view size
 		return;
 	}
 
-	auto viewRect = ViewRectToRect (plugViewSize);
+	const auto viewRect = ViewRectToRect (plugViewSize);
 
 	windowController = std::make_shared<WindowController> (view);
 	auto window = IPlatform::instance ().createWindow (
 	    "Editor", viewRect.size, view->canResize () == kResultTrue, windowController);
+
 	if (!window)
 	{
-//		IPlatform::instance ().kill (-1, "Could not create window");
+		// Could not create window
 		return;
 	}
 
@@ -484,10 +456,7 @@ bool ControllerWrapper::OnTimer()
 {
 	if( stateDirty )
 	{
-//		if (presetsUseChunks)
-		{
-			preSaveState();
-		}
+		preSaveState();
 		
 		stateDirty = false;
 	}
@@ -546,6 +515,7 @@ tresult VstComponentHandler::endEdit (ParamID paramId)
 
 tresult VstComponentHandler::restartComponent (int32 flags)
 {
+	// TODO!
 	return kResultOk;
 }
 

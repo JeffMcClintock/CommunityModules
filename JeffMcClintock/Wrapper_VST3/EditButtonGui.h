@@ -1,10 +1,6 @@
-#ifndef TEXTENTRY4GUI_H_INCLUDED
-#define TEXTENTRY4GUI_H_INCLUDED
+#pragma once
 
 #include "mp_sdk_gui2.h"
-#include "../shared/ImageMetadata.h"
-#include "VstFactory.h"
-#include "TimerManager.h"
 #include "Drawing.h"
 
 class EditButtonGui : public gmpi_gui::MpGuiGfxBase
@@ -14,16 +10,12 @@ class EditButtonGui : public gmpi_gui::MpGuiGfxBase
 
 	std::string shellPluginId_;
 	std::string filename_;
-	bool initialized_;
 
 	class ControllerWrapper* controller_ = {};
 	static const int controllertPtrPinId = 0;
 
 public:
-	EditButtonGui();
-
 	// overrides.
-	int32_t MP_STDCALL initialize() override;
 	int32_t MP_STDCALL setPin(int32_t pinId, int32_t voice, int32_t size, const void* data) override;
 
 	int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override;
@@ -36,7 +28,5 @@ public:
 
 	GmpiDrawing::TextFormat& getTextFormat();
 };
-
-#endif
 
 

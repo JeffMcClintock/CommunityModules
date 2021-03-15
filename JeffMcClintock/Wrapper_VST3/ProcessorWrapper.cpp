@@ -18,18 +18,16 @@ using namespace Steinberg;
 using namespace Steinberg::Vst;
 
 ProcessorWrapper::ProcessorWrapper() :
-	 useChunkPresets(false)
-	, OnOffSwitchEnabled(false)
-	, bypassMode(true)
+	bypassMode(true)
 	, tailSamples(32)
 	, currentVstSubProcess(&ProcessorWrapper::subProcessBypass)
-#if defined(DEBUG_VST2_SIGNAL_LEVEL )
-	,peakLevel(0)
-	,peakCounter(0)
-#endif
 {
 	memset(&vstTime_, 0, sizeof(vstTime_));
-	vstTime_.state = ProcessContext::kTempoValid | ProcessContext::kTimeSigValid | ProcessContext::kBarPositionValid | ProcessContext::kProjectTimeMusicValid;
+	vstTime_.state =
+		ProcessContext::kTempoValid |
+		ProcessContext::kTimeSigValid |
+		ProcessContext::kBarPositionValid |
+		ProcessContext::kContTimeValid;
 
 	// reasonable defaults for now.
 	vstTime_.tempo = 100;
@@ -74,9 +72,7 @@ int32_t ProcessorWrapper::open()
 
 				switch(datatype)
 				{
-					// NEW, Older exports won't include these pins, so only initialize them if pinOnOffSwitch detected (it's the only bool).
 				case MP_BOOL:
-					OnOffSwitchEnabled = true;
 					initializePin(idx++, pinOnOffSwitch);
 					r = it->next();
 
@@ -198,17 +194,6 @@ void ProcessorWrapper::initVst()
 	}
 
 	{
-#if defined(SE_TARGET_WAVES)
-		if (useChunkPresets)
-		{
-			// Init preset from Patchmemory.
-			auto ug = dynamic_cast<ug_base*>(getHost());
-			auto parameter = ug->get_patch_manager()->GetParameter(ug->Handle(), 0);
-			void* data = nullptr;
-			auto size = parameter->GetValueRaw(&data);
-			vstEffect_->dispatcher(effSetChunk, true, size, data);
-		}
-#endif
 		component_ = controller_->plugin.component;
 
 		if (!component_)
@@ -259,7 +244,6 @@ void ProcessorWrapper::initVst()
 			processData.numOutputs = numBusses;
 		}
 
-//		component_->initialize(&hostContext);
 		component_->setActive(true);
 
 		bypassMode = false;
@@ -707,27 +691,6 @@ void ProcessorWrapper::subProcess(int32_t count, const gmpi::MpEvent* events)
 	ProcessEvents(count, events);
 
 	ProcessPlugin(count);
-
-#if defined(DEBUG_VST2_SIGNAL_LEVEL )
-	for (size_t i = 0; i < AudioOuts.size(); ++i)
-	{
-		auto o = getBuffer(*(AudioOuts[i]));
-		for (int i = 0; i < count; ++i)
-		{
-			peakLevel = (std::max)(peakLevel, o[i]);
-			peakLevel = (std::max)(peakLevel, -o[i]);
-		}
-	}
-
-	if (peakCounter-- < 0)
-	{
-		peakCounter = 100;
-		int handle;
-		getHost()->getHandle(handle);
-		_RPT2(_CRT_WARN, "Child Plugin %d peak %f\n", handle, peakLevel);
-		peakLevel = 0;
-	}
-#endif
 }
 
 void ProcessorWrapper::onSetPins(void)
@@ -754,7 +717,7 @@ void ProcessorWrapper::onSetPins(void)
 	}
 #endif
 
-	bypassMode = vstEffect_ == 0 || (OnOffSwitchEnabled && pinOnOffSwitch == false);
+	bypassMode = vstEffect_ == 0 || !pinOnOffSwitch;
 
 	bool inputStreaming = false;
 	bool inputUpdated = pinOnOffSwitch.isUpdated();// | pinAutoSleep.isUpdated();
@@ -793,9 +756,7 @@ void ProcessorWrapper::onSetPins(void)
 	}
 	else
 	{
-		//bool inputIsActive = !OnOffSwitchEnabled || inputStreaming;
-
-		if (true) // inputIsActive)
+		if (true)
 		{
 			if (!outputStreaming)
 			{

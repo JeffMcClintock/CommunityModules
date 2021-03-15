@@ -13,8 +13,6 @@
 #include "xp_dynamic_linking.h"
 
 #if !defined(SE_TARGET_WAVES)
-//#include "public.sdk/source/vst/hosting/plugprovider.h"
-
 #include "FileFinder.h"
 #include "./EditButtonGui.h"
 #include "ControllerWrapper.h"
@@ -28,8 +26,8 @@
 
 #endif
 
-#define INFO_PLUGIN_ID "SE: VST3 WRAPPER"
 #define L_INFO_PLUGIN_ID L"SE: VST3 WRAPPER"
+#define INFO_PLUGIN_ID "SE: VST3 WRAPPER"
 #define PARAM_SET_PLUGIN_ID "SE: VST3 Param Set"
 #define L_PARAM_SET_PLUGIN_ID L"SE: VST3 Param Set"
 
@@ -41,11 +39,6 @@ using namespace Steinberg;
 using namespace Steinberg::Vst;
 
 const char* VstFactory::pluginIdPrefix = "wvVST3WRAP:";
-
-//VstFactory::VstFactory()
-//{
-//	Steinberg::gStandardPluginContext = &pluginContext;
-//}
 
 // IMpShellFactory: Query a plugin's info. Should occur only during a user-initiated re-scan.
 int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXml)
@@ -61,7 +54,6 @@ int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXm
 
 	if (index == 0) // User-initiated rescan.
 	{
-//		pluginIdMap.clear();
 		ScanVsts();
 	}
 	else
@@ -126,12 +118,7 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 	auto module = VST3::Hosting::Module::create (path, error);
 	if (!module)
 	{
-		std::string reason = "Could not create Module for file:";
-		reason += path;
-		reason += "\nError: ";
-		reason += error;
-// Displays message box and quits process.
-//		IPlatform::instance ().kill (-1, reason);
+		// Could not create Module for file
 		return gmpi::MP_FAIL;
 	}
 
@@ -282,12 +269,7 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 	auto module = VST3::Hosting::Module::create(path, error);
 	if (!module)
 	{
-		std::string reason = "Could not create Module for file:";
-		reason += path;
-		reason += "\nError: ";
-		reason += error;
-// Displays message box and quits process.
-//		IPlatform::instance ().kill (-1, reason);
+		// Could not create Module for file
 		return;
 	}
 
@@ -350,29 +332,15 @@ void VstFactory::AddPluginName(const char* category, std::string uuid, const std
 
 std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& classInfo)
 {
-//	auto plugProvider = owned (new Steinberg::Vst::PlugProvider (factory, classInfo, true));
-
 	myPluginProvider plugProvider;
 	plugProvider.setup(factory, classInfo);
 
-//	auto editController = owned(plugProvider->getController());
-
 	if (!plugProvider.controller)
 	{
-//		error = "No EditController found (needed for allowing editor) in file " + path;
-//		IPlatform::instance ().kill (-1, error);
+		//No EditController found (needed for allowing editor)
 		return {};
 	}
 
-// not sure what this is
-/*
-	// set optional component handler on edit controller
-	if (flags & kSetComponentHandler)
-	{
-		SMTG_DBPRT0 ("setComponentHandler is used\n");
-		editController->setComponentHandler (&gComponentHandler);
-	}
-*/
 	// TODO!!!: Hide and handle MIDI CC dummy parameters
 
 	// Gather parameter names.
@@ -412,22 +380,11 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	oss << "<Controller/>";
 
 	// instansiate Processor
-//		auto component = owned(plugProvider->getComponent());
-		if(!plugProvider.component)
-		{
-			//		error = "No EditController found (needed for allowing editor) in file " + path;
-			//		IPlatform::instance ().kill (-1, error);
-			return {};
-		}
-#if 0
-
-		const int32 numInputs = component->getBusCount (kAudio, kInput);
-		const int32 numOutputs = component->getBusCount (kAudio, kOutput);
-		const int32 numMidiInputs = component->getBusCount (kEvent, kInput);
-
-//		component->queryInterface(IAudioProcessor::iid, (void**)&audioEffect);
-//		component->release();
-#endif
+	if(!plugProvider.component)
+	{
+		// No EditController found (needed for allowing editor)
+		return {};
+	}
 
 	int numInputs{};
 	int numOutputs{};
@@ -438,23 +395,6 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	if (plugProvider.component->getBusInfo (kAudio, kInput, busIndex, busInfo) == kResultTrue)
 	{
 		numInputs = busInfo.channelCount;
-/*
-		auto busName = VST3::StringConvert::convert (busInfo.name);
-
-		if (busName.empty ())
-		{
-//			addErrorMessage (testResult, printf ("Bus %d has no name!!!", busIndex));
-			return false;
-		}
-*/
-
-/*
-		addMessage (
-			testResult,
-			printf ("     %s[%d]: \"%s\" (%s-%s) ", busDirection == kInput ? "In " : "Out",
-				    busIndex, busName.data (), busInfo.busType == kMain ? "Main" : "Aux",
-				    busInfo.kDefaultActive ? "Default Active" : "Default Inactive"));
-*/
 	}
 
 	if(plugProvider.component->getBusInfo(kAudio, kOutput, busIndex, busInfo) == kResultTrue)
@@ -484,8 +424,8 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 		<Pin name = "Host Bar Start" datatype = "float" hostConnect = "Time/BarStartPosition" />
 	)XML";
 
-	auto aeffectPointerParamId = i;
-	oss << "<Pin name=\"effectptr\" datatype=\"blob\" parameterId=\"" << aeffectPointerParamId << "\" private=\"true\" />";
+	auto controllerPointerParamId = i;
+	oss << "<Pin name=\"effectptr\" datatype=\"blob\" parameterId=\"" << controllerPointerParamId << "\" private=\"true\" />";
 
 	if(numMidiInputs)
 	{
@@ -513,7 +453,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	oss << "<GUI graphicsApi=\"GmpiGui\" >";
 
 	// aeffect ptr first.
-	oss << "<Pin name=\"effectptr\" datatype=\"blob\" parameterId=\"" << aeffectPointerParamId << "\" private=\"true\" />";
+	oss << "<Pin name=\"effectptr\" datatype=\"blob\" parameterId=\"" << controllerPointerParamId << "\" private=\"true\" />";
 
 	oss << "</GUI>";
 
@@ -717,7 +657,6 @@ extern "C"
 VST_EXPORT
 int32_t MP_STDCALL MP_GetFactory(void** returnInterface)
 {
-	// call queryInterface() to keep refcounting in sync
 	return GetVstFactory()->queryInterface(MP_IID_UNKNOWN, returnInterface);
 }
 
@@ -789,7 +728,6 @@ int32_t VstFactory::createInstance(
 		return gmpi::MP_FAIL;
 	}
 	const auto vstUniqueId = uuidFromWrapperID(uniqueId);
-	const bool useChunkPresets = false;
 	const bool useGuiPins = true;
 
 	for( auto& pluginInfo : plugins )
@@ -857,25 +795,9 @@ int32_t VstFactory::createInstance(
 	if (subType == MP_SUB_TYPE_GUI2)
 	{
 		string err("Error");
-		//if (pluginIdMap.empty())
-		//{
-		//	err = "Can't Locate WavesShell";
-		//}
-		//else
 		{
 			err = "Can't find Waves Plugin:" + vstUniqueId;
 			err += "\n";
-
-			//bool first = true;
-			//for (auto& it : pluginIdMap)
-			//{
-			//	if (!first)
-			//	{
-			//		err += ", ";
-			//	}
-			//	err += WStringToUtf8(it.second);
-			//	first = false;
-			//}
 		}
 
 		auto wp = new VstwrapperfailGui(err);

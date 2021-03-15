@@ -86,7 +86,6 @@
       <Filter>VST3_SDK</Filter>
     </ClCompile>
     <ClCompile Include="WindowManager.cpp" />
-    <ClCompile Include="Vst3ParamSet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

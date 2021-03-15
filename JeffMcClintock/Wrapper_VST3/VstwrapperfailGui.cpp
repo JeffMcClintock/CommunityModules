@@ -4,8 +4,6 @@
 using namespace gmpi;
 using namespace GmpiDrawing;
 
-//GMPI_REGISTER_GUI(MP_SUB_TYPE_GUI2, VstwrapperfailGui, L"SE VSTWrapperFail" );
-
 VstwrapperfailGui::VstwrapperfailGui(std::string pErrorMsg) : errorMsg(pErrorMsg)
 {
 }

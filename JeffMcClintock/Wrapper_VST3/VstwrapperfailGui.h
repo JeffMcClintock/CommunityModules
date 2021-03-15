@@ -1,6 +1,4 @@
-#ifndef VSTWRAPPERFAILGUI_H_INCLUDED
-#define VSTWRAPPERFAILGUI_H_INCLUDED
-
+#pragma once
 #include "mp_sdk_gui2.h"
 
 class VstwrapperfailGui : public gmpi_gui::MpGuiGfxBase
@@ -12,7 +10,3 @@ public:
 	// overrides.
 	virtual int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext ) override;
 };
-
-#endif
-
-

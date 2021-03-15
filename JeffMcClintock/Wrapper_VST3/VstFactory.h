@@ -12,22 +12,13 @@
 #include "public.sdk/source/vst/hosting/module.h"
 #endif
 
-// Control all parameters externally via DSP and GUI pins. (usual method is store state from plugin via getChunck/setChunk).
-#define VST_WRAPPER_EXTERNAL_CONTROL_STRATEGY
-//#define VST_WRAPPER_BLOB_STORAGE_STRATEGY
-
-#include "public.sdk\source\vst\hosting\hostclasses.h"
-//namespace Steinberg
-//{
-//	extern Steinberg::FUnknown* gStandardPluginContext;
-//}
+#include "public.sdk/source/vst/hosting\hostclasses.h"
 
 using namespace gmpi;
 
 typedef class gmpi::IMpUnknown* (*MP_CreateFunc2)();
 
 class VstFactory* GetVstFactory();
-
 
 // VstFactory - a singleton object. The plugin registers it's ID with the factory.
 class VstFactory : public gmpi::IMpShellFactory
@@ -47,7 +38,6 @@ class VstFactory : public gmpi::IMpShellFactory
 	Steinberg::Vst::HostApplication pluginContext;
 
 public:
-//	VstFactory(void);
 	virtual ~VstFactory(void) {}
 
 	/* IMpUnknown methods */
@@ -76,23 +66,6 @@ public:
 	void AddPluginName(const char* category, std::string uuid, const std::string& name, const std::wstring& shellPath);
 	std::string XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& info);
 #if !defined(SE_TARGET_WAVES)
-/*
-	std::wstring getWavesShellLocation()
-	{
-		std::wstring r;
-		bool first = true;
-		for (auto& it : pluginIdMap)
-		{
-			if (!first)
-			{
-				r += L", ";
-			}
-			r += it.second;
-			first = false;
-		}
-		return r;
-	}
-*/
 	std::string getDiagnostics();
 #endif
 

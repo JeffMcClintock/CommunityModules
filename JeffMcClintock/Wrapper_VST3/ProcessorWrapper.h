@@ -1,24 +1,17 @@
-#ifndef PROCESSORWRAPPER_H_INCLUDED
-#define PROCESSORWRAPPER_H_INCLUDED
 #pragma once
 
 #include <memory>
 #include <unordered_map>
+#include "mp_midi.h"
 #include "../se_sdk3/mp_sdk_audio.h"
 #include "../shared/xplatform.h"
-#include "public.sdk\source\vst\vstaudioeffect.h"
-#include "pluginterfaces\vst\ivstprocesscontext.h"
-#include "pluginterfaces\vst\ivstevents.h"
-#include "pluginterfaces\vst\ivstaudioprocessor.h"
-#include "public.sdk\source\vst\hosting\processdata.h"
-#include "base\source\fobject.h"
-#include "pluginterfaces\vst\ivstparameterchanges.h"
-#include "../se_sdk3/mp_sdk_audio.h"
-#include "mp_midi.h"
-
-#if defined( _WIN32 ) && defined( _DEBUG )
-//#define DEBUG_VST2_SIGNAL_LEVEL
-#endif
+#include "base/source/fobject.h"
+#include "pluginterfaces/vst/ivstevents.h"
+#include "pluginterfaces/vst/ivstprocesscontext.h"
+#include "pluginterfaces/vst/ivstaudioprocessor.h"
+#include "public.sdk/source/vst/vstaudioeffect.h"
+#include "public.sdk/source/vst/hosting\processdata.h"
+#include "pluginterfaces/vst/ivstparameterchanges.h"
 
 struct myParamValueQueue : public Steinberg::FObject, public Steinberg::Vst::IParamValueQueue
 {
@@ -133,9 +126,6 @@ struct myEventList : public Steinberg::FObject, public Steinberg::Vst::IEventLis
 	REFCOUNT_METHODS (Steinberg::FObject)
 };
 
-
-using namespace gmpi;
-
 class Vst3ParamSet : public MpBase2
 {
 	FloatInPin pinFloatIn;
@@ -152,10 +142,9 @@ public:
 
 	void onSetPins(void) override
 	{
-		// Check which pins are updated.
 		if( pinFloatIn.isUpdated() )
 		{
-			// Send MIDI HD-Protocol Note Expression message. Not tested.
+			// Send MIDI HD-Protocol Note Expression message.
 			const int channel = 0;
 			GmpiMidiHdProtocol::Midi2 msg;
 			const int32_t intControllerVal20 = 0x0FFF & (int32_t)(pinFloatIn.getValue() * (float)0x0FFF);
@@ -179,8 +168,6 @@ class ProcessorWrapper : public MpBase2
 	int inputChannelCount = {};
 	int outputChannelCount = {};
 
-	bool useChunkPresets;
-	bool OnOffSwitchEnabled;
 	bool bypassMode;
 
 	// Silence detection.
@@ -191,11 +178,6 @@ class ProcessorWrapper : public MpBase2
 	typedef void (ProcessorWrapper::* VstSubProcess_ptr)(int32_t count, const gmpi::MpEvent* events);
 
 	VstSubProcess_ptr currentVstSubProcess;
-
-#if defined(DEBUG_VST2_SIGNAL_LEVEL )
-	float peakLevel;
-	int peakCounter;
-#endif
 
 public:
 	ProcessorWrapper();
@@ -242,11 +224,16 @@ private:
 			);
 		}
 
+		myParameterChanges outputParameterChanges;
+		myEventList outputEvents;
+
+		processData.outputParameterChanges = &outputParameterChanges; // todo
+		processData.outputEvents = &outputEvents;
 		processData.numSamples = count;
 
 		vstEffect_->process(processData);
 
-		vstTime_.projectTimeSamples += count;
+		vstTime_.continousTimeSamples += count;
 	}
 
 	inline void	CopyInputToOutput(int count)
@@ -272,7 +259,7 @@ private:
 				}
 			}
 		}
-		vstTime_.projectTimeSamples += count;
+		vstTime_.continousTimeSamples += count;
 	}
 
 	inline void	CopySilenceToOutput(int count)
@@ -300,7 +287,7 @@ private:
 			}
 			silenceCounter -= count;
 		}
-		vstTime_.projectTimeSamples += count;
+		vstTime_.continousTimeSamples += count;
 	}
 
 	void addParameterEvent(int clock, int index, float value);
@@ -326,6 +313,4 @@ private:
 	int firstParameterPinIndex = {};
 	int parameterAccessPinIndex = {};
 };
-
-#endif
 

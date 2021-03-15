@@ -3,10 +3,10 @@
 #include "../se_sdk3/TimerManager.h"
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/base/smartpointer.h"
-#include "public.sdk\source\vst\hosting\hostclasses.h"
+#include "public.sdk/source/vst/hosting\hostclasses.h"
 #include "pluginterfaces/vst/ivstmessage.h"
-#include "public.sdk\source\vst\hosting\module.h"
-#include "pluginterfaces\vst\ivstcomponent.h"
+#include "public.sdk/source/vst/hosting\module.h"
+#include "pluginterfaces/vst/ivstcomponent.h"
 #include "WindowManager.h"
 
 class VstComponentHandler : public Steinberg::FObject, public Steinberg::Vst::IComponentHandler
@@ -59,9 +59,6 @@ struct myPluginProvider
 
 	bool connectComponents()
 	{
-		//if (!component || !controller)
-		//	return false;
-
 		FUnknownPtr<Steinberg::Vst::IConnectionPoint> compICP (component);
 		FUnknownPtr<Steinberg::Vst::IConnectionPoint> contrICP (controller);
 
@@ -73,9 +70,6 @@ struct myPluginProvider
 
 	bool disconnectComponents()
 	{
-		//if (!component || !controller)
-		//	return false;
-
 		FUnknownPtr<Steinberg::Vst::IConnectionPoint> compICP (component);
 		FUnknownPtr<Steinberg::Vst::IConnectionPoint> contrICP (controller);
 
@@ -116,10 +110,6 @@ struct myPluginProvider
 				}
 			}
 		}
-		//else if (errorStream)
-		//{
-		//	*errorStream << "Failed to create instance of " << classInfo.name () << "!\n";
-		//}
 
 		if(res)
 		{
@@ -139,14 +129,14 @@ protected:
 	std::shared_ptr<WindowController> windowController;
 	VstComponentHandler componentHandler;
 
-	bool inhibitFeedback;
-	bool isSynthEditPresetEmpty;
-	bool isOpen;
+	bool inhibitFeedback = {};
+	bool isSynthEditPresetEmpty = {};
+	bool isOpen = {};
 
 public:
 	myPluginProvider plugin;
-	int32_t handle_;
-	bool stateDirty;
+	int32_t handle_ = -1;
+	bool stateDirty = {};
 	gmpi::IMpControllerHost* host_ = {};
 
 	ControllerWrapper(const wchar_t* filename, const std::string& uuid);
