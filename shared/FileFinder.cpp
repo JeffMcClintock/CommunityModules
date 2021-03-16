@@ -55,9 +55,7 @@ void FileFinder::first( const platform_string& folderPath )
 	current_.filename.clear();
 	current_.isFolder = false;
 	done_ = false;
-#if defined(_WIN32)
 	last_ = false;
-#endif
     searchPath = folderPath;
 
 #if defined(_WIN32)

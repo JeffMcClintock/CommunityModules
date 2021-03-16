@@ -117,13 +117,13 @@ GmpiDrawing::TextFormat_readonly FontCache::TextFormatExists(gmpi::IMpUserInterf
 
 GmpiDrawing::TextFormat_readonly FontCache::GetTextFormat(gmpi::IMpUserInterfaceHost2* host, gmpi_gui::IMpGraphicsHost* guiHost, std::string style, FontMetadata** returnMetadata)
 {
-	auto textformat = FontCache::TextFormatExists(host, guiHost, style, returnMetadata);
+	auto fontmetadata = getSkin(host)->getFont(style); // note, may return style "default" if 'style' does not exist in this skin.
+
+	auto textformat = FontCache::TextFormatExists(host, guiHost, fontmetadata->category_, returnMetadata); // important to check for *actual* skin name, which may be "default", not 'style'.
 	if (textformat)
 	{
 		return textformat;
 	}
-
-	auto fontmetadata = getSkin(host)->getFont(style);
 
 	return CreateTextFormatAndCache(host, guiHost, fontmetadata, returnMetadata);
 }
@@ -170,6 +170,7 @@ GmpiDrawing::TextFormat_readonly FontCache::CreateTextFormatAndCache(gmpi::IMpUs
 
 	const fontKey key{factory.Get(), fontmetadata->category_, fullUri.str()};
 
+	assert(fonts_.find(key) == fonts_.end()); // don't want to delete existing entry, trashing pointers.
 	fonts_[key] = TypefaceData(textFormat, fontmetadata);
 
 	if (returnMetadata)

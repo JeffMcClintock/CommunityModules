@@ -21,22 +21,18 @@ namespace JmUnicodeConversions
 
 inline std::string WStringToUtf8(const std::wstring& p_cstring )
 {
-#if defined(_WIN32)
-	size_t bytes_required = 1 + WideCharToMultiByte( CP_UTF8, 0, p_cstring.c_str(), -1, 0, 0, NULL, NULL);
-#else
-	size_t bytes_required = 1 + p_cstring.size();
-#endif
-
-	char* temp = new char[bytes_required];
+    std::string res;
     
 #if defined(_WIN32)
-	WideCharToMultiByte( CP_UTF8, 0, p_cstring.c_str(), -1, temp, (int) bytes_required, NULL, NULL);
+    const size_t size = 1 + WideCharToMultiByte( CP_UTF8, 0, p_cstring.c_str(), -1, 0, 0, NULL, NULL);
+    res.resize(size);
+	WideCharToMultiByte( CP_UTF8, 0, p_cstring.c_str(), -1, (char*) res.data(), (int) size, NULL, NULL);
 #else
-	wcstombs(temp, p_cstring.c_str(), bytes_required );
+    const auto size = wcstombs(0, p_cstring.c_str(), 0 );
+    res.resize(size);
+	wcstombs((char*) res.data(), p_cstring.c_str(), size );
 #endif
 
-	std::string res(temp);
-	delete [] temp;
 	return res;
 }
 
