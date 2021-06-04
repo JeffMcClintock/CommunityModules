@@ -52,7 +52,7 @@ namespace GmpiSdk
 			void Move(GmpiIWrapper && other) { m_ptr = std::move(other.m_ptr); }
 
 		public:
-			GmpiIWrapper(gmpi::IMpUnknown* other) : m_ptr(nullptr)
+			GmpiIWrapper(gmpi::IMpUnknown* /*other*/) : m_ptr(nullptr)
             {
             }
 

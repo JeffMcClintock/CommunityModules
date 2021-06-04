@@ -50,7 +50,7 @@
 #define MP_SDK_STDINT_H_INCLUDED
 
 // Detect C99 support (i.e. specified integer sizes)
-#if __STDC_VERSION__ >= 199901L
+#if (__STDC_VERSION__ >= 199901L) || (__cplusplus >= 201103L)
 #include <stdint.h>
 #else
 // else replicate it.
@@ -159,7 +159,7 @@ namespace gmpi
 
 // Handy macro to save typing.
 #define GMPI_QUERYINTERFACE1( INTERFACE_IID, CLASS_NAME ) \
-	virtual int32_t MP_STDCALL queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override \
+	int32_t MP_STDCALL queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override \
 { \
 	*returnInterface = 0; \
 	if (iid == INTERFACE_IID || iid == gmpi::MP_IID_UNKNOWN ) \
@@ -172,11 +172,11 @@ namespace gmpi
 }
 
 #define GMPI_REFCOUNT gmpi_sdk::selfInitializingInt refCount2_; \
-	virtual int32_t MP_STDCALL addRef(void) override \
+	int32_t MP_STDCALL addRef(void) override \
 { \
 	return ++refCount2_.value_; \
 } \
-	virtual int32_t MP_STDCALL release(void) override \
+	int32_t MP_STDCALL release(void) override \
 { \
 	if (--refCount2_.value_ == 0) \
 	{ \
@@ -187,17 +187,17 @@ namespace gmpi
 } \
 
 #define GMPI_REFCOUNT_NO_DELETE	\
-	virtual int32_t MP_STDCALL addRef(void) override \
+	int32_t MP_STDCALL addRef(void) override \
 { \
 	return 1; \
 } \
-	virtual int32_t MP_STDCALL release(void) override \
+	int32_t MP_STDCALL release(void) override \
 { \
 	return 1; \
 } \
 
 #define GMPI_QUERYINTERFACE2( INTERFACE_IID, CLASS_NAME, BASE_CLASS ) \
-	virtual int32_t MP_STDCALL queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override \
+	int32_t MP_STDCALL queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override \
 { \
 	*returnInterface = 0; \
 	if (iid == INTERFACE_IID ) \
@@ -1003,15 +1003,15 @@ class Register
 	//{
 	//	return gmpi::MP_SUB_TYPE_GUI2;
 	//}
-	inline static int subType(gmpi::IMpUserInterface* unused)
+	inline static int subType(gmpi::IMpUserInterface* /*unused*/)
 	{
 		return gmpi::MP_SUB_TYPE_GUI;
 	}
-	inline static int subType(gmpi::IMpUserInterface2* unused)
+	inline static int subType(gmpi::IMpUserInterface2* /*unused*/)
 	{
 		return gmpi::MP_SUB_TYPE_GUI2;
 	}
-	inline static int subType(gmpi::IMpController* unused)
+	inline static int subType(gmpi::IMpController* /*unused*/)
 	{
 		return gmpi::MP_SUB_TYPE_CONTROLLER;
 	}

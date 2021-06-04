@@ -224,7 +224,7 @@ public:
 	{
 		MpPinBase::sendPinUpdate( rawSize(), rawData(), blockPosition );
 	}
-	virtual void setBuffer( float* /*buffer*/ )
+	virtual void setBuffer( float* /*buffer*/ ) override
 	{
 		assert(false && "Control-rate pins_ don't have a buffer");
 	}
@@ -278,11 +278,11 @@ public:
 	{
 		return variableRawData<T>(value_);
 	}
-	virtual int getDatatype(void) const
+	virtual int getDatatype(void) const override
 	{
 		return pinDatatype; //MpTypeTraits<T>::PinDataType;
 	}
-	virtual void preProcessEvent( const gmpi::MpEvent* e )
+	virtual void preProcessEvent( const gmpi::MpEvent* e ) override
 	{
 		switch(e->eventType)
 		{
@@ -299,7 +299,7 @@ public:
 				break;
 		};
 	}
-	virtual void postProcessEvent( const gmpi::MpEvent* e )
+	virtual void postProcessEvent( const gmpi::MpEvent* e ) override
 	{
 		switch(e->eventType)
 		{
@@ -308,7 +308,7 @@ public:
 				break;
 		};
 	}
-	virtual MpBaseMemberPtr getDefaultEventHandler(void)
+	virtual MpBaseMemberPtr getDefaultEventHandler(void) override
 	{
 		return 0;
 	}
@@ -316,7 +316,7 @@ public:
 	{
 		return freshValue_;
 	}
-	virtual void sendFirstUpdate()
+	virtual void sendFirstUpdate() override
 	{
 		sendPinUpdate();
 	}
@@ -337,7 +337,7 @@ public:
 	MpControlPin( T initialValue ) : MpControlPinBase< T, pinDatatype >( initialValue )
 	{
 	}
-	virtual int getDirection(void) const
+	virtual int getDirection(void) const override
 	{
 		return pinDirection_;
 	}
@@ -382,7 +382,7 @@ public:
 	{
 		assert(false && "Audio-rate pins_ don't support setValueRaw");
 	}
-	virtual int getDatatype(void) const
+	virtual int getDatatype(void) const override
 	{
 		return gmpi::MP_AUDIO;
 	}

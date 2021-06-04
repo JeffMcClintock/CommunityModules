@@ -328,7 +328,6 @@ void WavFile::readWavData( const std::string & filename, int maxChannels, int ex
 
 	samples_.assign(totalSamples, 0.0);
 
-	int channel = 0;
 	float* dest = samples_.data();
 	{
 		for (unsigned int channel = 0; channel < numchans_; ++channel)
@@ -691,6 +690,7 @@ void WavFileCursor::DiskSamplesToBuffer(MYWAVEFORMATEX& waveheader, int sampleRe
 	}
 }
 
+// !! buggy with looping, results in a few zero samples at loop point. ref 'Sine Looped (hard)_8bit_mono.wav'
 std::tuple<const float*, int> WavFileCursor::GetMoreSamples(bool gate)
 {
 	// copy overlap from last buffer.
@@ -745,22 +745,21 @@ std::tuple<const float*, int> WavFileCursor::GetMoreSamples(bool gate)
 	int64_t returnSamplesCount = sampleReadCount - (overlapSamplesTotal - bufferWriteStart);
 
 	// have we gone "off end" of sample? pad with zeros.
-	int64_t zeroPadding = sampleReadCount - (sampleData->totalSamples() - filePosition);
-	if (zeroPadding > 0)
-	{
+    const int64_t remainingDiskSamples = sampleData->totalSamples() - filePosition;
+    const int64_t zeroPadding = (std::max)((int64_t)0, sampleReadCount - remainingDiskSamples);
+ 
 		sampleReadCount -= zeroPadding;  // 0 -> 4 frames.
 
 		for (int i = 0; i < zeroPadding; ++i)
 			buffer[bufferWriteStart + sampleReadCount + i] = 0.f;
-	}
 
-	const auto waveheader = sampleData->waveheader;
-
+    if(sampleReadCount > 0)
+    {
 	// Read samples off disk.
 	auto dest = buffer.data() + bufferWriteStart;
 	// _RPT1(_CRT_WARN, "DiskSamplesToBuffer %d\n", static_cast<int>(sampleReadCount));
 	DiskSamplesToBuffer(sampleData->waveheader, static_cast<int>(sampleReadCount), dest);
-
+    }
 	auto returnData = buffer.data() + overlapSamples;
 	int returnSamples = static_cast<int>(returnSamplesCount);
 	lastSentSampleIndex = returnSamplesCount;

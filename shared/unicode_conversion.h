@@ -19,52 +19,90 @@ using namespace JmUnicodeConversions;
 namespace JmUnicodeConversions
 {
 
+inline std::string WStringToUtf8_mac(const std::wstring& p_cstring)
+{
+	const auto size = wcstombs(0, p_cstring.c_str(), 0);
+    std::string res;
+	res.resize(size);
+	wcstombs((char*)res.data(), p_cstring.c_str(), size);
+	return res;
+}
+    
 inline std::string WStringToUtf8(const std::wstring& p_cstring )
 {
-    std::string res;
-    
 #if defined(_WIN32)
-    const size_t size = 1 + WideCharToMultiByte( CP_UTF8, 0, p_cstring.c_str(), -1, 0, 0, NULL, NULL);
+    std::string res;
+    const size_t size = WideCharToMultiByte(
+		CP_UTF8,
+		0,
+		p_cstring.data(),
+		static_cast<int>(p_cstring.size()),
+		0,
+		0,
+		NULL,
+		NULL
+	);
+    
     res.resize(size);
-	WideCharToMultiByte( CP_UTF8, 0, p_cstring.c_str(), -1, (char*) res.data(), (int) size, NULL, NULL);
-#else
-    const auto size = wcstombs(0, p_cstring.c_str(), 0 );
-    res.resize(size);
-	wcstombs((char*) res.data(), p_cstring.c_str(), size );
-#endif
 
+	WideCharToMultiByte(
+		CP_UTF8,
+		0,
+		p_cstring.data(),
+		static_cast<int>(p_cstring.size()),
+		const_cast<LPSTR>(res.data()),
+		static_cast<int>(size),
+		NULL,
+		NULL
+	);
+	return res;
+#else
+	return WStringToUtf8_mac(p_cstring);
+#endif
+}
+
+inline std::wstring Utf8ToWstring_mac(const std::string& p_string)
+{
+	const auto size = mbstowcs(0, p_string.c_str(), 0);
+	std::wstring res;
+	res.resize(size);
+	mbstowcs(const_cast<wchar_t*>(res.data()), p_string.c_str(), size);
 	return res;
 }
 
-inline std::wstring Utf8ToWstring( const char* p_string )
-{
-    if( p_string == 0)
+inline std::wstring Utf8ToWstring( const std::string& p_string )
     {
-        return std::wstring(L"");
-    }
 #if defined(_WIN32)
-	size_t length = 1 + MultiByteToWideChar( CP_UTF8, 0, p_string, -1, (LPWSTR)0, 0 );
+	std::wstring res;
+	const size_t size = MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		p_string.data(),
+		static_cast<int>(p_string.size()),
+		0,
+		0
+	);
+
+	res.resize(size);
+
+	MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		p_string.data(),
+		static_cast<int>(p_string.size()),
+		const_cast<LPWSTR>(res.data()),
+		static_cast<int>(size)
+	);
+	return res;
 #else
-	size_t length = 1 + mbstowcs(0, p_string, 0 );
+	return Utf8ToWstring_mac(p_string);
 #endif
-
-	wchar_t* wide = new wchar_t[length];
-	wide[0] = 0; // Handle null input pointers.
-
-#if defined(_WIN32)
-	MultiByteToWideChar( CP_UTF8, 0, p_string, -1, (LPWSTR)wide, (int) length );
-#else
-	mbstowcs(wide, p_string, length );
-#endif
-
-	std::wstring temp(wide);
-	delete [] wide;
-	return temp;
 }
 
-inline std::wstring Utf8ToWstring( const std::string& p_string )
+inline std::wstring Utf8ToWstring(const char* p_string)
 {
-	return Utf8ToWstring( p_string.c_str() );
+	std::string s(p_string);
+	return Utf8ToWstring(s);
 }
 
 #ifdef _WIN32

@@ -130,7 +130,7 @@ namespace MipMapCalculator
 			<< std::setw(width[4]) << std::right << std::fixed << p.mipSwitchNote(sampleRate)
 			<< "\n";
 
-#if defined(_DEBUG) && defined(WIN32)
+#if 0//defined(_DEBUG) && defined(WIN32)
 			_RPT1(_CRT_WARN, "%s", s2.str().c_str());
 #endif
 			s2.str("");

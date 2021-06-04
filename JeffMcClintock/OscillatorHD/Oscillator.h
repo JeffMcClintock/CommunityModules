@@ -185,7 +185,7 @@ struct Grain
 
 	void PrintState() const
 	{
-#if defined(_DEBUG) && defined(WIN32)
+#if 0 // defined(_DEBUG) && defined(WIN32)
 	_RPT0(_CRT_WARN, "osc-HD---GRAIN------------\n");
 	_RPT1(_CRT_WARN, "   waveSize %d\n    {", waveSize);
 	for(int i = -4; i < (std::min)(20, waveSize + 4); ++i)
