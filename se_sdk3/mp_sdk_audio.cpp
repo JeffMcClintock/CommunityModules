@@ -1,7 +1,8 @@
 // Copyright 2006-2020 SynthEdit Ltd
-
 // MpPluginBase - implements the IMpPlugin2 interface.
+#if !defined(_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+#endif
 
 #include "mp_sdk_audio.h"
 #include <assert.h>

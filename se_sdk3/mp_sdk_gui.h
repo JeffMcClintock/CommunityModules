@@ -566,7 +566,6 @@ typedef MpGuiPin<int> IntGuiPin;
 typedef MpGuiPin<bool> BoolGuiPin;
 typedef MpGuiPin<float> FloatGuiPin;
 typedef MpGuiPin<MpBlob> BlobGuiPin;
-//typedef MpGuiPin<std::wstring> StringGuiPin;
 
 class StringGuiPin : public MpGuiPin<std::wstring>
 {

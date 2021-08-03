@@ -37,10 +37,11 @@ Sasha Radojevic
 using namespace GmpiDrawing;
 */
 
-#pragma warning(disable : 4100)
-
+#pragma once
 #ifndef GMPI_GRAPHICS2_H_INCLUDED
 #define GMPI_GRAPHICS2_H_INCLUDED
+
+#pragma warning(disable : 4100)
 
 #include "Drawing_API.h"
 #include <vector>
@@ -498,34 +499,30 @@ namespace GmpiDrawing
 			this->bottom += dy;
 		}
 
-		inline void Inflate(T inset)
-		{
-			this->left -= inset;
-			this->right += inset;
-			this->top -= inset;
-			this->bottom += inset;
-		}
 		inline void Inflate(T dx, T dy)
 		{
+			dx = (std::max)(dx, -0.5f * getWidth());
+			dy = (std::max)(dy, -0.5f * getHeight());
+
 			this->left -= dx;
 			this->right += dx;
 			this->top -= dy;
 			this->bottom += dy;
 		}
 
-		inline void Deflate(T inset)
+		inline void Inflate(T inset)
 		{
-			this->left += inset;
-			this->right -= inset;
-			this->top += inset;
-			this->bottom -= inset;
+			Inflate(inset, inset);
 		}
+
 		inline void Deflate(T dx, T dy)
 		{
-			this->left += dx;
-			this->right -= dx;
-			this->top += dy;
-			this->bottom -= dy;
+			Inflate(-dx, -dy);
+		}
+
+		inline void Deflate(T inset)
+		{
+			Deflate(inset, inset);
 		}
 
 		inline void Intersect(typename Rect_traits<T>::BASE_TYPE r)
@@ -594,108 +591,25 @@ namespace GmpiDrawing
 		return result;
 	}
 
+	template<class T> RectBase<T> Union(const RectBase<T>& a, const RectBase<T>& b)
+		{
+		RectBase<T> result(a);
+
+		result.top = (std::min)(a.top, b.top);
+		result.left = (std::min)(a.left, b.left);
+		result.right = (std::max)(a.right, b.right);
+		result.bottom = (std::max)(a.bottom, b.bottom);
+
+		return result;
+		}
+
+	template<class T> PointBase<T> CenterPoint(const RectBase<T>& r)
+		{
+		return PointBase<T>(0.5f * (r.left + r.right), 0.5f * (r.top + r.bottom));
+		}
+
 	typedef RectBase<float> Rect;
 	typedef RectBase<int32_t> RectL;
-
-	/*
-	class RectU : public GmpiDrawing_API::MP1_RECT_U
-	{
-	public:
-		inline RectU(GmpiDrawing_API::MP1_RECT_U native) :
-			GmpiDrawing_API::MP1_RECT_U(native)
-		{
-		}
-
-		RectU(uint32_t pleft = 0, uint32_t ptop = 0, uint32_t pright = 0, uint32_t pbottom = 0)
-		{
-			left = pleft;
-			top = ptop;
-			right = pright;
-			bottom = pbottom;
-		}
-		bool operator==(const MP1_RECT_U& other) const
-		{
-			return
-				left == other.left
-				&& top == other.top
-				&& right == other.right
-				&& bottom == other.bottom;
-		}
-		bool operator!=(const MP1_RECT_U& other) const
-		{
-			return
-				left != other.left
-				|| top != other.top
-				|| right != other.right
-				|| bottom != other.bottom;
-		}
-	};
-	*/
-/*
-	class RectL : public GmpiDrawing_API::MP1_RECT_L
-	{
-	public:
-		inline RectL(GmpiDrawing_API::MP1_RECT_L native) :
-			GmpiDrawing_API::MP1_RECT_L(native)
-		{
-		}
-
-		RectL()
-		{
-			left = top = right = bottom = 0;
-		}
-
-		RectL(int32_t pleft, int32_t ptop, int32_t pright, int32_t pbottom)
-		{
-			left = pleft;
-			top = ptop;
-			right = pright;
-			bottom = pbottom;
-		}
-		bool operator==(const MP1_RECT_L& other) const
-		{
-			return
-				left == other.left
-				&& top == other.top
-				&& right == other.right
-				&& bottom == other.bottom;
-		}
-		bool operator!=(const MP1_RECT_L& other) const
-		{
-			return
-				left != other.left
-				|| top != other.top
-				|| right != other.right
-				|| bottom != other.bottom;
-		}
-
-		inline int32_t getWidth() const
-		{
-			return right - left;
-		}
-
-		inline int32_t getHeight() const
-		{
-			return bottom - top;
-		}
-
-		inline void Offset(GmpiDrawing_API::MP1_SIZE_U offset)
-		{
-			left += offset.width;
-			right += offset.width;
-			top += offset.height;
-			bottom += offset.height;
-		}
-
-		inline void Offset(int32_t dx, int32_t dy)
-		{
-			left += dx;
-			right += dx;
-			top += dy;
-			bottom += dy;
-		}
-	};
-	*/
 
 	class Matrix3x2 : public GmpiDrawing_API::MP1_MATRIX_3X2
 	{
@@ -1267,6 +1181,12 @@ namespace GmpiDrawing
 				static_cast<uint8_t>((argb & sc_blueMask)  >> sc_blueShift), 0xFF);
 		}
 
+		/*
+		FromHexString: Converts a hexadecimal color to a Color object.
+		If you pass a 3-byte color, e.g. “000000” (black) we assume it’s a solid color (same as “FF000000”).
+		This makes it convenient to specify RGB without any alpha.
+		However if you pass a specific alpha, e.g. "77000000" (transparent black) we use the alpha "77".
+		*/
 		static Color FromHexString(const std::wstring &s)
 		{
 			wchar_t* stopString;
@@ -1775,7 +1695,44 @@ namespace GmpiDrawing
 			return temp;
 		}
 
-		// Note: Not supported when Bitmap was created by Graphics::CreateCompatibleRenderTarget()
+		/*
+			LockPixels - Gives access to the raw pixels of a bitmap. The pixel format is 8-bit per channel ARGB premultiplied, sRGB color-space.
+			             If you are used to colors in 'normal' non-premultiplied ARGB format, the following routine will convert to pre-multiplied for you.
+						 You get the pixelformat by calling BitmapPixels::getPixelFormat().
+
+		   inline uint32_t toNative(uint32_t colorSrgb8, int32_t pixelFormat)
+		   {
+				  uint32_t result{};
+
+				  const unsigned char* sourcePixels = reinterpret_cast<unsigned char*>(&colorSrgb8);
+				  unsigned char* destPixels = reinterpret_cast<unsigned char*>(&result);
+
+				  int alpha = sourcePixels[3];
+
+				  // apply pre-multiplied alpha.
+				  for (int i = 0; i < 3; ++i)
+				  {
+						 if (pixelFormat == GmpiDrawing_API::IMpBitmapPixels::kBGRA_SRGB)
+						 {
+							   constexpr float inv255 = 1.0f / 255.0f;
+
+							   // This method will be chosen on Win10 with SRGB support.
+							   const float cf2 = se_sdk::FastGamma::RGB_to_float(sourcePixels[i]);
+							   destPixels[i] = se_sdk::FastGamma::float_to_sRGB(cf2 * alpha * inv255);
+						 }
+						 else
+						 {
+							   // This method will be chosen on Mac and Win7 because they use (inferior) linear gamma.
+							   const int r2 = sourcePixels[i] * alpha + 127;
+							   destPixels[i] = (r2 + 1 + (r2 >> 8)) >> 8; // fast way to divide by 255
+						 }
+				  }
+				  destPixels[3] = alpha;
+
+				  return result;
+		   }
+		*/
+
 		inline BitmapPixels lockPixels(int32_t flags = GmpiDrawing_API::MP1_BITMAP_LOCK_READ)
 		{
 			BitmapPixels temp;
@@ -2056,10 +2013,10 @@ namespace GmpiDrawing
 		GMPIGUISDK_DEFINE_CLASS(StrokeStyle, Resource, GmpiDrawing_API::IMpStrokeStyle);
 	};
 
-	class PathGeometry : public Resource //Geometry
+	class PathGeometry : public Resource
 	{
 	public:
-		GMPIGUISDK_DEFINE_CLASS(PathGeometry, Resource/*Geometry*/, GmpiDrawing_API::IMpPathGeometry);
+		GMPIGUISDK_DEFINE_CLASS(PathGeometry, Resource, GmpiDrawing_API::IMpPathGeometry);
 
 		inline GeometrySink Open()
 		{

@@ -21,8 +21,10 @@ typedef void ( MpBase2::* SubProcess_ptr2)(int sampleFrames);
 #define SET_PROCESS(func)	setSubProcess(static_cast <SubProcess_ptr> (func));
 #define SET_PROCESS2(func)	setSubProcess(static_cast <SubProcess_ptr2> (func));
 
-// Handy macros for registering plugin with factory.
+// Ensure linker includes file in static-library. See also INIT_STATIC_FILE in UgDatabase.cpp
 #define SE_DECLARE_INIT_STATIC_FILE(filename) void se_static_library_init_##filename(){}
+
+// Deprecated macros for registering plugin with factory. Prefer: 	auto r = gmpi::Register<MyClass>::withId(L"JM My Name");
 #define REGISTER_PLUGIN( className, pluginId ) namespace{ gmpi::IMpUnknown* PASTE_FUNC(create,className)(void){ return static_cast<gmpi::IMpPlugin*> (new className(0)); }; int32_t PASTE_FUNC(r,className) = RegisterPlugin( gmpi::MP_SUB_TYPE_AUDIO, pluginId, &PASTE_FUNC(create,className) );}
 #define REGISTER_PLUGIN2( className, pluginId ) namespace{ gmpi::IMpUnknown* PASTE_FUNC(create,className)(void){ return static_cast<gmpi::IMpPlugin2*> (new className()); }; int32_t PASTE_FUNC(r,className) = RegisterPlugin( gmpi::MP_SUB_TYPE_AUDIO, pluginId, &PASTE_FUNC(create,className) );}
 // Alias for consistancy with "GMPI_REGISTER_GUI"
@@ -361,7 +363,7 @@ class MpAudioPinBase : public MpPinBase
 {
 public:
 	MpAudioPinBase(){}
-	virtual void setBuffer( float* buffer )
+	void setBuffer( float* buffer ) override
 	{
 		buffer_ = buffer;
 	}
@@ -386,7 +388,7 @@ public:
 	{
 		return gmpi::MP_AUDIO;
 	}
-	virtual MpBaseMemberPtr getDefaultEventHandler(void)
+	MpBaseMemberPtr getDefaultEventHandler(void) override
 	{
 		return 0;
 	}
@@ -712,7 +714,7 @@ private:
 	SubProcess_ptr saveSubProcess_; // saves curSubProcess_ while sleeping
 };
 
-// Experimental advanced plugin base-class with simplified sub_process method.
+// Advanced plugin base-class with simplified sub_process method.
 /*
  To upgrade:
  * Replace references to MpBase with MpBase2
