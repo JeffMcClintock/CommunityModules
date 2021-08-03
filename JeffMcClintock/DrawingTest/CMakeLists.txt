@@ -15,6 +15,7 @@ set(srcs
 ${PROJECT_NAME}.rc
 DrawingTestGui.cpp
 DrawingTestLinesGui.cpp
+GUI_3_0.cpp
 )
 include_directories(
 ${sdk_folder}

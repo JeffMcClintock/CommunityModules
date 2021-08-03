@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <sstream>
 
-#include "../shared/fast_gamma.h"
-
 using namespace std;
 using namespace gmpi;
 using namespace gmpi_gui;
@@ -15,16 +13,17 @@ GMPI_REGISTER_GUI(MP_SUB_TYPE_GUI2, DrawingTestGui, L"SE Drawing Test" );
 
 DrawingTestGui::DrawingTestGui()
 {
-	initializePin(pinTestType, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
+	initializePin(pinTestType, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::onSetTestType));
 	initializePin(pinListItems);
 	initializePin(pinFontface, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
 	initializePin(pinFontsize, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
 	initializePin(pinText, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
 	initializePin(pinApplyAlphaCorrection, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
-	initializePin(pinAdjust, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));	
-}
+	initializePin(pinAdjust, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
 
-#include "../shared/xp_dynamic_linking.h"
+	functionalUI.init();
+	StartTimer();
+}
 
 template<typename T>
 auto parentFolder(T path)
@@ -45,6 +44,15 @@ auto parentFolder(T path)
 	return ret;
 }
 
+void DrawingTestGui::onSetTestType()
+{
+	if (pinTestType.getValue() == 9)
+	{
+		functionalUI.step();
+	}
+	refresh();
+}
+
 void DrawingTestGui::refresh()
 {
 	pinListItems =
@@ -56,7 +64,8 @@ void DrawingTestGui::refresh()
 		" Text (Fixed),"
 		" Text Vert Align,"
 		" Additive,"
-		" Gradient 2"
+		" Gradient 2,"
+		" GUI 3.0"
 		;
 	invalidateRect();
 
@@ -972,12 +981,48 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 	case 8:
 		drawGradient2(g);
 		break;
+
+	case 9:
+		functionalUI.draw(g);
+		break;
 	}
 
 	return MP_OK;
 }
 
-	// EEEEs
+bool DrawingTestGui::OnTimer()
+{
+	if (pinTestType.getValue() == 9)
+	{
+		functionalUI.step();
+		refresh();
+	}
+	return true;
+}
+
+int32_t MP_STDCALL DrawingTestGui::onPointerMove(int32_t flags, GmpiDrawing_API::MP1_POINT point)
+{
+	functionalUI.mousePosition = point;
+
+	return MP_OK;
+}
+
+int32_t MP_STDCALL DrawingTestGui::onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point)
+{
+	functionalUI.mouseDown = 1.0f;
+	setCapture();
+	return MP_OK;
+}
+
+int32_t MP_STDCALL DrawingTestGui::onPointerUp(int32_t flags, GmpiDrawing_API::MP1_POINT point)
+{
+	functionalUI.mouseDown = 0.0f;
+	releaseCapture();
+	return MP_OK;
+}
+
+
+// EEEEs
 void DrawingTestGui::drawTextVertAlign(GmpiDrawing::Graphics& g)
 {
 	auto factory = g.GetFactory();

@@ -314,6 +314,28 @@ void Oscillator::onSetPins(void)
 			recalculatePitch();
 	}
 
+	// handle static phase offset
+	if (pinPhaseMod.isUpdated() && !pinPhaseMod.isStreaming())
+	{
+		const auto phaseMod = pinPhaseMod.getValue();
+		const double delataPhase = prevPhase - phaseMod;
+		prevPhase = phaseMod;
+
+		for (auto& grain : grains)
+		{
+			if (grain.waveSize)
+			{
+				grain.count += delataPhase;
+				if (grain.count < 0.0f) // wrapped -ve?
+				{
+					grain.count += 10.0f;
+				}
+			}
+		}
+
+		assert(accumulator > 0.0f);
+	}
+
 	// Any update on pinTrigger is a trigger. Actual pin value is garbage.
 	if (pinVoiceActive.isUpdated())
 	{

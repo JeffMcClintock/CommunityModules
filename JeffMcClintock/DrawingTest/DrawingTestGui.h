@@ -3,8 +3,10 @@
 
 #include "../se_sdk3/mp_sdk_gui2.h"
 //#include "../se_sdk3_hosting/MacGuiHost/GraphicsTest/GraphicsClientCodeTest.h"
+#include "GUI_3_0.h"
+#include "../se_sdk3/TimerManager.h"
 
-class DrawingTestGui : public gmpi_gui::MpGuiGfxBase
+class DrawingTestGui : public gmpi_gui::MpGuiGfxBase, public TimerClient
 {
 	IntGuiPin pinTestType;
 	IntGuiPin pinFontface;
@@ -17,6 +19,8 @@ class DrawingTestGui : public gmpi_gui::MpGuiGfxBase
 
 	void MyApplyGammaCorrection(GmpiDrawing::Bitmap& bitmap);
 
+	functionalUI functionalUI;
+
 public:
 	DrawingTestGui();
 
@@ -25,6 +29,8 @@ public:
 	//	testClient.setHost(host);
 	//	return gmpi_gui::MpGuiGfxBase::setHost(host);
 	//}
+
+	void onSetTestType();
 
 	void refresh();
 	void drawGammaTest(GmpiDrawing::Graphics& g);
@@ -55,6 +61,12 @@ public:
 	{
 		return gmpi::MP_OK;
 	}
+
+	bool OnTimer() override;
+
+	int32_t MP_STDCALL onPointerMove(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
+	int32_t MP_STDCALL onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
+	int32_t MP_STDCALL onPointerUp(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
 };
 
 #endif
