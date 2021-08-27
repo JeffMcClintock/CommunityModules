@@ -65,7 +65,8 @@ void DrawingTestGui::refresh()
 		" Text Vert Align,"
 		" Additive,"
 		" Gradient 2,"
-		" GUI 3.0"
+		" GUI 3.0,"
+		" Lines"
 		;
 	invalidateRect();
 
@@ -693,6 +694,60 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 	}
 }
 
+void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
+{
+	Point p1(10.0, 100.0);
+	Point p2(100.0, 100.0);
+
+	gmpi_sdk::MpString fullUri;
+	getHost()->RegisterResourceUri("background", "Image", &fullUri);
+	auto bitmap = g.GetFactory().LoadImageU(fullUri.c_str());
+
+	Brush brushes[] =
+	{
+		g.CreateSolidColorBrush(Color::Orange),
+		g.CreateLinearGradientBrush(Color::Red, Color::Lime, p1, p2),
+		g.CreateBitmapBrush(bitmap),
+	};
+
+	const float widths[] =
+	{
+		0.5f,
+		1.0f,
+		4.0f,
+		10.0f,
+	};
+
+	GmpiDrawing::StrokeStyle strokeStyles[] =
+	{
+		g.GetFactory().CreateStrokeStyle({ CapStyle::Flat }),
+		g.GetFactory().CreateStrokeStyle({ CapStyle::Round }),
+		g.GetFactory().CreateStrokeStyle({ CapStyle::Square }),
+		g.GetFactory().CreateStrokeStyle({ CapStyle::Triangle }),
+	};
+
+	int brush = 0;
+	int width = 0;
+	int style = 0;
+	for (float y = 10.0f; y < 110.0f; y += widths[width] + 4.0f)
+	{
+		g.DrawLine({ 10.0, y }, { 100.0, y }, brushes[brush], widths[width], strokeStyles[style]);
+
+		if (++brush == std::size(brushes))
+		{
+			brush = 0;
+			if (++width == std::size(widths))
+			{
+				width = 0;
+			}
+		}
+		if (++style == std::size(strokeStyles))
+		{
+			style = 0;
+		}
+	}
+}
+
 void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
 {
 	const auto clipRect = g.GetAxisAlignedClip();
@@ -984,6 +1039,10 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 	case 9:
 		functionalUI.draw(g);
+		break;
+
+	case 10:
+		drawLines(g);
 		break;
 	}
 
