@@ -53,7 +53,7 @@ public:
 
 class functionalUI
 {
-	using state_t = std::variant< float, GmpiDrawing::Point, GmpiDrawing::Color, vBrush, vCircleGeometry>;// GmpiDrawing::SolidColorBrush, GmpiDrawing::PathGeometry > ;
+    using state_t = std::variant< float, GmpiDrawing::Point, GmpiDrawing::Color, vCircleGeometry>;//, vBrush>;// GmpiDrawing::SolidColorBrush, GmpiDrawing::PathGeometry > ;
 
 	struct node
 	{

@@ -21,7 +21,9 @@ DrawingTestGui::DrawingTestGui()
 	initializePin(pinApplyAlphaCorrection, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
 	initializePin(pinAdjust, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::refresh));
 
-	functionalUI.init();
+#ifdef _WIN32
+    functionalUI.init();
+#endif
 	StartTimer();
 }
 
@@ -48,7 +50,9 @@ void DrawingTestGui::onSetTestType()
 {
 	if (pinTestType.getValue() == 9)
 	{
+#ifdef _WIN32
 		functionalUI.step();
+#endif
 	}
 	refresh();
 }
@@ -1038,7 +1042,9 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		break;
 
 	case 9:
+#ifdef _WIN32
 		functionalUI.draw(g);
+#endif
 		break;
 
 	case 10:
@@ -1053,30 +1059,39 @@ bool DrawingTestGui::OnTimer()
 {
 	if (pinTestType.getValue() == 9)
 	{
+#ifdef _WIN32
 		functionalUI.step();
+#endif
 		refresh();
+        
 	}
 	return true;
 }
 
 int32_t MP_STDCALL DrawingTestGui::onPointerMove(int32_t flags, GmpiDrawing_API::MP1_POINT point)
 {
+#ifdef _WIN32
 	functionalUI.mousePosition = point;
-
+#endif
 	return MP_OK;
 }
 
 int32_t MP_STDCALL DrawingTestGui::onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point)
 {
+#ifdef _WIN32
 	functionalUI.mouseDown = 1.0f;
-	setCapture();
+#endif
+    setCapture();
 	return MP_OK;
 }
 
 int32_t MP_STDCALL DrawingTestGui::onPointerUp(int32_t flags, GmpiDrawing_API::MP1_POINT point)
 {
+#ifdef _WIN32
 	functionalUI.mouseDown = 0.0f;
-	releaseCapture();
+
+#endif
+    releaseCapture();
 	return MP_OK;
 }
 

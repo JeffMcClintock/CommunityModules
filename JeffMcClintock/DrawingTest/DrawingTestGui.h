@@ -3,7 +3,9 @@
 
 #include "../se_sdk3/mp_sdk_gui2.h"
 //#include "../se_sdk3_hosting/MacGuiHost/GraphicsTest/GraphicsClientCodeTest.h"
+#ifdef _WIN32
 #include "GUI_3_0.h"
+#endif
 #include "../se_sdk3/TimerManager.h"
 
 class DrawingTestGui : public gmpi_gui::MpGuiGfxBase, public TimerClient
@@ -19,8 +21,9 @@ class DrawingTestGui : public gmpi_gui::MpGuiGfxBase, public TimerClient
 
 	void MyApplyGammaCorrection(GmpiDrawing::Bitmap& bitmap);
 
+#ifdef _WIN32
 	functionalUI functionalUI;
-
+#endif
 public:
 	DrawingTestGui();
 
