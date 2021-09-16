@@ -163,7 +163,7 @@ vector< std::wstring >getSearchPaths()
 	return searchPaths;
 }
 
-void VstFactory::LocateWavesShell()
+void VstFactory::LocateVstPlugins()
 {
 	// Time to re-scan VSTs.
 	std::wstring excludeMyself = StripFilename(gmpi_dynamic_linking::MP_GetDllFilename());
@@ -177,7 +177,7 @@ void VstFactory::LocateWavesShell()
 
 void VstFactory::ScanVsts()
 {
-	LocateWavesShell();
+	LocateVstPlugins();
 
 	/* not relevant when scanned in background thread
 	// SE already inits com Single-Threaded. Applys only to imbedded? HMM why only for scan, what about instansiate?
@@ -575,7 +575,7 @@ void VstFactory::loadPluginInfo()
 		}
 		myfile.close();
 		scannedPlugins = true;
-		LocateWavesShell();
+		LocateVstPlugins();
 	}
 	else
 	{
@@ -799,7 +799,7 @@ int32_t VstFactory::createInstance(const wchar_t* uniqueId, int32_t subType,
 		string err("Error");
 		if (pluginPaths.empty())
 		{
-			err = "Can't Locate WavesShell";
+			err = "Can't Locate Shell";
 		}
 		else
 		{

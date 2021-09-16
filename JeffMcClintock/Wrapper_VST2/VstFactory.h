@@ -70,7 +70,7 @@ public:
 	std::wstring getShellFromId(intptr_t uniqueId);
 
 private:
-	void LocateWavesShell();
+	void LocateVstPlugins();
 	void ScanVsts();
 	void ScanDll(const std::wstring& load_filename, const char* shellName);
 

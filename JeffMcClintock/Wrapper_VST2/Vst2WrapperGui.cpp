@@ -215,8 +215,8 @@ int32_t Vst2WrapperGui::populateContextMenu(float x, float y, gmpi::IMpUnknown* 
 {
 	gmpi::IMpContextItemSink* sink;
 	contextMenuItemsSink->queryInterface(gmpi::MP_IID_CONTEXT_ITEMS_SINK, ( void**) &sink );
-	std::string info("WavesShell: ");
-//	info += WStringToUtf8(GetVstFactory()->getWavesShellLocation());
+	std::string info("Shell: ");
+//	info += WStringToUtf8(GetVstFactory()->getShellLocation());
 
 	sink->AddItem(info.c_str(), 0 );
 

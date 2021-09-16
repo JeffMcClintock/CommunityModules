@@ -52,7 +52,7 @@ END
 // GMPXML
 //
 
-IDR_GMPXML1             GMPXML                  "Vst2Wrapper.xml"
+IDR_GMPXML1             GMPXML                  "Wrapper_VST2.xml"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
