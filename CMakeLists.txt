@@ -13,6 +13,8 @@ include_directories(
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_definitions(-D_UNICODE)
+add_definitions(-DSE_TARGET_SEM)
 if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
     add_definitions(-DNDEBUG)
 endif()

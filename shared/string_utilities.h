@@ -1,5 +1,4 @@
-#ifndef SE_STRING_UTILITIES_H_INCLUDED
-#define SE_STRING_UTILITIES_H_INCLUDED
+#pragma once
 
 /*
 #include "../shared/string_utilities.h"
@@ -168,7 +167,7 @@ inline std::wstring StripExtension( const std::wstring& p_filename)
 // combines path and file,
 // handles tricky situations like both having slashes, or not.
 template<typename T1>
-T1 combinePathAndFile(const T1& p_path, const T1& p_file) // Leaving path.
+T1 combinePathAndFile(const T1 p_path, const T1 p_file) // Leaving path.
 {
 	// ensure path ends in slash
 	auto first_bit = p_path;
@@ -207,6 +206,3 @@ inline std::wstring combinePathAndFile(const wchar_t* p_path, const wchar_t* p_f
 	std::wstring file(p_file);
 	return combinePathAndFile(path, file);
 }
-
-
-#endif
