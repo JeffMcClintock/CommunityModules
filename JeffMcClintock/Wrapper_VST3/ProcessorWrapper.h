@@ -2,16 +2,20 @@
 
 #include <memory>
 #include <unordered_map>
-#include "mp_midi.h"
 #include "../se_sdk3/mp_sdk_audio.h"
+#include "../se_sdk3/mp_midi.h"
 #include "../shared/xplatform.h"
 #include "base/source/fobject.h"
 #include "pluginterfaces/vst/ivstevents.h"
 #include "pluginterfaces/vst/ivstprocesscontext.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 #include "public.sdk/source/vst/vstaudioeffect.h"
-#include "public.sdk/source/vst/hosting\processdata.h"
+#include "public.sdk/source/vst/hosting/processdata.h"
 #include "pluginterfaces/vst/ivstparameterchanges.h"
+
+#if defined(SE_TARGET_WAVES)
+#include "cancellation.h"
+#endif
 
 struct myParamValueQueue : public Steinberg::FObject, public Steinberg::Vst::IParamValueQueue
 {
@@ -72,13 +76,21 @@ struct myParameterChanges : public Steinberg::FObject, public Steinberg::Vst::IP
 	{
 		index = 0;
 
-		for(int i = 0; i < queues.size(); ++i)
+		// Fix for Waves Child Plugins, presets parameters in order of ID.
+		for(auto it = queues.begin(); it != queues.end() ; ++it)
 		{
-			if(queues[i].getParameterId() == id)
+			auto& queue = *it;
+			if(queue.getParameterId() == id)
 			{
-				index = i;
-				return &queues[i];
+				return &queue;
 			}
+
+			if(queue.getParameterId() > id)
+			{
+				it = queues.insert(it, id);
+				return &(*it);
+			}  
+			++index;
 		}
 
 		index = static_cast<Steinberg::int32>(queues.size());
@@ -178,6 +190,10 @@ class ProcessorWrapper : public MpBase2
 	typedef void (ProcessorWrapper::* VstSubProcess_ptr)(int32_t count, const gmpi::MpEvent* events);
 
 	VstSubProcess_ptr currentVstSubProcess;
+#ifdef CANCELLATION_TEST_ENABLE2
+    bool cancellation_done = false;
+	void debugDumpPresetToFile();
+#endif
 
 public:
 	ProcessorWrapper();
@@ -185,7 +201,7 @@ public:
 
 	void onMidiMessage(int pin, int timeDelta, const unsigned char* midiMessage, int size);
 	void ProcessEvents(int32_t count, const gmpi::MpEvent* events);
-	virtual void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events)
+	void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events) override
 	{
 		(this->*(currentVstSubProcess))(count, events);
 	}
@@ -195,7 +211,7 @@ public:
 	void subProcessBypass(int32_t count, const gmpi::MpEvent* events);
 	void subProcessBypassSilence(int32_t count, const gmpi::MpEvent* events);
 
-	virtual int32_t MP_STDCALL open();
+	int32_t MP_STDCALL open() override;
 	void initVst();
 	bool setupBuffers(int numBusses, Steinberg::Vst::AudioBusBuffers* audioBuffers, Steinberg::Vst::BusDirection dir);
 	bool setupBuffers(Steinberg::Vst::AudioBusBuffers& audioBuffers);
@@ -309,6 +325,7 @@ private:
 	IntInPin pinDenominator;
 	BoolInPin pinHostTransport;
 	FloatInPin pinHostBarStart;
+	IntInPin pinOfflineRenderMode;
 
 	int firstParameterPinIndex = {};
 	int parameterAccessPinIndex = {};

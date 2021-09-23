@@ -33,7 +33,7 @@ class VstFactory : public gmpi::IMpShellFactory
 
 	std::vector< pluginInfo > plugins;
 	std::vector< std::string > duplicates;
-	bool scannedPLugins = {};
+	bool scannedPlugins = {};
 	static const char* pluginIdPrefix;
 	Steinberg::Vst::HostApplication pluginContext;
 
@@ -64,7 +64,7 @@ public:
 	virtual int32_t MP_STDCALL getPluginInformation(const wchar_t* iid, IMpUnknown* iReturnXml) override;		// Full pin details.
 
 	void AddPluginName(const char* category, std::string uuid, const std::string& name, const std::wstring& shellPath);
-	std::string XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& info);
+	std::string XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::UID& classId);
 #if !defined(SE_TARGET_WAVES)
 	std::string getDiagnostics();
 #endif

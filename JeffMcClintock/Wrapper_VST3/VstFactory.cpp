@@ -12,6 +12,8 @@
 #include "string_utilities.h"
 #include "xp_dynamic_linking.h"
 
+#include "myPluginProvider.h"
+
 #if !defined(SE_TARGET_WAVES)
 #include "FileFinder.h"
 #include "./EditButtonGui.h"
@@ -58,7 +60,7 @@ int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXm
 	}
 	else
 	{
-		if (!scannedPLugins)
+		if (!scannedPlugins)
 		{
 			loadPluginInfo();
 		}
@@ -97,7 +99,7 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 		return gmpi::MP_NOSUPPORT;
 	}
 
-	if (!scannedPLugins)
+	if (!scannedPlugins)
 	{
 		loadPluginInfo();
 	}
@@ -129,15 +131,9 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 	}
 
 	auto factory = module->getFactory();
-	for (auto& classInfo : factory.classInfos ())
-	{
-		if (classInfo.ID() == *classID && classInfo.category() == kVstAudioEffectClass)
-		{
-			const std::string xmlFull = XmlFromPlugin(factory, classInfo);
-			returnXml->setData(xmlFull.data(), (int32_t)xmlFull.size());
-			return gmpi::MP_OK;
-		}
-	}
+	const std::string xmlFull = XmlFromPlugin(factory, *classID);
+	returnXml->setData(xmlFull.data(), (int32_t)xmlFull.size());
+	return xmlFull.empty() ? gmpi::MP_FAIL : gmpi::MP_OK;
 #endif
 
 	return gmpi::MP_FAIL;
@@ -181,14 +177,14 @@ void VstFactory::ShallowScanVsts()
 
 void VstFactory::ScanVsts()
 {
-	scannedPLugins = true;
+	scannedPlugins = true;
 
 #if !defined(SE_TARGET_WAVES)
 	// Time to re-scan VSTs.
 	plugins.clear();
 	duplicates.clear();
 
-	// Always add 'Info' plugin
+	// Always add 'Info' plugin. xml must be continuous line, no line breaks.
 	{
 		ostringstream oss;
 		oss << "<PluginList><Plugin id=\"" << INFO_PLUGIN_ID << "\" name=\"Wrapper Info\" category=\"VST3 Plugins\" >"
@@ -330,10 +326,10 @@ void VstFactory::AddPluginName(const char* category, std::string uuid, const std
 	plugins.push_back({ uuid, name, oss.str(), shellPath });
 }
 
-std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::Hosting::ClassInfo& classInfo)
+std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::UID& classId)
 {
 	myPluginProvider plugProvider;
-	plugProvider.setup(factory, classInfo);
+	plugProvider.setup(factory, classId);
 
 	if (!plugProvider.controller)
 	{
@@ -354,8 +350,20 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 		paramNames.push_back(WStringToUtf8(info.title));
 	}
 
+	auto classIdString = classId.toString();
+
+	std::string name;
+	for (auto& p : plugins)
+	{
+		if (p.uuid_ == classIdString)
+		{
+			name = p.name_;
+			break;
+		}
+	}
+
 	ostringstream oss;
-	oss << "<PluginList><Plugin id=\"" << pluginIdPrefix << classInfo.ID().toString() << "\" name=\"" << classInfo.name() << "\" category=\"VST3 (Waves)\" >";
+	oss << "<PluginList><Plugin id=\"" << pluginIdPrefix << classIdString << "\" name=\"" << name << "\" category=\"VST3 (Waves)\" >";
 
 	// Parameter to store state.
 	oss << "<Parameters>";
@@ -566,7 +574,7 @@ void VstFactory::loadPluginInfo()
 			std::getline(myfile, name);
 		}
 		myfile.close();
-		scannedPLugins = true;
+		scannedPlugins = true;
 		ShallowScanVsts();
 	}
 	else
@@ -683,7 +691,7 @@ int32_t VstFactory::createInstance(
 	void** returnInterface
 )
 {
-	if (!scannedPLugins)
+	if (!scannedPlugins)
 	{
 		loadPluginInfo();
 	}

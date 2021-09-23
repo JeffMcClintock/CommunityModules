@@ -1,5 +1,6 @@
 #include "ControllerWrapper.h"
 #include "unicode_conversion.h"
+#include "myPluginProvider.h"
 #if !defined(SE_TARGET_WAVES)
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
@@ -135,30 +136,40 @@ handle_(0)
 	componentHandler.controller_ = this;
 }
 
+ControllerWrapper::~ControllerWrapper()
+{
+	if (windowController)
+	{
+		windowController->destroyView();
+	}
+
+	plugin->terminatePlugin();
+}
+
 int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size)
 {
 	// Avoid altering plugin state until we can determin if we are restoring a saved preset, or keeping init preset.
 	if(!isOpen)
 		return MP_OK;
 
-	if(!inhibitFeedback && fieldId == 0) // FT_VALUE
+	if(!inhibitFeedback && fieldId == gmpi::MP_FT_VALUE)
 	{
 		int32_t moduleHandle = -1;
 		int32_t moduleParameterId = -1;
 		host_->getParameterModuleAndParamId(parameterHandle, &moduleHandle, &moduleParameterId);
 
-		if(!plugin.controller || !plugin.component)
+		if(!plugin->controller || !plugin->component)
 		{
 			return MP_FAIL;
 		}
 
-		const auto chunkParamId = plugin.controller->getParameterCount(); // todo cache this.!!!
+		const auto chunkParamId = plugin->controller->getParameterCount(); // todo cache this.!!!
 		if(chunkParamId != moduleParameterId)
 		{
 			return MP_OK;
 		}
 
-		if(size < sizeof(int32_t)) // Size of zero implies first-time init, no preset stored yet.
+		if((size_t)(size) < sizeof(int32_t)) // Size of zero implies first-time init, no preset stored yet.
 		{
 			isSynthEditPresetEmpty = true;
 		}
@@ -179,16 +190,16 @@ int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId
 			const auto controllerStateSize = *((int32_t*)data);
 			const auto controllaDataPtr = ((uint8_t*)data) + sizeof(int32_t);
 			MyViewStream s(controllaDataPtr, controllerStateSize);
-			plugin.controller->setState(&s);
+			plugin->controller->setState(&s);
 
 			const auto streamPos = sizeof(int32_t) + controllerStateSize;
 			const auto processorStateSize = size - streamPos;
 			const auto processorDataPtr = ((uint8_t*)data) + streamPos;
 			MyViewStream s2(processorDataPtr, static_cast<int32_t>(processorStateSize));
-			plugin.component->setState(&s2);
+			plugin->component->setState(&s2);
 
 			MyViewStream s3(processorDataPtr, static_cast<int32_t>(processorStateSize));
-			plugin.controller->setComponentState(&s3);
+			plugin->controller->setComponentState(&s3);
 		}
 	}
 
@@ -199,7 +210,7 @@ int32_t ControllerWrapper::preSaveState()
 {
 	inhibitFeedback = true;
 
-	if(!plugin.controller || !plugin.component)
+	if(!plugin->controller || !plugin->component)
 	{
 		return MP_FAIL;
 	}
@@ -208,13 +219,13 @@ int32_t ControllerWrapper::preSaveState()
 		MyBufferStream stream;
 		int32_t controllerStateSize = {};
 		stream.write(&controllerStateSize, sizeof(controllerStateSize));
-		plugin.controller->getState(&stream);
+		plugin->controller->getState(&stream);
 
 		// update size of data written so far.
 		*((int32_t*)stream.buffer_.data()) = static_cast<int32_t>(stream.buffer_.size() - sizeof(int32_t));
 
 		// get processor state.
-		plugin.component->getState(&stream);
+		plugin->component->getState(&stream);
 
 #if 0 //defined (_DEBUG) & defined(_WIN32)
 		_RPT0(_CRT_WARN, "{ ");
@@ -245,7 +256,7 @@ int32_t ControllerWrapper::preSaveState()
 #endif
 
 		const int voiceId = 0;
-		auto paramId = plugin.controller->getParameterCount();
+		auto paramId = plugin->controller->getParameterCount();
 
 		host_->setParameter(host_->getParameterHandle(handle_, paramId), MP_FT_VALUE, voiceId, (char*)stream.buffer_.data(), (int32_t) stream.buffer_.size());
 		// _RPT1(_CRT_WARN, "ControllerWrapper:: Saved State: %d bytes\n", chunkSize);
@@ -261,15 +272,15 @@ int32_t ControllerWrapper::open()
 {
 	isOpen = true;
 
-	if (!plugin.controller) // VST not installed?
+	if (!plugin->controller) // VST not installed?
 	{
 		return MP_OK;
 	}
 
-	plugin.controller->setComponentHandler(&componentHandler);
+	plugin->controller->setComponentHandler(&componentHandler);
 
 	// Pass pointer to 'this' to Process and GUI.
-	const int chunkParamId = plugin.controller->getParameterCount();
+	const int chunkParamId = plugin->controller->getParameterCount();
 	const int controllerPtrParamId = chunkParamId + 1;
 	const int voiceId = 0;
 	const auto me = this;
@@ -278,15 +289,15 @@ int32_t ControllerWrapper::open()
 	{
 		// always have to pass initial state from processor to controller.
 		{
-			assert(plugin.controller && plugin.component);
+			assert(plugin->controller && plugin->component);
 
 			// get processor state.
 			MyBufferStream stream;
-			plugin.component->getState(&stream);
+			plugin->component->getState(&stream);
 
 			// pass to controller
 			MyViewStream s3(stream.buffer_.data(), static_cast<int32_t>(stream.buffer_.size()));
-			plugin.controller->setComponentState(&s3);
+			plugin->controller->setComponentState(&s3);
 		}
 
 		// Test if host has a valid chunk preset.
@@ -316,7 +327,7 @@ int32_t ControllerWrapper::setHost(gmpi::IMpUnknown* host)
 
 	LoadPlugin( JmUnicodeConversions::WStringToUtf8(filename_), shellPluginId_);
 
-	if( !plugin.controller ) // VST not installed.
+	if( !plugin->controller ) // VST not installed.
 	{
 		return MP_FAIL;
 	}
@@ -370,18 +381,11 @@ int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 			const auto classID = VST3::UID::fromString(uuid);
 			if(!classID)
 			{
-				return 0;
+        return gmpi::MP_FAIL;
 			}
 
 			auto factory = dll->getFactory();
-			for(auto& classInfo : factory.classInfos())
-			{
-				if(classInfo.ID() == *classID && classInfo.category() == kVstAudioEffectClass)
-				{
-					plugin.setup(factory, classInfo);
-					return 0;
-				}
-			}
+			plugin->setup(factory, *classID);
 		}
 #endif
 
@@ -417,12 +421,12 @@ int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 
 void ControllerWrapper::OpenGui()
 {
-	if (!plugin.controller) // VST not installed?
+	if (!plugin->controller) // VST not installed?
 	{
 		return;
 	}
 
-	auto view = owned (plugin.controller->createView(Steinberg::Vst::ViewType::kEditor));
+	auto view = owned (plugin->controller->createView(Steinberg::Vst::ViewType::kEditor));
 	if (!view)
 	{
 		// EditController does not provide its own editor

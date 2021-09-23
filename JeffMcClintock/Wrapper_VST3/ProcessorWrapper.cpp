@@ -1,13 +1,20 @@
 #include "./ProcessorWrapper.h"
-#include "../se_sdk3/mp_midi.h"
 #include "../shared/xplatform.h"
 #include <algorithm>
 #include "ControllerWrapper.h"
+#include "myPluginProvider.h"
+#include "./MyViewStream.h"
 
 #if defined(SE_TARGET_WAVES)
 #include "../../ug_base.h"
 #include "../../dsp_patch_parameter_base.h"
 #include "../../dsp_patch_manager.h"
+#endif
+
+#ifdef CANCELLATION_TEST_ENABLE2
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 #endif
 
 using namespace std;
@@ -68,8 +75,6 @@ int32_t ProcessorWrapper::open()
 
 			if(direction == gmpi::MP_IN)
 			{
-				// enum EPlugDataType { DT_ENUM, DT_TEXT, DT_MIDI2, DT_DOUBLE, DT_BOOL, DT_FSAMPLE, DT_FLOAT, DT_VST_PARAM, DT_INT, DT_INT64, DT_BLOB, DT_NONE=-1 };  //plug datatype
-
 				switch(datatype)
 				{
 				case MP_BOOL:
@@ -188,13 +193,13 @@ void ProcessorWrapper::initVst()
 	vstEffect_ = {};
 	component_ = {};
 
-	if (!controller_ || !controller_->plugin.controller)
+	if (!controller_ || !controller_->plugin->controller)
 	{
 		return;
 	}
 
 	{
-		component_ = controller_->plugin.component;
+		component_ = controller_->plugin->component;
 
 		if (!component_)
 		{
@@ -214,7 +219,7 @@ void ProcessorWrapper::initVst()
 		}
 
 		processSetup = {
-			kRealtime,
+		pinOfflineRenderMode.getValue() == 2 ? kOffline : kRealtime,
 			kSample32,
 			getBlockSize(),
 			getSampleRate()
@@ -327,6 +332,8 @@ bool ProcessorWrapper::setupBuffers (AudioBusBuffers& audioBuffers)
 		//else
 		//	return false;
 	}
+	host.SetLatency(vstEffect_->getLatencySamples()); // this newer method not suported on Waves (but harmless)
+
 	return true;
 }
 
@@ -338,28 +345,33 @@ void ProcessorWrapper::addParameterEvent(int clock, int id, float value)
 
 void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char* midiData, int size)
 {
-//	int due_time_delta = getBlockPosition();
 	assert(timeDelta >= 0);
-
 	timeDelta = max(timeDelta, 0); // should never be nesc, but is safer to do
 
 	if(pin == parameterAccessPinIndex)
 	{
 		if(GmpiMidiHdProtocol::isWrappedHdProtocol(midiData, size))
 		{
-			int channelGroup{};
-			int keyNumber{};
-			int val_12b{};
-			int val_20b{};
-			int status{};
-			int midiChannel{};
+			const auto m2 = (GmpiMidiHdProtocol::Midi2*) midiData;
 
-			GmpiMidiHdProtocol::DecodeHdMessage(midiData, size, status, midiChannel, channelGroup, keyNumber, val_12b, val_20b);
+			const int paramId = m2->key;
+			const float normalized = *(float*)&m2->value;
+			addParameterEvent(timeDelta, paramId, normalized);
 
-			constexpr float recip = 1.0f / (float)0x0FFF;
-			const float normalised = (float)val_20b * recip;
+#if 0 // defined(_WIN32) && defined(_DEBUG)
+			int32_t handle;
+            this->getHost()->getHandle(handle);
+            _RPT3(0, "   setParameter %9d: %2d -> %f\n", handle, paramId, normalized);
+#endif
 
-			addParameterEvent(timeDelta, val_12b, normalised);
+#ifdef SE_TARGET_SEM
+			// Also send parameter to Controller
+			if (controller_)
+			{
+//??				controller_->UnsafeAddParameterChangeFromProcessor(paramId, normalized);
+			}
+#endif
+
 		}
 		return;
 	}
@@ -379,12 +391,6 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 	{
 		const int chan = b1 & 0x0f;
 		const bool is_system_msg = (b1 & MIDI_SystemMessage) == MIDI_SystemMessage;
-/*
-		if (!is_system_msg && midi_channel != -1)
-		{
-			b1 = b1 & 0xf0; //!jason freesonic only responds to chan 1 (zero), mask off any chan #
-		}
-*/
 
 		switch(status)
 		{
@@ -404,29 +410,14 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 			m.noteOn.velocity = midiData[2] / 127.0f;
 			break;
 
-			//etc....
+		case GmpiMidi::MIDI_PolyAfterTouch:
+            m.type = Event::kPolyPressureEvent;
+            m.polyPressure.channel = channel;
+            m.polyPressure.noteId = -1;
+            m.polyPressure.pitch = midiData[1];
+            m.polyPressure.pressure = midiData[2] / 127.0f;
+            break;
 		};
-
-		/*
-		m.type = kVstMidiType;
-		m.noteLength = 0;	// (in sample frames) of entire note, if available, else 0
-		m.noteOffset = 0;	// offset into note from note start if available, else 0
-							// m.midiData[0]		   1 thru 3 midi bytes; midiData[3] is reserved (zero)
-		m.midiData[1] = (char)0xff;	// if unused must be 0xff
-		m.midiData[2] = (char)0xff;
-		m.midiData[3] = 0;
-
-		for (int i = 0; i < msgSize; ++i)
-		{
-			m.midiData[i] = midiData[i];
-		}
-
-		m.detune = 0;		// -64 to +63 cents; for scales other than 'well-tempered' ('microtuning')
-		m.noteOffVelocity = 0;
-		m.reserved1 = 0;		// zero
-		m.reserved2 = 0;		// zero
-		vstEvent = (VstEvent*)m;
-		*/
 	}
 	else // SYSEX
 	{
@@ -463,7 +454,6 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 	{
 		if (next_event == 0) // fast version, when no events on list.
 		{
-			//			(this->*(curSubProcess_))(remain);
 			break;
 		}
 
@@ -475,7 +465,6 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 		{
 			eventsComplete_ = false;
 
-			//			(this->*(curSubProcess_))(delta_time);
 			remain -= delta_time;
 
 			eventsComplete_ = true;
@@ -489,7 +478,6 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 			lblockPos += delta_time;
 		}
 
-		//int cur_timeStamp = next_event->timeDelta;
 #if defined(_DEBUG)
 		blockPosExact_ = true;
 #endif
@@ -664,31 +652,17 @@ void ProcessorWrapper::subProcessPreSleep(int32_t count, const gmpi::MpEvent* ev
 	}
 
 	ProcessPlugin(count);
-
-	/*
-	// Silence detection.
-	const float INSIGNIFICANT_SIGNAL_LEVEL = 0.000001f;
-
-	for (size_t i = 0; i < AudioOuts.size(); ++i)
-	{
-		auto o = outputBuffers[i];
-		for (int i = 0; i < count; ++i)
-		{
-			if (*o > INSIGNIFICANT_SIGNAL_LEVEL || *o < -INSIGNIFICANT_SIGNAL_LEVEL)
-			{
-				silenceCounter = tailSamples;
-				return;
-			}
-
-			++o;
-		}
-	}
-	*/
 }
 
 void ProcessorWrapper::subProcess(int32_t count, const gmpi::MpEvent* events)
 {
 	ProcessEvents(count, events);
+
+    if (currentVstSubProcess != &ProcessorWrapper::subProcess) // have to check if VST loaded after processing events.
+    {
+		CopyInputToOutput(count); // emulate bypass for this block.
+        return;
+    }
 
 	ProcessPlugin(count);
 }
@@ -717,10 +691,34 @@ void ProcessorWrapper::onSetPins(void)
 	}
 #endif
 
+	if (pinOfflineRenderMode.isUpdated() && vstEffect_)
+	{
+		const int32 newProcessMode = pinOfflineRenderMode.getValue() == 2 ? kOffline : kRealtime;
+		if (newProcessMode != processSetup.processMode && vstEffect_ && controller_)
+		{
+			// reset processor
+			vstEffect_->setProcessing(false); // nesc?
+			controller_->plugin->setActive(false);
+
+			processSetup = {
+				newProcessMode,
+				kSample32,
+				getBlockSize(),
+				getSampleRate()
+			};
+
+			if (vstEffect_->setupProcessing(processSetup) == kResultOk)
+			{
+				controller_->plugin->setActive(true);
+				vstEffect_->setProcessing(true);
+			}
+		}
+	}
+
 	bypassMode = vstEffect_ == 0 || !pinOnOffSwitch;
 
 	bool inputStreaming = false;
-	bool inputUpdated = pinOnOffSwitch.isUpdated();// | pinAutoSleep.isUpdated();
+	bool inputUpdated = pinOnOffSwitch.isUpdated();
 	for (auto& p : AudioIns)
 	{
 		inputStreaming |= p->isStreaming();
@@ -778,3 +776,72 @@ void ProcessorWrapper::onSetPins(void)
 		}
 	}
 }
+
+#ifdef CANCELLATION_TEST_ENABLE2
+void ProcessorWrapper::debugDumpPresetToFile()
+{
+	MyBufferStream stream;
+
+	component_->getState(&stream);
+
+    auto data = (const unsigned char*)stream.buffer_.data();
+	auto size = stream.buffer_.size();
+
+	std::string outputFolder;
+	outputFolder = "C:/temp/cancellation/" CANCELLATION_BRANCH "/preset_";
+    int32_t handle;
+    this->getHost()->getHandle(handle);
+	outputFolder += std::to_string(handle);
+	outputFolder += ".txt";
+
+//		CreateFolderRecursive(Utf8ToWstring(outputFolder));
+	std::ofstream presetEscaped;
+	presetEscaped.open (outputFolder.c_str());
+
+    {
+        const int linelen = 100;
+        bool wasOctal = false;
+
+        presetEscaped << '"';
+        int totallen = 0;
+        for (int i = 0; i < size; ++i)
+        {
+            if (data[i] == '\"' || data[i] == '\\')
+            {
+                presetEscaped << '\\' << data[i];
+                totallen += 2;
+                wasOctal = false;
+}
+            else if (isalnum(data[i]) || ispunct(data[i]) || data[i] == ' ')
+            {
+
+                // Warning C4125 - decimal digit terminates octal escape sequence. i.e. number right after octal sequence.
+                if (wasOctal && isdigit(data[i]))
+                {
+                    presetEscaped << "\"\""; // place two quotes to split string.
+                }
+
+                presetEscaped << data[i];
+                totallen++;
+                wasOctal = false;
+            }
+            else
+            {
+                // non-printable. use octal escape sequence.
+                presetEscaped << "\\" << std::oct << std::setfill('0') << std::setw(3) << (int)data[i];
+                totallen += 4;
+                wasOctal = true;
+            }
+            if (totallen >= linelen || data[i] == '\n')
+            {
+                presetEscaped << "\"\n"
+                                 "\t\t\"";
+                totallen = 0;
+                wasOctal = false;
+            }
+        }
+
+        presetEscaped << '"';
+    }
+}
+#endif

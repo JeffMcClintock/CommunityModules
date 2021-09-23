@@ -27,7 +27,7 @@ public:
 	END_DEFINE_INTERFACES (Steinberg::FObject)
 	REFCOUNT_METHODS (Steinberg::FObject)
 };
-
+#if 0 // older?
 struct myPluginProvider
 {
 	IPtr<Steinberg::Vst::IComponent> component;
@@ -119,6 +119,7 @@ struct myPluginProvider
 		return res;
 	}
 };
+#endif
 
 class ControllerWrapper : public gmpi::IMpController, public TimerClient
 {
@@ -134,20 +135,13 @@ protected:
 	bool isOpen = {};
 
 public:
-	myPluginProvider plugin;
+	std::unique_ptr<class myPluginProvider> plugin;
 	int32_t handle_ = -1;
 	bool stateDirty = {};
 	gmpi::IMpControllerHost* host_ = {};
 
 	ControllerWrapper(const wchar_t* filename, const std::string& uuid);
-	~ControllerWrapper()
-	{
-		if(windowController)
-		{
-			windowController->destroyView();
-		}
-		plugin.terminatePlugin();
-	}
+	~ControllerWrapper();
 
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 	virtual int32_t MP_STDCALL setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size) override;

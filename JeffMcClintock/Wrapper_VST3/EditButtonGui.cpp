@@ -1,6 +1,7 @@
 #include "./EditButtonGui.h"
 #include "../shared/unicode_conversion.h"
 #include "ControllerWrapper.h"
+#include "myPluginProvider.h"
 
 using namespace gmpi;
 using namespace JmUnicodeConversions;
@@ -20,6 +21,11 @@ int32_t EditButtonGui::onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT p
 {
 	// Let host handle right-clicks.
 	if( ( flags & gmpi_gui_api::GG_POINTER_FLAG_FIRSTBUTTON ) == 0 )
+	{
+		return gmpi::MP_UNHANDLED;
+	}
+
+	if (!controller_)
 	{
 		return gmpi::MP_UNHANDLED;
 	}
@@ -65,7 +71,7 @@ int32_t EditButtonGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContex
 
 	std::string txt = "EDIT";
 
-	if (!controller_ || !controller_->plugin.controller)
+	if (!controller_ || !controller_->plugin->controller)
 	{
 		txt = "LOADFAIL";
 		brush.SetColor(GmpiDrawing::Color::Red);
