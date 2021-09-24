@@ -558,7 +558,7 @@ void Vst2Wrapper::onSetPins(void)
 				if (value > -0.5f) // -1 has special meaning - "ignore" DSP pin, use parameter value from preset.
 				{
 					vstEffect_->setParameter(static_cast<int>(i), value);
-                    _RPT3(0, "   setParameter %9d: %2d -> %f\n", handle, i, value);
+                    //_RPT3(0, "   setParameter %9d: %2d -> %f\n", handle, i, value);
 				}
 			}
 		}
