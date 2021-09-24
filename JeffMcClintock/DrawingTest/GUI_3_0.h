@@ -17,6 +17,11 @@ public:
 	// Copy constructor
 	vBrush(const vBrush& other)
 	{
+		// had to cast away constness to access D2D brush.
+		// this could be a problem were we not treating the bush as immutable anyhow.
+		// much better would be a GimpiDrawing: Mutable Bush class and Imutable Brush class !!!!!
+		// maybe the immutable one shares the underlying object, does not expose setcolor() etc
+		// mayby a simpler workarround would be delclare brush mutable
 		brush = const_cast<GmpiDrawing::SolidColorBrush&>(other.brush).Get();
 		color = other.color;
 	}
@@ -29,6 +34,7 @@ public:
 		return *this;
 	}
 
+	// hacky should return a read-only object
 	GmpiDrawing::SolidColorBrush& get(GmpiDrawing::Graphics& g)
 	{
 		// TODO cache it based on factory.
@@ -47,6 +53,28 @@ class vCircleGeometry
 public:
 	vCircleGeometry(GmpiDrawing::Point c, float r) : center(c), radius(r)
 	{}
+
+	// Copy constructor
+	vCircleGeometry(const vCircleGeometry& other)
+	{
+		// had to cast away constness to access D2D brush. (mac only)
+		// this could be a problem were we not treating the bush as immutable anyhow.
+		// much better would be a GimpiDrawing: Mutable Bush class and Imutable Brush class !!!!!
+		// maybe the immutable one shares the underlying object, does not expose setcolor() etc
+		// mayby a simpler workarround would be delclare brush mutable
+		geometry = const_cast<GmpiDrawing::PathGeometry&>(other.geometry).Get();
+		center = other.center;
+		radius = other.radius;
+	}
+
+	vCircleGeometry& operator=(const vCircleGeometry& rhs)
+	{
+		geometry = const_cast<GmpiDrawing::PathGeometry&>(rhs.geometry).Get();
+		center = rhs.center;
+		radius = rhs.radius;
+
+		return *this;
+	}
 
 	GmpiDrawing::PathGeometry& get(GmpiDrawing::Graphics& g)
 	{
