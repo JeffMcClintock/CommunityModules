@@ -14,6 +14,21 @@ public:
 	vBrush(GmpiDrawing::Color c) : color(c)
 	{}
 
+	// Copy constructor
+	vBrush(const vBrush& other)
+	{
+		brush = const_cast<GmpiDrawing::SolidColorBrush&>(other.brush).Get();
+		color = other.color;
+	}
+
+	vBrush& operator=(const vBrush& rhs)
+	{
+		brush = const_cast<GmpiDrawing::SolidColorBrush&>(rhs.brush).Get();
+		color = rhs.color;
+
+		return *this;
+	}
+
 	GmpiDrawing::SolidColorBrush& get(GmpiDrawing::Graphics& g)
 	{
 		// TODO cache it based on factory.

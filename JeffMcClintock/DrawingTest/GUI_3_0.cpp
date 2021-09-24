@@ -158,7 +158,6 @@ void functionalUI::init()
 #endif
 	// create graph of dependencies.
 
-
 	// 0. brush
 	graph.push_back(
 		{
@@ -193,8 +192,8 @@ void functionalUI::init()
 		{
 		[](std::vector<state_t*> states) -> state_t
 			{
-				const auto center = std::get<Point>(*states[0]);
-				const auto radius = std::get<float>(*states[1]);
+				const auto& center = std::get<Point>(*states[0]);
+				const auto& radius = std::get<float>(*states[1]);
 
 				return vCircleGeometry(center, radius);
 			},
@@ -209,7 +208,7 @@ void functionalUI::init()
 	// 3. wave animation
 	graph.push_back(
 		{
-			[this](std::vector<state_t*> states) -> state_t
+			[](std::vector<state_t*> states) -> state_t
 			{
 				auto frame = std::get<float>(*states[0]);
 				return 21.0f + 20.0f * sinf(frame * 0.1f);
@@ -222,9 +221,9 @@ void functionalUI::init()
 	// 4. update state[1] for next frame from calculated center point.
 	graph.push_back(
 		{
-			[this](std::vector<state_t*> states) -> state_t
+			[](std::vector<state_t*> states) -> state_t
 			{
-				auto input = std::get<Point>(*states[0]);
+				auto& input = std::get<Point>(*states[0]);
 				//auto output = std::get<Point>(*states[1]);
 				//output = input;
 /*
@@ -260,8 +259,8 @@ void functionalUI::init()
 		{
 			[](std::vector<state_t*> states, Graphics& g) -> void //state_t
 			{
-				auto brush = std::get<vBrush>(*states[0]);
-				auto geometry = std::get<vCircleGeometry>(*states[1]);
+				auto& brush = std::get<vBrush>(*states[0]);
+				auto& geometry = std::get<vCircleGeometry>(*states[1]);
 
 				g.FillGeometry(geometry.get(g), brush.get(g));
 //				return 0.0f;
