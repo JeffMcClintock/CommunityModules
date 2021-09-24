@@ -1,6 +1,4 @@
-#ifndef UNICODE_CONVERSION_H_INCLUDED
-#define UNICODE_CONVERSION_H_INCLUDED
-
+#pragma once
 /*
 #include "../shared/unicode_conversion.h"
 
@@ -10,8 +8,6 @@ using namespace JmUnicodeConversions;
 #include <string>
 #include <assert.h>
 #include <stdlib.h>	 // wcstombs() on Linux.
-#include "xplatform.h"
-
 #if defined(_WIN32)
 #include "windows.h"
 #endif
@@ -144,46 +140,4 @@ inline std::wstring Utf8ToWstring(const char* p_string)
     }
     
 #endif
-    
-#ifdef UNICODE
-	inline std::wstring toWstring( const platform_string& s )
-	{
-		return s;
 	}
-	inline std::string toString( const platform_string& s )
-	{
-		return WStringToUtf8(s);
-	}
-	inline platform_string toPlatformString( const std::wstring& s )
-	{
-		return s;
-	}
-	inline platform_string toPlatformString( const std::string& s )
-	{
-		return Utf8ToWstring(s);
-	}
-#else
-	inline std::string toString( const platform_string& s )
-	{
-		return s;
-	}
-	inline std::wstring toWstring( const platform_string& s )
-	{
-		return Utf8ToWstring(s);
-	}
-    inline std::wstring toWstring( const _TCHAR* s )
-    {
-        return toWstring( platform_string(s) );
-    }
-	inline platform_string toPlatformString( const std::string& s )
-	{
-		return s;
-	}
-	inline platform_string toPlatformString( const std::wstring& s )
-	{
-		return WStringToUtf8(s);
-	}
-#endif
-
-}
-#endif

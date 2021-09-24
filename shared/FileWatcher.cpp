@@ -198,7 +198,11 @@ void fse_handle_events(
 #if defined(_WIN32)
 		_RPT0(_CRT_WARN, "~FileWatcher()\n");
 		SetEvent(stopEvent);    // ask thread to stop
+
+		if (backgroundThread.joinable())
+		{
         backgroundThread.join();
+		}
 #endif
 	}
 
