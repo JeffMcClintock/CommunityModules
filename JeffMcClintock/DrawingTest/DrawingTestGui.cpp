@@ -724,10 +724,10 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 
 	GmpiDrawing::StrokeStyle strokeStyles[] =
 	{
-		g.GetFactory().CreateStrokeStyle({ CapStyle::Flat }),
-		g.GetFactory().CreateStrokeStyle({ CapStyle::Round }),
-		g.GetFactory().CreateStrokeStyle({ CapStyle::Square }),
-		g.GetFactory().CreateStrokeStyle({ CapStyle::Triangle }),
+		g.GetFactory().CreateStrokeStyle(CapStyle::Flat),
+		g.GetFactory().CreateStrokeStyle(CapStyle::Round),
+		g.GetFactory().CreateStrokeStyle(CapStyle::Square),
+		g.GetFactory().CreateStrokeStyle(CapStyle::Triangle),
 	};
 
 	int brush = 0;
