@@ -20,6 +20,15 @@ class DrawingTestGui : public gmpi_gui::MpGuiGfxBase, public TimerClient
 //	TestClient testClient;
 
 	void MyApplyGammaCorrection(GmpiDrawing::Bitmap& bitmap);
+	const char* typefaces[6] =
+	{
+		"Segoe UI",
+		"Arial",
+		"Courier New",
+		"Times New Roman",
+		"MS Sans Serif",
+		"Verdana",
+	};
 
 #ifdef _WIN32
 	functionalUI functionalUI;
@@ -57,11 +66,12 @@ public:
 	void drawTextTestFIXED(GmpiDrawing::Graphics& g);
 
 	void drawTextTest(GmpiDrawing::Graphics& g);
+	void drawSpecificFont(GmpiDrawing::Graphics& g);
 
 	// MP_OK = hit, MP_UNHANDLED/MP_FAIL = miss.
 // Default to MP_OK to allow user to select by clicking.
 // point will always be within bounding rect.
-	virtual int32_t MP_STDCALL hitTest(GmpiDrawing_API::MP1_POINT point) override
+	int32_t MP_STDCALL hitTest(GmpiDrawing_API::MP1_POINT point) override
 	{
 		return gmpi::MP_OK;
 	}

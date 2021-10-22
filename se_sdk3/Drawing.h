@@ -1173,12 +1173,12 @@ namespace GmpiDrawing
 			static_cast<uint8_t>((argb & sc_alphaMask) >> sc_alphaShift));
 		}
 
-		static Color FromRgb(uint32_t argb)
+		static Color FromRgb(uint32_t rgb)
 		{
 			return FromBytes(
-				static_cast<uint8_t>((argb & sc_redMask)   >> sc_redShift),
-				static_cast<uint8_t>((argb & sc_greenMask) >> sc_greenShift),
-				static_cast<uint8_t>((argb & sc_blueMask)  >> sc_blueShift), 0xFF);
+				static_cast<uint8_t>((rgb & sc_redMask)   >> sc_redShift),
+				static_cast<uint8_t>((rgb & sc_greenMask) >> sc_greenShift),
+				static_cast<uint8_t>((rgb & sc_blueMask)  >> sc_blueShift), 0xFF);
 		}
 
 		/*

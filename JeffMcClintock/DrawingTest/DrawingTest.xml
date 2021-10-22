@@ -14,8 +14,8 @@
     <GUI>
       <Pin name="Test type" datatype="int"/>
       <Pin name="List Items" datatype="string" direction="out" />
-      <Pin name="Fontface" datatype="enum" isMinimised="true" metadata="Segoe UI,Arial,Courier New,Times New Roman,MS Sans Serif"/>
-      <Pin name="Fontsize" datatype="enum" isMinimised="true" default="10" metadata="10=10, 14=14, 18=18, 34=34, 72=72"/>
+      <Pin name="Fontface" datatype="enum" isMinimised="true" metadata="Segoe UI,Arial,Courier New,Times New Roman,MS Sans Serif,Verdana"/>
+      <Pin name="Fontsize" datatype="enum" isMinimised="true" default="10" metadata="10=10, 14=14, 15, 16, 17, 18, 19, 34=34, 72=72"/>
       <Pin name="Text" datatype="string" />
       <Pin name="Gamma Correction" datatype="bool" isMinimised="true" />
       <Pin name="Adjust" datatype="float" />

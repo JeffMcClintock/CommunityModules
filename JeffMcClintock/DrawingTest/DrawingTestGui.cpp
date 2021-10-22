@@ -62,15 +62,16 @@ void DrawingTestGui::refresh()
 	pinListItems =
 		"Text (Classic),"
 		"Alpha blending,"
-		" Gamma,"
-		" Gradient 1,"			// 4
-		" MacTest,"
-		" Text (Fixed),"
-		" Text Vert Align,"
-		" Additive,"
-		" Gradient 2,"
-		" GUI 3.0,"
-		" Lines"
+		"Gamma,"
+		"Gradient 1,"			// 4
+		"MacTest,"
+		"Text (Fixed),"
+		"Text Vert Align,"
+		"Additive,"
+		"Gradient 2,"
+		"GUI 3.0,"				// 10
+		"Lines,"
+		"Test Font"
 		;
 	invalidateRect();
 
@@ -997,6 +998,7 @@ int test()
 
 }
 */
+
 int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext)
 {
 	GmpiDrawing::Graphics g(drawingContext);
@@ -1049,6 +1051,10 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 	case 10:
 		drawLines(g);
+		break;
+
+	case 11:
+		drawSpecificFont(g);
 		break;
 	}
 
@@ -1719,6 +1725,19 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 	}
 }
 
+// draw the string specified in 'pinText' in the font spcified by 'pinFontsize' and 'pinFontface'
+void DrawingTestGui::drawSpecificFont(GmpiDrawing::Graphics& g)
+{
+	auto brush = g.CreateSolidColorBrush(Color::White);
+	TextFormat dtextFormat = g.GetFactory().CreateTextFormat2((float)pinFontsize.getValue(), typefaces[pinFontface]);
+	dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
+	dtextFormat.SetParagraphAlignment(ParagraphAlignment::Far);
+	dtextFormat.SetWordWrapping(WordWrapping::NoWrap); // prevent word wrapping into two lines that don't fit box.
+
+	const auto textRect = getRect();
+	g.DrawTextU(pinText, dtextFormat, textRect, brush);
+}
+
 void DrawingTestGui::drawTextTest(GmpiDrawing::Graphics& g)
 {
 	auto r = getRect();
@@ -1729,7 +1748,6 @@ void DrawingTestGui::drawTextTest(GmpiDrawing::Graphics& g)
 #if 0
 //	if (pinTestType == 0)
 	{
-		const char* typefaces[] = { "Segoe UI", "Arial", "Courier New", "Times New Roman" , "MS Sans Serif" };
 
 		float x = 10.5;
 		Rect textRect;
@@ -1977,7 +1995,7 @@ void DrawingTestGui::drawTextTest(GmpiDrawing::Graphics& g)
 	// Fonts.
 	{
 		// Note: Segoe UI is not available on Mac and gets substituted.
-		const char* typefaces[] = { "Segoe UI", "Arial", "Courier New", "Times New Roman" };
+		const char* typefacesl[] = { "Segoe UI", "Arial", "Courier New", "Times New Roman" };
 		float fontSizes[] = { 8, 9, 10, 11, 12, 13, 14, 18 , 34, 72 };
 
 		float x = 10.0f;
@@ -1987,7 +2005,7 @@ void DrawingTestGui::drawTextTest(GmpiDrawing::Graphics& g)
 		const float lineWidth = 0.5f;
 		const bool snapBaseline = true;
 
-		for (auto fontFace : typefaces)
+		for (auto fontFace : typefacesl)
 		{
 			textRect.top = 200.0f;
 

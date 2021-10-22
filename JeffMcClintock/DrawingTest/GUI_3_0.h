@@ -19,7 +19,7 @@ public:
 	{
 		// had to cast away constness to access D2D brush.
 		// this could be a problem were we not treating the bush as immutable anyhow.
-		// much better would be a GimpiDrawing: Mutable Bush class and Imutable Brush class !!!!!
+		// much better would be a GimpiDrawing: Mutable Bush class and Immutable Brush class !!!!!
 		// maybe the immutable one shares the underlying object, does not expose setcolor() etc
 		// mayby a simpler workarround would be delclare brush mutable
 		brush = const_cast<GmpiDrawing::SolidColorBrush&>(other.brush).Get();
