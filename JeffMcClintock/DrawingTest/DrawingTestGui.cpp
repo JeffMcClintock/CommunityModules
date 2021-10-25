@@ -3,6 +3,10 @@
 #include <math.h>
 #include <algorithm>
 #include <sstream>
+extern "C"
+{
+#include "./colorspace.h"
+}
 
 using namespace std;
 using namespace gmpi;
@@ -753,6 +757,156 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 	}
 }
 
+void DrawingTestGui::drawPerceptualColorPicker(GmpiDrawing::Graphics& g)
+{
+	// create bitmap with every intensity vs every alpha.
+	int resolution = 1;
+	auto bitmapMem = g.GetFactory().CreateImage(100 + resolution, 100 + resolution);
+	{
+		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+		auto imageSize = bitmapMem.GetSize();
+		int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+
+		uint8_t* sourcePixels = pixelsSource.getAddress();
+
+		float x = 0;
+		float foreground = 0.0f;
+
+		for (float x = 0; x <= 100; x += resolution)
+		{
+			float alpha = 1.0f;
+			for (float y = 0; y <= 100; y += resolution)
+			{
+				// make an CIELUV CIELCh color
+				const auto L = pinAdjust.getValue();// 80;								// 0 - > 100
+				const auto C = 200 - 2.f * y;// y * 2.f;				// 0 -> 200
+				const auto h = x * 360.f / 100.f;	// 0 -> 360
+
+				// convert to CIELUV
+//					auto L = L;
+				const auto h2 = h * M_PI / 180;
+				const auto U = cos(h2) * C;
+				const auto V = sin(h2) * C;
+
+				double rx, ry, rz;
+				Luv2Xyz(&rx, &ry, &rz, L, U, V);
+
+				// XYZ to sRGB
+				double r, g, b;
+				Xyz2Rgb(&r, &g, &b, rx, ry, rz);
+
+				uint8_t sRGB[3] = {};
+
+				if (r > 1.f
+					|| g > 1.f
+					|| b > 1.f)
+				{
+					sRGB[0] = sRGB[1] = sRGB[2] = 0;
+				}
+				else
+				{
+					sRGB[2] = static_cast<uint8_t>(max(0.0, min(1.0, r)) * 255.0);
+					sRGB[1] = static_cast<uint8_t>(max(0.0, min(1.0, g)) * 255.0);
+					sRGB[0] = static_cast<uint8_t>(max(0.0, min(1.0, b)) * 255.0);
+				}
+
+#if 0
+				// convert to LAB
+				// https://github.com/berendeanicolae/ColorSpace/blob/master/src/Conversion.cpp
+				{
+					const auto h2 = h * M_PI / 180;
+
+//					auto l = l;
+					const auto A = cos(h2) * C;
+					const auto B = sin(h2) * C;
+					// convert to x y z
+					// http://www.easyrgb.com/en/math.php
+					{
+						auto CIE_L = L;
+						auto CIE_u = L;
+						auto CIE_v = L;
+
+						auto var_Y = (CIE_L + 16) / 116;
+						if (var_Y ^ 3 > 0.008856)
+							var_Y = var_Y ^ 3;
+						else
+							var_Y = (var_Y - 16 / 116) / 7.787;
+
+						auto ref_U = (4 * Reference_X) / (Reference_X + (15 * Reference_Y) + (3 * Reference_Z));
+						auto ref_V = (9 * Reference_Y) / (Reference_X + (15 * Reference_Y) + (3 * Reference_Z));
+
+						auto var_U = CIE_u / (13 * CIE_L) + ref_U;
+						auto var_V = CIE_v / (13 * CIE_L) + ref_V;
+
+						auto Y = var_Y * 100;
+						auto X = -(9 * Y * var_U) / ((var_U - 4) * var_V - var_U * var_V);
+						auto Z = (9 * Y - (15 * var_V * Y) - (var_V * X)) / (3 * var_V);
+					}
+					// convert to sRGB
+//					lab2rgb(l, a, b, &sRGB[0], &sRGB[1], &sRGB[2]);
+					{
+						// xyz
+						auto y = (L + 16) / 116;
+						auto x = A / 500 + y;
+						auto z = y - B / 200;
+
+						x = 0.95047f * ((x * x * x > 0.008856f) ? x * x * x : (x - 16.0f / 116.0f) / 7.787f);
+						y = 1.00000f * ((y * y * y > 0.008856f) ? y * y * y : (y - 16.0f / 116.0f) / 7.787f);
+						z = 1.08883f * ((z * z * z > 0.008856f) ? z * z * z : (z - 16.0f / 116.0f) / 7.787f);
+
+						// linear RGB
+						auto r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+						auto g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+						auto b = x * 0.0557 + y * -0.2040 + z * 1.0570;
+
+						// sRGB
+						r = (r > 0.0031308) ? (1.055 * pow(r, 1.0 / 2.4) - 0.055) : 12.92 * r;
+						g = (g > 0.0031308) ? (1.055 * pow(g, 1.0 / 2.4) - 0.055) : 12.92 * g;
+						b = (b > 0.0031308) ? (1.055 * pow(b, 1.0 / 2.4) - 0.055) : 12.92 * b;
+
+						if (r > 1.f
+							|| g > 1.f
+							|| b > 1.f)
+						{
+							sRGB[0] = sRGB[1] = sRGB[2] = 0;
+						}
+						else
+						{
+							sRGB[0] = static_cast<uint8_t>(max(0.0, min(1.0, r)) * 255.0);
+							sRGB[1] = static_cast<uint8_t>(max(0.0, min(1.0, g)) * 255.0);
+							sRGB[2] = static_cast<uint8_t>(max(0.0, min(1.0, b)) * 255.0);
+						}
+					}
+				}
+#endif
+
+				int alphaVal = (int)(alpha * 255.0f + 0.5f);
+
+				// Fill in square with calulated color.
+				for (int xi = (int)x; xi < (int)x + resolution; ++xi)
+				{
+					for (int yi = (int)y; yi < (int)y + resolution; ++yi)
+					{
+						uint8_t* pixel = sourcePixels + ((int)sizeof(uint32_t) * (xi + yi * (int)(imageSize.width)));
+
+						for (int i = 0; i < 3; ++i)
+							pixel[i] = sRGB[i];// pixelVal[i];
+
+//						pixel[3] = alphaVal;
+						pixel[3] = 0xff;
+					}
+				}
+
+				alpha -= resolution / 100.0f;
+			}
+			foreground += resolution / 100.0f;
+		}
+	}
+
+	g.DrawBitmap(bitmapMem, { 10, 10 }, Rect(0.f, 0.f, 100.f + resolution, 100.f + resolution));
+
+}
+
 void DrawingTestGui::drawGradient2(GmpiDrawing::Graphics& g)
 {
 	const auto clipRect = g.GetAxisAlignedClip();
@@ -1055,6 +1209,10 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 	case 11:
 		drawSpecificFont(g);
+		break;
+
+	case 12:
+		drawPerceptualColorPicker(g);
 		break;
 	}
 

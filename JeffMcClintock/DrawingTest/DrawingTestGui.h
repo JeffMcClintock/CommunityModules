@@ -56,6 +56,7 @@ public:
 	void brushTransparency(GmpiDrawing::Graphics& g);
 	void drawGradient(GmpiDrawing::Graphics & g);
 	void drawLines(GmpiDrawing::Graphics& g);
+	void drawPerceptualColorPicker(GmpiDrawing::Graphics& g);
 	void drawGradient2(GmpiDrawing::Graphics& g);
 	virtual int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override;
 

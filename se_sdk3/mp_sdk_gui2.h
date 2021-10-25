@@ -437,12 +437,8 @@ namespace gmpi_gui
 			return temp;
 		}
 
-	private:
-		gmpi_sdk::mp_shared_ptr<gmpi_gui::IMpGraphicsHost> guiHost_;
-		GmpiDrawing::Rect rect_;
-
 		//GMPI_QUERYINTERFACE2(gmpi_gui_api::SE_IID_GRAPHICS_MPGUI, IMpGraphics, MpGuiBase2);
-		virtual int32_t MP_STDCALL queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override
+		int32_t MP_STDCALL queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override
 		{
 			*returnInterface = nullptr;
 
@@ -463,6 +459,10 @@ namespace gmpi_gui
 			return MpGuiBase2::queryInterface(iid, returnInterface);
 		}
 		GMPI_REFCOUNT;
+
+	private:
+		gmpi_sdk::mp_shared_ptr<gmpi_gui::IMpGraphicsHost> guiHost_;
+		GmpiDrawing::Rect rect_;
 	};
 
 	class MpCompletionHandler : public gmpi_gui::ICompletionCallback

@@ -34,12 +34,6 @@
 // Platform specific definitions.
 #if defined(_WIN32)
 
-#if defined(SE_SUPPORT_MFC) // SE_EDIT_SUPPORT) || defined(SE_TARGET_VST2) 
-#include "afx.h"
-#else
-#include "windows.h"
-#endif
-
 #define MP_PLATFORM_WIN32	1
 #define MP_STDCALL		__stdcall
 #endif

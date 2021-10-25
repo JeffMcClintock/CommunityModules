@@ -76,6 +76,13 @@ namespace GmpiSdk
 			return s;
 		}
 
+		inline int32_t getHandle()
+		{
+			int32_t s{};
+			Get()->getHandle(s);
+			return s;
+		}
+
 		void SetLatency(int32_t latency)
 		{
 			if(host2)

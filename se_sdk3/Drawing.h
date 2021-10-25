@@ -525,20 +525,20 @@ namespace GmpiDrawing
 			Deflate(inset, inset);
 		}
 
-		inline void Intersect(typename Rect_traits<T>::BASE_TYPE r)
+		inline void Intersect(typename Rect_traits<T>::BASE_TYPE rect)
 		{
-			this->left   = (std::max)(this->left,   (std::min)(this->right,  r.left));
-			this->top    = (std::max)(this->top,    (std::min)(this->bottom, r.top));
-			this->right  = (std::min)(this->right,  (std::max)(this->left,   r.right));
-			this->bottom = (std::min)(this->bottom, (std::max)(this->top,    r.bottom));
+			this->left   = (std::max)(this->left,   (std::min)(this->right,  rect.left));
+			this->top    = (std::max)(this->top,    (std::min)(this->bottom, rect.top));
+			this->right  = (std::min)(this->right,  (std::max)(this->left,   rect.right));
+			this->bottom = (std::min)(this->bottom, (std::max)(this->top,    rect.bottom));
 		}
 
-		inline void Union(typename Rect_traits<T>::BASE_TYPE r)
+		inline void Union(typename Rect_traits<T>::BASE_TYPE rect)
 		{
-			this->left = (std::min)(this->left, r.left);
-			this->top = (std::min)(this->top, r.top);
-			this->right = (std::max)(this->right, r.right);
-			this->bottom = (std::max)(this->bottom, r.bottom);
+			this->left = (std::min)(this->left, rect.left);
+			this->top = (std::min)(this->top, rect.top);
+			this->right = (std::max)(this->right, rect.right);
+			this->bottom = (std::max)(this->bottom, rect.bottom);
 		}
 
 		inline Point getTopLeft() const
@@ -1191,6 +1191,19 @@ namespace GmpiDrawing
 		{
 			wchar_t* stopString;
 			uint32_t hex = static_cast<uint32_t>( wcstoul(s.c_str(), &stopString, 16) );
+
+			// If Alpha not specified, default to 1.0
+			if (s.size() <= 6)
+			{
+				hex |= 0xff000000;
+			}
+
+			return FromArgb(hex);
+		}
+		static Color FromHexStringU(const std::string& s)
+		{
+			std::size_t stopString;
+			uint32_t hex = static_cast<uint32_t>(stoul(s, &stopString, 16));
 
 			// If Alpha not specified, default to 1.0
 			if (s.size() <= 6)
