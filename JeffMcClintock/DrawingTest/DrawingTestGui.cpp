@@ -66,15 +66,15 @@ void DrawingTestGui::refresh()
 	pinListItems =
 		"Text (Classic),"
 		"Alpha blending,"
-		"Gamma,"
-		"Gradient 1,"			// 4
-		"MacTest,"
-		"Text (Fixed),"
+//		"Gamma,"
+		"Greyscale=3,"			// 3
+//		"MacTest,"
+		"Text (Fixed)=5,"
 		"Text Vert Align,"
 		"Additive,"
-		"Gradient 2,"
-		"GUI 3.0,"				// 10
-		"Lines,"
+		"Color Gradients,"
+//		"GUI 3.0,"				// 9
+		"Lines=10,"
 		"Test Font"
 		;
 	invalidateRect();
@@ -547,7 +547,9 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 
 	const int count = 256;
 	const int height = 40;
-	// create bitmap with every intensity.
+	const int rightCol = 280;
+
+	// create bitmap with every sRGB intensity.
 	auto bitmapMem = GetGraphicsFactory().CreateImage(count, count);
 	{
 		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
@@ -558,23 +560,15 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 
 		float x = 0;
 		float foreground = 0.0f;
-		float alpha = 1.0f;
 
 		for (int x = 0; x < count; ++x)
 		{
 			for (int y = 0; y < height; ++y)
 			{
-				int alphaVal = (int)(alpha * 255.0f + 0.5f);
-
 				int pixelVal[3];
 				for (int i = 0; i < 3; ++i)
 				{
-					// apply alpha in lin space.
-					//float fg = foregroundColor[i] * foreground;
-					//fg *= alpha; // pre-multiply.
-
-								 // then convert to SRGB.
-					pixelVal[i] = x; // se_sdk::FastGamma::float_to_sRGB(fg);
+					pixelVal[i] = x;
 				}
 
 				uint8_t* pixel = sourcePixels + ((int) sizeof(uint32_t) * (x + y * (int)(imageSize.width)));
@@ -582,19 +576,22 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 				for (int i = 0; i < 3; ++i)
 					pixel[i] = pixelVal[i];
 
-				pixel[3] = alphaVal;
+				pixel[3] = 0xff;
 			}
 		}
 	}
 
-	g.DrawBitmap(bitmapMem, Point(0,0), Rect(0, 0, count, height));
-	g.DrawTextU("Bitmap RGB", textFormat, 0.0f, 0.0f, textBrush);
+	g.DrawBitmap(bitmapMem, Point(0, 0), Rect(0, 0, count, height));
+	g.DrawBitmap(bitmapMem, Rect(rightCol, 0, rightCol + count, height), Rect(0, 0, count/2, height)); // 'dark' half stretched x2 on right
+
+	g.DrawTextU("sRGB (Bitmap)", textFormat, 0.0f, 0.0f, textBrush);
 
 	// Use brushes to draw every sRGB intensity.
 	float x1 = 0;
 	float y1 = 50;
 	auto brush = g.CreateSolidColorBrush(Color::Transparent());
 
+	// full width on left
 	for (int x = 0; x < count; ++x)
 	{
 		for (int y = 0; y < height; ++y)
@@ -603,9 +600,21 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 			g.FillRectangle(x1 + x, y1 + y, x1 + x + 1, y1 + y + 1, brush);
 		}
 	}
-	g.DrawTextU("Brush RGB", textFormat, x1, y1, textBrush);
+	g.DrawTextU("sRGB (Brush)", textFormat, x1, y1, textBrush);
+	// dark half on right
+	x1 = rightCol;
+	for (int x = 0; x < count; ++x)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			const int byteVal = x / 2;
+			brush.SetColor(Color::FromBytes(byteVal, byteVal, byteVal));
+			g.FillRectangle(x1 + x, y1 + y, x1 + x + 1, y1 + y + 1, brush);
+		}
+	}
 
 	y1 += 50;
+	x1 = 0;
 	{
 		Rect r(0, 0, count, height);
 		r.Offset(x1, y1);
@@ -617,16 +626,39 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 			lab2rgb(100.0f * x / 255.0f, 0.0f, 0.0f, &sRGB[0], &sRGB[1], &sRGB[2]);
 
 			brush.SetColor(Color::FromBytes(sRGB[0], sRGB[1], sRGB[2]));
-//			brush.SetColor(Color(sRGB[0] / 255.0f, sRGB[1] / 255.0f, sRGB[2] / 255.0f));
 			for (float y = 0; y < height; ++y)
 			{
 				g.FillRectangle(x1 + x, y1 + y, x1 + x + 1, y1 + y + 1, brush);
 			}
 		}
 
-		g.DrawTextU("LAB", textFormat, x1, y1, textBrush);
+		g.DrawTextU("LAB  (brush)", textFormat, x1, y1, textBrush);
 	}
 
+	// dark-half
+	x1 = rightCol;
+	{
+		Rect r(0, 0, count, height);
+		r.Offset(x1, y1);
+
+		for (float x = 0; x < count; ++x)
+		{
+			uint8_t sRGB[3];
+
+			lab2rgb(50.0f * x / 255.0f, 0.0f, 0.0f, &sRGB[0], &sRGB[1], &sRGB[2]);
+
+			brush.SetColor(Color::FromBytes(sRGB[0], sRGB[1], sRGB[2]));
+			for (float y = 0; y < height; ++y)
+			{
+				g.FillRectangle(x1 + x, y1 + y, x1 + x + 1, y1 + y + 1, brush);
+			}
+		}
+
+//		g.DrawTextU("LAB  (brush)", textFormat, x1, y1, textBrush);
+	}
+
+	//////////////////////////////////////////////////////////////////////
+	x1 = 0;
 	y1 += 50;
 	{
 		Rect r(0, 0, count, height);
@@ -650,9 +682,39 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 			g.FillRectangle(x1, y1 + y, x1 + count, y1 + y + 1, brush);
 		}
 
-		g.DrawTextU("LAB (Piecewise)", textFormat, x1, y1, textBrush);
+		g.DrawTextU("LAB (Piecewise Gradient)", textFormat, x1, y1, textBrush);
 	}
 
+	x1 = rightCol;
+	{
+		Rect r(0, 0, count, height);
+		r.Offset(x1, y1);
+
+		for (float y = 0; y < height; ++y)
+		{
+			GmpiDrawing_API::MP1_POINT p1 = { x1, 0.0f };
+			GmpiDrawing_API::MP1_POINT p2 = { x1 + static_cast<float>(count), 0.0f };
+
+			std::vector<GradientStop> stops;
+			const int numStops = 8;
+			for (int i = 0; i < numStops; ++i)
+			{
+				const float distance = i / (float)(numStops - 1);
+				const float L = 50.0f * distance;
+				stops.push_back({ distance, lab2rgb_lin(L, 0.0f, 0.0f) });
+			}
+
+			auto brush = g.CreateLinearGradientBrush(g.CreateGradientStopCollection(stops), p1, p2);
+
+			g.FillRectangle(x1, y1 + y, x1 + count, y1 + y + 1, brush);
+		}
+
+//		g.DrawTextU("LAB (Piecewise Brush)", textFormat, x1, y1, textBrush);
+	}
+
+	//////////////////////////////////////////////////////////////////////
+
+	x1 = 0;
 	y1 += 50;
 
 	for (float x = 0; x < count; ++x)
@@ -665,6 +727,19 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 	}
 	g.DrawTextU("Brush Linear", textFormat, x1, y1, textBrush);
 
+	x1 = rightCol;
+	for (float x = 0; x < count; ++x)
+	{
+		const float intensity = x / 512.0f;
+		brush.SetColor(Color(intensity, intensity, intensity));
+		for (float y = 0; y < height; ++y)
+		{
+			g.FillRectangle(x1 + x, y1 + y, x1 + x + 1, y1 + y + 1, brush);
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////
+	x1 = 0;
 	y1 += 50;
 	{
 		Rect r(0, 0, count, height);
@@ -674,7 +749,19 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 		g.FillRectangle(r, brushFill);
 		g.DrawTextU("GradientBrush", textFormat, x1, y1, textBrush);
 	}
+	x1 = rightCol;
+	{
+		Rect r(0, 0, count, height);
+		r.Offset(x1, y1);
 
+		const float intensity = 0.5f;
+		auto brushFill = g.CreateLinearGradientBrush(Color::Black, Color(intensity, intensity, intensity), { x1, 0.0f }, { x1 + static_cast<float>(count), 0.0f });
+		g.FillRectangle(r, brushFill);
+//		g.DrawTextU("GradientBrush", textFormat, x1, y1, textBrush);
+	}
+
+	//////////////////////////////////////////////////////////////////////
+	x1 = 0;
 	y1 += 50;
 	{
 		float err = 0.0f;
@@ -700,6 +787,33 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 			}
 		}
 		g.DrawTextU("Dither", textFormat, x1, y1, textBrush);
+	}
+
+	x1 = rightCol;
+	{
+		float err = 0.0f;
+		for (float x = 0; x < count; x += 0.5f)
+		{
+			for (float y = 0; y < height; y += 0.5f)
+			{
+				const float ideal = 0.5f * x / 255.0f;
+				err += ideal;
+
+				float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+				if (err >= r)
+				{
+					brush.SetColor(Color::White);
+					err -= 1.0f;
+				}
+				else
+				{
+					brush.SetColor(Color::Black);
+				}
+				g.FillRectangle(x1 + x, y1 + y, x1 + x + 0.5f, y1 + y + 0.5f, brush);
+			}
+		}
+//		g.DrawTextU("Dither", textFormat, x1, y1, textBrush);
 	}
 }
 
