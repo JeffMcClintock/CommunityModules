@@ -677,9 +677,9 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 				stops.push_back({i / (float)(numStops - 1), lab2rgb_lin(L, 0.0f, 0.0f)});
 			}
 
-			auto brush = g.CreateLinearGradientBrush(g.CreateGradientStopCollection(stops), p1, p2);
+			auto gbrush = g.CreateLinearGradientBrush(g.CreateGradientStopCollection(stops), p1, p2);
 
-			g.FillRectangle(x1, y1 + y, x1 + count, y1 + y + 1, brush);
+			g.FillRectangle(x1, y1 + y, x1 + count, y1 + y + 1, gbrush);
 		}
 
 		g.DrawTextU("LAB (Piecewise Gradient)", textFormat, x1, y1, textBrush);
@@ -704,9 +704,9 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 				stops.push_back({ distance, lab2rgb_lin(L, 0.0f, 0.0f) });
 			}
 
-			auto brush = g.CreateLinearGradientBrush(g.CreateGradientStopCollection(stops), p1, p2);
+			auto gbrush = g.CreateLinearGradientBrush(g.CreateGradientStopCollection(stops), p1, p2);
 
-			g.FillRectangle(x1, y1 + y, x1 + count, y1 + y + 1, brush);
+			g.FillRectangle(x1, y1 + y, x1 + count, y1 + y + 1, gbrush);
 		}
 
 //		g.DrawTextU("LAB (Piecewise Brush)", textFormat, x1, y1, textBrush);
@@ -808,7 +808,7 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 				}
 				else
 				{
-					brush.SetColor(Color::Black);
+					brush.SetColor(Color(0.f, 0.f, 0.f)); // test mac Mini drawing grey
 				}
 				g.FillRectangle(x1 + x, y1 + y, x1 + x + 0.5f, y1 + y + 0.5f, brush);
 			}

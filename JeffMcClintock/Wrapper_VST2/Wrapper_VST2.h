@@ -73,7 +73,7 @@ public:
 
 	void onMidiMessage(int pin, int timeDelta, const unsigned char* midiMessage, int size);
 	void ProcessEvents(int32_t count, const gmpi::MpEvent* events);
-	virtual void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events)
+	void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events) override
 	{
 		(this->*(currentVstSubProcess))(count, events);
 	}
@@ -83,24 +83,24 @@ public:
 	void subProcessBypass(int32_t count, const gmpi::MpEvent* events);
 	void subProcessBypassSilence(int32_t count, const gmpi::MpEvent* events);
 
-	virtual int32_t MP_STDCALL open();
+	int32_t MP_STDCALL open() override;
 	void initVst();
-	virtual void onSetPins(void);
+	void onSetPins(void) override;
 
 	// IVST2Host support.
-	virtual float MP_STDCALL hSampleRate(void);
-	virtual int MP_STDCALL hGetBlockSize(void)
+	float MP_STDCALL hSampleRate(void) override;
+	int MP_STDCALL hGetBlockSize(void) override
 	{
 		return getBlockSize();
 	}
-	virtual VstTimeInfo* MP_STDCALL hHostGetTime(int mask);
-	virtual void MP_STDCALL hProcessPlugsEvents(struct VstEvents* p_vst_events){}
-	virtual void MP_STDCALL hRequestIdle(void){}
-	virtual int MP_STDCALL hFileDialog(bool load_or_save, const std::string& extension, std::string& filename)
+	VstTimeInfo* MP_STDCALL hHostGetTime(int mask) override;
+	void MP_STDCALL hProcessPlugsEvents(struct VstEvents* p_vst_events) override {}
+	void MP_STDCALL hRequestIdle(void) override {}
+	int MP_STDCALL hFileDialog(bool load_or_save, const std::string& extension, std::string& filename) override
 	{
 		return 0;
 	}
-    virtual void MP_STDCALL onAEffectWrapperDestroyed();
+    void MP_STDCALL onAEffectWrapperDestroyed() override;
     
 	int MP_STDCALL getProcessLevel() override
 	{
