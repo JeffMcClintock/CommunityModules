@@ -8,6 +8,14 @@ extern "C"
 #include "./colorspace.h"
 }
 
+void updateVFD(float linearImage[100][100]);
+void updateVFD2(float linearImage[100][100]);
+void blurVFD(float linearImageIn[100][100], float linearImageOut[100][100]);
+void blurVFD2(float linearImageIn[100][100], float linearImageOut[100][100]);
+void blurVFD3(float linearImageIn[100][100], float linearImageOut[100][100]);
+void drawVFD(GmpiDrawing::Graphics& g, GmpiDrawing::Rect rect, float linearImageIn[100][100]);
+
+
 using namespace std;
 using namespace gmpi;
 using namespace gmpi_gui;
@@ -76,6 +84,7 @@ void DrawingTestGui::refresh()
 //		"GUI 3.0,"				// 9
 		"Lines=10,"
 		"Test Font"
+		"VFD=13"
 		;
 	invalidateRect();
 
@@ -1328,6 +1337,10 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 	case 12:
 		drawPerceptualColorPicker(g);
 		break;
+
+	case 13:
+//		drawVFD(g, getRect(), linearImageBlurred);
+		break;
 	}
 
 	return MP_OK;
@@ -1335,14 +1348,26 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 bool DrawingTestGui::OnTimer()
 {
-	if (pinTestType.getValue() == 9)
+	switch (pinTestType.getValue())
 	{
+	case 9:
 #ifdef _WIN32
 		functionalUI.step();
 #endif
 		refresh();
-        
+		break;
+
+	case 13:
+		/*
+		updateVFD(linearImage);
+//		updateVFD2(linearImage); // 1 pixel per source dot
+		blurVFD2(linearImage, linearImageBlurred);
+//		blurVFD3(linearImage, linearImageBlurred);
+		refresh();
+		*/
+		break;
 	}
+
 	return true;
 }
 

@@ -381,10 +381,12 @@ int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 			const auto classID = VST3::UID::fromString(uuid);
 			if(!classID)
 			{
-        return gmpi::MP_FAIL;
+				return gmpi::MP_FAIL;
 			}
 
-			auto factory = dll->getFactory();
+			plugin = std::make_unique<myPluginProvider>();
+
+			auto& factory = dll->getFactory();
 			plugin->setup(factory, *classID);
 		}
 #endif

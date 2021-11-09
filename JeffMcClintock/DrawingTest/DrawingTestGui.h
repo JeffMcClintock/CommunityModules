@@ -33,6 +33,9 @@ class DrawingTestGui : public gmpi_gui::MpGuiGfxBase, public TimerClient
 #ifdef _WIN32
 	functionalUI functionalUI;
 #endif
+	float linearImage[100][100] = {};
+	float linearImageBlurred[100][100] = {};
+
 public:
 	DrawingTestGui();
 

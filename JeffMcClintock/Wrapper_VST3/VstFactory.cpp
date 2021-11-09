@@ -232,7 +232,7 @@ void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::ws
 			continue;
 		}
 
-		const auto fullFilename = combinePathAndFile(searchPath, JmUnicodeConversions::toWstring((*it).filename));
+		const auto fullFilename = combinePathAndFile(searchPath, toWstring((*it).filename));
 		if ((*it).isFolder)
 		{
 			RecursiveScanVsts(fullFilename, excludePath);
@@ -261,11 +261,19 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 {
 	const auto path = WStringToUtf8(full_path);
 
-	std::string error;
-	auto module = VST3::Hosting::Module::create(path, error);
-	if (!module)
+	VST3::Hosting::Module::Ptr module = {};
+	try
 	{
-		// Could not create Module for file
+		std::string error;
+		module = VST3::Hosting::Module::create(path, error);
+		if (!module)
+		{
+			// Could not create Module for file
+			return;
+		}
+	}
+	catch (...) // PACE protected plugins will throw if dongle not present.
+	{
 		return;
 	}
 
