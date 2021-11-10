@@ -64,7 +64,7 @@ public:
 
 	void AddPlugin(/*const std::wstring* full_path,*/ class AEffectWrapper* plugin);
 	void AddPluginName(const char* shellName, VstIntPtr uniqueId, const std::string& name, std::string fullPath);
-	std::string XmlFromPlugin(AEffectWrapper* plugin, int wrapperVersion);
+	std::string XmlFromPlugin(AEffectWrapper* plugin);// , int wrapperVersion);
 
 	std::string getDiagnostics();
 	std::wstring getShellFromId(intptr_t uniqueId);

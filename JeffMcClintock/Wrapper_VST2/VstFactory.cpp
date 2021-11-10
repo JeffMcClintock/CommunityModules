@@ -82,20 +82,10 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 	}
 
 	int vstUniqueId = 0;
-	int wrapperVersion = 1;
 	if (wcslen(uniqueId) > 11)
 	{
 		wchar_t* idx;
 		vstUniqueId = wcstol(uniqueId + 11, &idx, 16);
-
-		if (uniqueId[0] == L'W')
-		{
-			wrapperVersion = 2;
-		}
-		if (uniqueId[0] == L'w')
-		{
-			wrapperVersion = 3;
-		}
 	}
 
 	pluginInfo* info = {};
@@ -114,16 +104,15 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 	// load plugin, get full XML.
 	AEffectWrapper ae;
 
-	ae.LoadDll(Utf8ToWstring(info->fullPath_), info->uniqueId_); // getShellFromId(vstUniqueId), vstUniqueId);
+	ae.LoadDll(Utf8ToWstring(info->fullPath_), info->uniqueId_);
 	
 	if (!ae.IsLoaded())
 	{
 		return gmpi::MP_FAIL;
 	}
 
-
 	ae.dispatcher(effOpen);
-	std::string xmlFull = XmlFromPlugin(&ae, wrapperVersion);
+	std::string xmlFull = XmlFromPlugin(&ae);
 
 	returnXml->setData(xmlFull.data(), (int32_t)xmlFull.size());
 
@@ -337,7 +326,7 @@ void VstFactory::AddPluginName(const char* shellName, VstIntPtr uniqueId, const 
 	plugins.push_back({ name, uniqueId, oss.str(), fullPath });
 }
 
-std::string VstFactory::XmlFromPlugin(AEffectWrapper* plugin, int wrapperVersion)
+std::string VstFactory::XmlFromPlugin(AEffectWrapper* plugin)// , int wrapperVersion)
 {
 	// Gather parameter names.
 	auto numParams = plugin->getNumParams();
@@ -349,20 +338,13 @@ std::string VstFactory::XmlFromPlugin(AEffectWrapper* plugin, int wrapperVersion
 
 	ostringstream oss;
 
-	switch (wrapperVersion)
-	{
-	case 3:
-		oss << "<PluginList><Plugin id=\"" VST_WRAPPER_ID_PREFIX << std::hex << plugin->getUniqueID() << "\" name=\"" << plugin->getName() << "\" category=\"VST2 Plugins\" >";
-		break;
-
-	default:
-		assert(false);
-	}
+	oss << "<PluginList><Plugin id=\"" VST_WRAPPER_ID_PREFIX << std::hex << plugin->getUniqueID() << "\" name=\"" << plugin->getName() << "\" category=\"VST2 Plugins\" >";
 
 	// Parameter to store state.
 	oss << "<Parameters>";
 
 	int i = 0;
+/*
 	if (wrapperVersion != 3)
 	{
 		for (auto name : paramNames)
@@ -374,9 +356,9 @@ std::string VstFactory::XmlFromPlugin(AEffectWrapper* plugin, int wrapperVersion
 			++i;
 		}
 	}
-
+*/
 	// next-to last parameter stores state from getChunk() / setChunk().
-	if (wrapperVersion != 1)
+//	if (wrapperVersion != 1)
 	{
 		oss << "<Parameter id=\"" << std::dec << i << "\" name=\"chunk\" ignorePatchChange=\"true\" datatype=\"blob\" />";
 		++i;
@@ -393,7 +375,7 @@ std::string VstFactory::XmlFromPlugin(AEffectWrapper* plugin, int wrapperVersion
 	// Audio.
 	oss << "<Audio>";
 
-	if (wrapperVersion == 3)
+//	if (wrapperVersion == 3)
 	{
 		// Add Power and Tempo pins.
 		// was 2nd, replaced with rendermode for cancellation testing.	<Pin name = "Auto Sleep" datatype = "bool" isMinimised="true" />
@@ -421,7 +403,7 @@ std::string VstFactory::XmlFromPlugin(AEffectWrapper* plugin, int wrapperVersion
 	for (int i = 0; i < plugin->getNumOutputs(); ++i)
 		oss << "<Pin name=\"Signal Out\" direction=\"out\" datatype=\"float\" rate=\"audio\" />";
 
-	if (wrapperVersion == 3)
+//	if (wrapperVersion == 3)
 	{
 		// DSP controls for setting normalised parameter values.
 		for (int i = 0; i < plugin->getNumParams(); ++i)
@@ -435,7 +417,7 @@ std::string VstFactory::XmlFromPlugin(AEffectWrapper* plugin, int wrapperVersion
 
 	// controllerptr ptr first.
 	oss << "<Pin name=\"controllerptr\" datatype=\"blob\" parameterId=\"" << controllerPointerParamId << "\" private=\"true\" />";
-
+/*
 	if (wrapperVersion != 3)
 	{
 		// GUI controls to give feedback on parameter real-world values.
@@ -451,7 +433,7 @@ std::string VstFactory::XmlFromPlugin(AEffectWrapper* plugin, int wrapperVersion
 			oss << "<Pin datatype=\"float\" parameterId=\"" << i << "\" />";
 		}
 	}
-
+*/
 	oss << "</GUI>";
 
 	oss << "</Plugin></PluginList>";
@@ -715,15 +697,12 @@ int32_t VstFactory::createInstance(const wchar_t* uniqueId, int32_t subType,
 	}
 
 	int vstUniqueId = 0;
-	bool useChunkPresets = false;
-	bool useGuiPins = true;
+	bool useChunkPresets = true;
+	bool useGuiPins = false;
 	if( wcslen(uniqueId) > 11 )
 	{
 		wchar_t* idx;
 		vstUniqueId = wcstol(uniqueId + 11, &idx, 16);
-
-		useChunkPresets = uniqueId[0] != L'S';
-		useGuiPins = uniqueId[0] != L'w';
 	}
 
 	for( auto& pluginInfo : plugins )

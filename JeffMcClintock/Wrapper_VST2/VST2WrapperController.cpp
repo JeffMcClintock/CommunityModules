@@ -1,6 +1,5 @@
 #include "VST2WrapperController.h"
 #include "Wrapper_VST2.h"
-#include "./Vst2WrapperGui.h"
 
 VST2WrapperController::VST2WrapperController( const std::wstring &filename, VstIntPtr shellPluginId, bool ppresetsUseChunks, bool phasGuiParameterPins) :
 handle_(0)
