@@ -226,13 +226,18 @@ struct backgroundData
 
 void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path, const char* shellName)
 {
-	const auto fullPath_u = WStringToUtf8(full_path);
-
-	AEffectWrapper plugin;
-	plugin.LoadDll(full_path);
-
-	if (plugin.IsLoaded())
+	try
 	{
+		const auto fullPath_u = WStringToUtf8(full_path);
+
+		AEffectWrapper plugin;
+		plugin.LoadDll(full_path);
+
+		if (!plugin.IsLoaded())
+		{
+			return;
+		}
+
 		plugin.dispatcher(effOpen);
 
 		bool isShellPlugin = plugin.dispatcher(effGetPlugCategory, 0, 0, NULL, 0.0f) == kPlugCategShell;
@@ -286,6 +291,10 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path, cons
 			// Standard VST. non-Waves.
 			AddPluginName(shellName, plugin.getUniqueID(), plugin.getName(), fullPath_u);
 		}
+	}
+	catch (...)
+	{
+		return;
 	}
 }
 
