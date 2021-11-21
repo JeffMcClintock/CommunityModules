@@ -2262,10 +2262,10 @@ namespace GmpiDrawing
 			return LoadImageU(utf8Uri.c_str());
 		}
 
-		inline StrokeStyle CreateStrokeStyle(const GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES strokeStyleProperties, float* dashes = nullptr, int32_t dashesCount = 0)
+		inline StrokeStyle CreateStrokeStyle(const GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES strokeStyleProperties, const float* dashes = nullptr, int32_t dashesCount = 0)
 		{
 			StrokeStyle temp;
-			Get()->CreateStrokeStyle(&strokeStyleProperties, dashes, dashesCount, temp.GetAddressOf());
+			Get()->CreateStrokeStyle(&strokeStyleProperties, const_cast<float*>(dashes), dashesCount, temp.GetAddressOf());
 			return temp;
 		}
 

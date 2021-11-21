@@ -882,84 +882,47 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 	// dashed lines
 	auto blackBrush = g.CreateSolidColorBrush(Color::Black);
 
-	GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES dashedLineProps{};
-	dashedLineProps.miterLimit = 1.0f;
-	dashedLineProps.dashStyle = GmpiDrawing_API::MP1_DASH_STYLE_CUSTOM;
-
-	float dashes[] = { 1.0f, 2.0f, 3.0f, 4.0f };
-	GmpiDrawing::StrokeStyle strokeStyles2[] =
-	{
-		// custom dashed line
-		g.GetFactory().CreateStrokeStyle(
-			dashedLineProps, dashes, static_cast<int32_t>(std::size(dashes))
-		),
-
-		g.GetFactory().CreateStrokeStyle(
-			{
-				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// start
-				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// end
-				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// cap
-
-				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
-				1.0f,									// mitre limit
-				GmpiDrawing_API::MP1_DASH_STYLE_DASH,
-				0.0f,									// dash offset
-				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
-			}
-			, 0, 0
-		),
-
-		g.GetFactory().CreateStrokeStyle(
-			{
-				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// start
-				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// end
-				GmpiDrawing_API::MP1_CAP_STYLE_ROUND,	// cap
-
-				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
-				1.0f,									// mitre limit
-				GmpiDrawing_API::MP1_DASH_STYLE_DOT,
-				0.0f,									// dash offset
-				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
-			}
-			, 0, 0
-		),
-
-		g.GetFactory().CreateStrokeStyle(
-			{
-				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// start
-				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// end
-				GmpiDrawing_API::MP1_CAP_STYLE_TRIANGLE,	// cap
-
-				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
-				1.0f,									// mitre limit
-				GmpiDrawing_API::MP1_DASH_STYLE_DASH_DOT,
-				0.0f,									// dash offset
-				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
-			}
-			, 0, 0
-		),
-		g.GetFactory().CreateStrokeStyle(
-			{
-				GmpiDrawing_API::MP1_CAP_STYLE_SQUARE,	// start
-				GmpiDrawing_API::MP1_CAP_STYLE_SQUARE,	// end
-				GmpiDrawing_API::MP1_CAP_STYLE_SQUARE,	// cap
-
-				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
-				1.0f,									// mitre limit
-				GmpiDrawing_API::MP1_DASH_STYLE_DASH_DOT_DOT,
-				0.0f,									// dash offset
-				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
-			}
-			, 0, 0
-		),
-
-	};
-
 	float y = 120.0f;
-	for (auto& strokeStyle : strokeStyles2)
+	for (auto capstyle = 0; capstyle < 3; ++capstyle) // MP1_CAP_STYLE_FLAT, MP1_CAP_STYLE_SQUARE, MP1_CAP_STYLE_ROUND
 	{
-		g.DrawLine({ 10.0, y }, { 100.0, y }, blackBrush, 2.0f, strokeStyle);
-		y += 4.0f;
+		for (auto dashStyle = 0 ; dashStyle < 6 ; ++dashStyle)
+		{
+			if (dashStyle < 5)
+			{
+				auto strokeStyle = g.GetFactory().CreateStrokeStyle(
+					GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES
+					{
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// start
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// end
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// cap
+
+						GmpiDrawing_API::MP1_LINE_JOIN_MITER,
+						1.0f,									// mitre limit
+						(GmpiDrawing_API::MP1_DASH_STYLE)dashStyle, // _DASH_DOT_DOT,
+						0.0f,									// dash offset
+						GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
+					}
+				);
+
+				g.DrawLine({ 10.0, y }, { 100.0, y }, blackBrush, 2.0f, strokeStyle);
+			}
+			else
+			{
+				const float dashes[] = { 1.0f, 2.0f, 3.0f, 4.0f };
+				GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES dashedLineProps{};
+				dashedLineProps.miterLimit = 1.0f;
+				dashedLineProps.dashStyle = GmpiDrawing_API::MP1_DASH_STYLE_CUSTOM;
+
+				auto strokeStyle = g.GetFactory().CreateStrokeStyle(
+					dashedLineProps, dashes, static_cast<int32_t>(std::size(dashes))
+				);
+				g.DrawLine({ 10.0, y }, { 100.0, y }, blackBrush, 2.0f, strokeStyle);
+			}
+
+			y += 4.0f;
+		}
+
+		y += 5.0f;
 	}
 }
 
