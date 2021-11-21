@@ -592,7 +592,7 @@ namespace GmpiDrawing
 	}
 
 	template<class T> RectBase<T> Union(const RectBase<T>& a, const RectBase<T>& b)
-		{
+	{
 		RectBase<T> result(a);
 
 		result.top = (std::min)(a.top, b.top);
@@ -601,12 +601,18 @@ namespace GmpiDrawing
 		result.bottom = (std::max)(a.bottom, b.bottom);
 
 		return result;
-		}
+	}
+
+	template<class T> bool isOverlapped(const RectBase<T>& a, const RectBase<T>& b)
+	{
+		return (std::max)(a.left, b.left) < (std::min)(a.right, b.right)
+			&& (std::max)(a.top, b.top) < (std::min)(a.bottom, b.bottom);
+	}
 
 	template<class T> PointBase<T> CenterPoint(const RectBase<T>& r)
-		{
+	{
 		return PointBase<T>(0.5f * (r.left + r.right), 0.5f * (r.top + r.bottom));
-		}
+	}
 
 	typedef RectBase<float> Rect;
 	typedef RectBase<int32_t> RectL;
@@ -1110,25 +1116,12 @@ namespace GmpiDrawing
 			g = se_sdk::FastGamma::sRGB_to_float(pGreen);
 			b = se_sdk::FastGamma::sRGB_to_float(pBlue);
 
-			/* Direct 2D Colors seem to be SRGB
-
-			const float oneOver255 = 1.0f / 255.0f;
-			r = pRed * oneOver255;
-			g = pGreen * oneOver255;
-			b = pBlue * oneOver255;
-			// DIrect2d appears to expect SRGB Colors.
-			r = se_sdk::FastGamma::RGB_to_SRGBf(pRed);
-			g = se_sdk::FastGamma::RGB_to_SRGBf(pGreen);
-			b = se_sdk::FastGamma::RGB_to_SRGBf(pBlue);
-			*/
-
-
 			a = pAlpha;
 		}
 
 		Color(float pRed = 1.0f, float pGreen = 1.0f, float pBlue = 1.0f, float pAlpha = 1.0f)
 		{
-			assert(pRed < 2.f && pGreen < 2.f && pBlue < 2.f); // for 0-255 use Color::FromBytes(200,200,200)
+			assert(pRed < 50.f && pGreen < 50.f && pBlue < 50.f); // for 0-255 use Color::FromBytes(200,200,200)
 
 			r = pRed;
 			g = pGreen;
@@ -1215,7 +1208,7 @@ namespace GmpiDrawing
 		}
 	};
 
-	inline Color interpolateColor(Color a , Color b , float fraction)
+	inline Color interpolateColor(Color a, Color b, float fraction)
 	{
 		return Color(
 			a.r + (b.r - a.r) * fraction,
@@ -1225,6 +1218,25 @@ namespace GmpiDrawing
 			);
 	}
 
+	inline Color AddColorComponents(Color const& lhs, Color const& rhs)
+	{
+		return Color{
+			lhs.r + rhs.r,
+			lhs.g + rhs.g,
+			lhs.b + rhs.b,
+			lhs.a,			// alpha left as-is
+		};
+	}
+
+	inline Color MultiplyBrightness(Color const& lhs, float rhs)
+	{
+		return Color{
+			lhs.r * rhs,
+			lhs.g * rhs,
+			lhs.b * rhs,
+			lhs.a,			// alpha left as-is
+		};
+	}
 
 	class GradientStop //: public GmpiDrawing_API::MP1_GRADIENT_STOP
 	{
@@ -1753,66 +1765,10 @@ namespace GmpiDrawing
 			return temp;
 		}
 
+		// Deprecated.
 		void ApplyAlphaCorrection()
 		{
 			Get()->ApplyAlphaCorrection();
-/*
-			auto pixelsSource = lockPixels(true);
-			auto imageSize = GetSize();
-			int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
-
-			uint8_t* sourcePixels = pixelsSource.getAddress();
-			const float gamma = 2.2f;
-			for (int i = 0; i < totalPixels; ++i)
-			{
-				int alpha = sourcePixels[3];
-
-				if (alpha != 0 && alpha != 255)
-				{
-					float bitmapAlpha = alpha / 255.0f;
-
-					// Calc pixel lumination (linear).
-					float components[3];
-					float foreground = 0.0f;
-					for (int c = 0; c < 3; ++c)
-					{
-						float pixel = sourcePixels[c] / 255.0f;
-						pixel /= bitmapAlpha; // un-premultiply
-						pixel = powf(pixel, gamma);
-						components[c] = pixel;
-//						foreground += pixel;
-//						foreground = (std::max)(foreground, pixel);
-					}
-//					foreground /= 3.0f; // average pixels.
-//					foreground = 0.2126 * components[2] + 0.7152 * components[1] + 0.0722 * components[0]; // Luminance.
-					foreground = 0.3333f * components[2] + 0.3333f * components[1] + 0.3333f * components[0]; // Average. Much the same as Luminance, better on Blue.
-
-					float blackAlpha = 1.0f - powf(1.0f - bitmapAlpha, 1.0 / gamma);
-					float whiteAlpha = powf(bitmapAlpha, 1.0f / gamma);
-
-					float mix = powf(foreground, 1.0f / gamma);
-
-					float bitmapAlphaCorrected = blackAlpha * (1.0f - mix) + whiteAlpha * mix;
-
-					for (int c = 0; c < 3; ++c)
-					{
-						float pixel = components[c];
-
-						// Alpha is calculated on average forground intensity, need to tweak components that are brighter than average to prevent themgetting too dim.
-						//float IntensityError = pixel / foreground;
-						//pixel *= IntensityError;
-
-						pixel = powf(pixel, 1.0f / gamma); // linear -> sRGB space.
-						pixel *= bitmapAlphaCorrected; // premultiply
-						sourcePixels[c] = (std::min)( 255, (int)(pixel * 255.0f + 0.5f));
-					}
-
-					int alphaVal = (int)(bitmapAlphaCorrected * 255.0f + 0.5f);
-					sourcePixels[3] = alphaVal;
-				}
-				sourcePixels += sizeof(uint32_t);
-			}
-			*/
 		}
 	};
 
@@ -2117,6 +2073,10 @@ namespace GmpiDrawing
 			return temp;
 		}
 
+		// CreateTextformat creates fonts of the size you specify (according to the font file).
+		// Note that this will result in different fonts having different bounding boxes and vertical alignment. See CreateTextformat2 for a solution to this.
+		// Dont forget to call TextFormat::SetImprovedVerticalBaselineSnapping() to get consistant results on macOS
+
 		inline TextFormat CreateTextFormat(float fontSize = 12, const char* TextFormatfontFamilyName = "Arial", GmpiDrawing_API::MP1_FONT_WEIGHT fontWeight = GmpiDrawing_API::MP1_FONT_WEIGHT_NORMAL, GmpiDrawing_API::MP1_FONT_STYLE fontStyle = GmpiDrawing_API::MP1_FONT_STYLE_NORMAL, GmpiDrawing_API::MP1_FONT_STRETCH fontStretch = GmpiDrawing_API::MP1_FONT_STRETCH_NORMAL)
 		{
 			TextFormat temp;
@@ -2124,6 +2084,7 @@ namespace GmpiDrawing
 			return temp;
 		}
 
+		// Dont forget to call TextFormat::SetImprovedVerticalBaselineSnapping() to get consistant results on macOS
 		inline TextFormat CreateTextFormat(float fontSize, const char* TextFormatfontFamilyName, GmpiDrawing::FontWeight fontWeight, GmpiDrawing::FontStyle fontStyle = GmpiDrawing::FontStyle::Normal, GmpiDrawing::FontStretch fontStretch = GmpiDrawing::FontStretch::Normal)
 		{
 			TextFormat temp;
@@ -2154,6 +2115,9 @@ namespace GmpiDrawing
 			}
 		};
 
+		// CreateTextFormat2 scales the bounding box of the font, so that it is always the same height as Arial.
+		// This is useful if you’re drawing text in a box(e.g.a Text - Entry’ module). The text will always have nice vertical alignment,
+		// even when the font 'falls back' to a font with different metrics.
 		inline TextFormat CreateTextFormat2(
 			float bodyHeight = 12.0f,
 			FontStack fontStack = {},
@@ -2217,7 +2181,7 @@ namespace GmpiDrawing
 					TextFormat referenceTextFormat;
 
 					Get()->CreateTextFormat(
-						fontFamilyName.c_str(),
+						fontFamilyName.c_str(),						// usually Arial
 						nullptr /* fontCollection */,
 						(GmpiDrawing_API::MP1_FONT_WEIGHT) fontWeight,
 						(GmpiDrawing_API::MP1_FONT_STYLE) fontStyle,
@@ -2686,9 +2650,7 @@ namespace GmpiDrawing
 		inline void DrawTextW(std::wstring wString, TextFormat_readonly textFormat, Rect rect, Brush brush, int32_t flags = 0)
 		{
 			static std::wstring_convert<std::codecvt_utf8<wchar_t>> stringConverter;
-			auto utf8String = stringConverter.to_bytes(wString);
-
-//			auto utf8String = FastUnicode::WStringToUtf8(wString.c_str());
+			const auto utf8String = stringConverter.to_bytes(wString);
 			this->DrawTextU(utf8String, textFormat, rect, brush, flags);
 		}
 		// don't care about rect, only position. DEPRECATED, works only when text is left-aligned.

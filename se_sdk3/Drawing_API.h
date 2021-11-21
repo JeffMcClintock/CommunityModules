@@ -7,6 +7,15 @@
 using namespace GmpiDrawing_API;
 */
 
+/* FUTURE ideas
+	// Obtain information about physical pixels. Translates DIPs to pixels. Alternatly GetPixelDpi, but might need offset also.
+	// Alternatly might want to do like dpi in terms of integer 96ths to aliviate rounding errors.
+	virtual void MP_STDCALL IMpDeviceContext::GetPixelTranslation(MP1_MATRIX_3X2* returnTransform) = 0;
+
+	* Support drawing extended-color bitmaps (e.g. 10 bits per pixel)
+	* Support additive composing (for lighting effects) (already works on Windows, not Mac)
+*/
+
 // todo, no dependancy on Gmpi.
 #include "mp_sdk_common.h"
 

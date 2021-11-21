@@ -978,6 +978,10 @@ int32_t RegisterPluginXml( const char* xmlFile );
 // Old way using Macro. macros are evil.
 #define GMPI_REGISTER( plugintype, className, pluginId ) namespace{ gmpi::IMpUnknown* PASTE_FUNC(create,className)(void){ return static_cast<gmpi::IMpUnknown*> (new className()); }; int32_t PASTE_FUNC(r,className) = RegisterPlugin( plugintype, pluginId, &PASTE_FUNC(create,className) );}
 
+// Ensure linker includes file in static-library. See also INIT_STATIC_FILE in UgDatabase.cpp
+#define SE_DECLARE_INIT_STATIC_FILE(filename) void se_static_library_init_##filename(){}
+
+
 // Helper class to make registering concise.
 /* e.g.
 using namespace gmpi;

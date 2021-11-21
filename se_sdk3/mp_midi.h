@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <algorithm>
 
 /*
 #include "../se_sdk3/mp_midi.h"
@@ -60,6 +61,18 @@ namespace GmpiMidi
 		CC_ResetAllControllers			= 121,
 		CC_AllNotesOff					= 123,
 	};
+
+	// converts a 14-bit bipolar controler to a normalized value (between 0.0 and 1.0)
+	inline float bipoler14bitToNormalized(uint8_t msb, uint8_t lsb)
+	{
+		constexpr int centerInt = 0x2000;
+		constexpr float scale = 0.5f / (centerInt - 1); // -0.5 -> +0.5
+
+		const int controllerInt = (static_cast<int>(lsb) + (static_cast<int>(msb) << 7)) - centerInt;
+		// bender range is 0 -> 8192 (center) -> 16383
+		// which is lopsided (8192 values negative, 8191 positive). So we scale by the smaller number, then clamp any out-of-range value.
+		return (std::max)(0.0f, 0.5f + controllerInt * scale);
+	}
 }
 
 namespace GmpiMidiHdProtocol

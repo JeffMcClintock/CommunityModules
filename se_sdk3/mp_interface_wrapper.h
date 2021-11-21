@@ -96,13 +96,7 @@ namespace GmpiSdk
 			//void Copy(Object const & other) { m_ptr = other.m_ptr; }
 			void Copy(gmpi::IMpUnknown* other) { m_ptr = other; }
 			void Move(Object && other) { m_ptr = std::move(other.m_ptr); }
-/* can't copy a const pointer without exposing it to mutation
-			Object& operator = (const Object& other)
-			{
-				m_ptr = other.m_ptr;
-				return *this;
-			}
-*/
+
 		public:
 			inline explicit operator bool()
 			{

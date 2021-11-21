@@ -67,7 +67,7 @@ public:
 
 	void DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g);
 
-	void drawTextTestFIXED(GmpiDrawing::Graphics& g);
+	void drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBoundingbox);
 
 	void drawTextTest(GmpiDrawing::Graphics& g);
 	void drawSpecificFont(GmpiDrawing::Graphics& g);

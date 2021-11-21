@@ -84,7 +84,7 @@ void DrawingTestGui::refresh()
 //		"GUI 3.0,"				// 9
 		"Lines=10,"
 		"Test Font"
-		"VFD=13"
+		"Textformat2 (boxsize)=13"
 		;
 	invalidateRect();
 
@@ -834,11 +834,11 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 	gmpi_sdk::MpString fullUri;
 	getHost()->RegisterResourceUri("background", "Image", &fullUri);
 	auto bitmap = g.GetFactory().LoadImageU(fullUri.c_str());
-
+	
 	Brush brushes[] =
 	{
 		g.CreateSolidColorBrush(Color::Orange),
-		g.CreateLinearGradientBrush(Color::Red, Color::Lime, p1, p2),
+		g.CreateLinearGradientBrush(Color::Red, Color::Lime, p2, p1),
 		g.CreateBitmapBrush(bitmap),
 	};
 
@@ -877,6 +877,89 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 		{
 			style = 0;
 		}
+	}
+
+	// dashed lines
+	auto blackBrush = g.CreateSolidColorBrush(Color::Black);
+
+	GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES dashedLineProps{};
+	dashedLineProps.miterLimit = 1.0f;
+	dashedLineProps.dashStyle = GmpiDrawing_API::MP1_DASH_STYLE_CUSTOM;
+
+	float dashes[] = { 1.0f, 2.0f, 3.0f, 4.0f };
+	GmpiDrawing::StrokeStyle strokeStyles2[] =
+	{
+		// custom dashed line
+		g.GetFactory().CreateStrokeStyle(
+			dashedLineProps, dashes, static_cast<int32_t>(std::size(dashes))
+		),
+
+		g.GetFactory().CreateStrokeStyle(
+			{
+				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// start
+				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// end
+				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// cap
+
+				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
+				1.0f,									// mitre limit
+				GmpiDrawing_API::MP1_DASH_STYLE_DASH,
+				0.0f,									// dash offset
+				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
+			}
+			, 0, 0
+		),
+
+		g.GetFactory().CreateStrokeStyle(
+			{
+				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// start
+				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// end
+				GmpiDrawing_API::MP1_CAP_STYLE_ROUND,	// cap
+
+				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
+				1.0f,									// mitre limit
+				GmpiDrawing_API::MP1_DASH_STYLE_DOT,
+				0.0f,									// dash offset
+				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
+			}
+			, 0, 0
+		),
+
+		g.GetFactory().CreateStrokeStyle(
+			{
+				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// start
+				GmpiDrawing_API::MP1_CAP_STYLE_FLAT,	// end
+				GmpiDrawing_API::MP1_CAP_STYLE_TRIANGLE,	// cap
+
+				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
+				1.0f,									// mitre limit
+				GmpiDrawing_API::MP1_DASH_STYLE_DASH_DOT,
+				0.0f,									// dash offset
+				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
+			}
+			, 0, 0
+		),
+		g.GetFactory().CreateStrokeStyle(
+			{
+				GmpiDrawing_API::MP1_CAP_STYLE_SQUARE,	// start
+				GmpiDrawing_API::MP1_CAP_STYLE_SQUARE,	// end
+				GmpiDrawing_API::MP1_CAP_STYLE_SQUARE,	// cap
+
+				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
+				1.0f,									// mitre limit
+				GmpiDrawing_API::MP1_DASH_STYLE_DASH_DOT_DOT,
+				0.0f,									// dash offset
+				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
+			}
+			, 0, 0
+		),
+
+	};
+
+	float y = 120.0f;
+	for (auto& strokeStyle : strokeStyles2)
+	{
+		g.DrawLine({ 10.0, y }, { 100.0, y }, blackBrush, 2.0f, strokeStyle);
+		y += 4.0f;
 	}
 }
 
@@ -1298,7 +1381,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		drawMacGraphicsTest(g);
 		break;
 	case 5:
-		drawTextTestFIXED(g);
+		drawTextTestFIXED(g, false);
 		break;
 	case 6:
 	{
@@ -1340,6 +1423,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 
 	case 13:
 //		drawVFD(g, getRect(), linearImageBlurred);
+		drawTextTestFIXED(g, true);
 		break;
 	}
 
@@ -1505,7 +1589,7 @@ void DrawingTestGui::DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g)
 }
 
 // Draw using text body height (not point size). Should result in perfect cross-platform comptibility, even with font-fallback to differnt fonts ("Segoe UI").
-void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
+void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBoundingbox)
 {
 	auto r = getRect();
 
@@ -1630,7 +1714,10 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 		std::string text("Cat");
 		float dipFontSize = (font_size_ * 72.f) / 96.f; // Points to DIPs conversion. https://social.msdn.microsoft.com/forums/vstudio/en-US/dfbadc0b-2415-4f92-af91-11c78df435b3/hwndhost-gdi-vs-directwrite-font-size
 
-		TextFormat dtextFormat = g.GetFactory().CreateTextFormat2(dipFontSize); // Default font face.
+		 // Default font face.
+		TextFormat dtextFormat = useFixedBoundingbox ?
+			g.GetFactory().CreateTextFormat2(dipFontSize)
+			: g.GetFactory().CreateTextFormat(dipFontSize);
 
 		fallbackBrush.SetColor(Color(0, 0, 0));
 
@@ -1715,7 +1802,12 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 	{
 		const char* words[] = { /*"cat", "White Noise",*/ "the quick brown fox jumped over the lazy dog" };
 
-		TextFormat dtextFormat = g.GetFactory().CreateTextFormat2(); // Default font face, Default Size.
+		//TextFormat dtextFormat = g.GetFactory().CreateTextFormat2();
+		// Default font face, Default Size.
+		TextFormat dtextFormat = useFixedBoundingbox ?
+			g.GetFactory().CreateTextFormat2()
+			: g.GetFactory().CreateTextFormat();
+
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
 
@@ -1812,7 +1904,11 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 
 			for (auto dipFontSize : fontSizes)
 			{
-				auto textFormat = factory.CreateTextFormat2(dipFontSize, fontFace);
+				//auto textFormat = factory.CreateTextFormat2(dipFontSize, fontFace);
+				TextFormat textFormat = useFixedBoundingbox ?
+					g.GetFactory().CreateTextFormat2(dipFontSize, fontFace)
+					: g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
+
 				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
 				textFormat.GetFontMetrics(&fontMetrics);
 
@@ -1868,13 +1964,23 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 				g.DrawLine(Point(lineLeft, y), Point(lineRight, y), fallbackBrush, lineWidth);
 
 				fallbackBrush.SetColor(Color::Black);
+
+				// bracket left end of box
+				g.DrawLine(Point(textRect.left, textRect.top), Point(textRect.left, textRect.bottom), fallbackBrush, lineWidth);
+				g.DrawLine(Point(textRect.left, textRect.top), Point(textRect.left + 20, textRect.top), fallbackBrush, lineWidth);
+				g.DrawLine(Point(textRect.left, textRect.bottom), Point(textRect.left + 20, textRect.bottom), fallbackBrush, lineWidth);
+
 				g.DrawTextU(fontFace, textFormat, textRect, fallbackBrush);
 
 				textRect.top += ceilf(dipFontSize * 1.4f);
 
 				if ((fontFace[0] == 'T' || fontFace[0] == 'C') && dipFontSize == 9 )
 				{
-					auto textFormatSmall = g.GetFactory().CreateTextFormat2(8);
+					//auto textFormatSmall = g.GetFactory().CreateTextFormat2(8);
+					TextFormat textFormatSmall = useFixedBoundingbox ?
+						g.GetFactory().CreateTextFormat2(8)
+						: g.GetFactory().CreateTextFormat(8);
+
 					Rect textRect2 (0,0,1000,20);
 					if (fontFace[0] == 'C')
 					{
@@ -1919,7 +2025,12 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g)
 				{
 					// Arial draws top two font weights lower than the rest.
 					// Verdana, Times New Roman, and Trebuchet MS draws only two distinct weights.
-					auto textFormat = g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight) fontWeight);
+					//auto textFormat = g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight) fontWeight);
+					TextFormat textFormat = useFixedBoundingbox ?
+						g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight)fontWeight)
+						: g.GetFactory().CreateTextFormat(28.0f, "Arial", (GmpiDrawing::FontWeight)fontWeight);
+
+
 					Rect textRect2 (x, 64, x + 23, 110);
 
 					fallbackBrush.SetColor(Color::PapayaWhip);
