@@ -879,7 +879,7 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 		}
 	}
 
-	// dashed lines
+	// dashed lines. cycling pattern and capstyles
 	auto blackBrush = g.CreateSolidColorBrush(Color::Black);
 
 	float y = 120.0f;
@@ -929,6 +929,36 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 			}
 
 			y += 4.0f;
+		}
+
+		y += 5.0f;
+	}
+
+	// dashed lines 'phase'
+	{
+		const GmpiDrawing_API::MP1_CAP_STYLE capstyle = GmpiDrawing_API::MP1_CAP_STYLE_SQUARE;
+		for (float phase = 0.f ; phase < 8.0f ; phase += 0.5f)
+		{
+			const auto dashStyle = GmpiDrawing_API::MP1_DASH_STYLE_DASH_DOT;
+			{
+				auto strokeStyle = g.GetFactory().CreateStrokeStyle(
+					GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES
+					{
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// start
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// end
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// cap
+
+						GmpiDrawing_API::MP1_LINE_JOIN_MITER,
+						1.0f,									// mitre limit
+						(GmpiDrawing_API::MP1_DASH_STYLE)dashStyle, // _DASH_DOT_DOT,
+						phase,									// dash offset (phase)
+						GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
+					}
+				);
+
+				g.DrawLine({ 10.0, y }, { 100.0, y }, blackBrush, 2.0f, strokeStyle);
+			}
+			y += 3.0f;
 		}
 
 		y += 5.0f;
