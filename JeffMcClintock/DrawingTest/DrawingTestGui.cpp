@@ -909,12 +909,21 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 			else
 			{
 				const float dashes[] = { 1.0f, 2.0f, 3.0f, 4.0f };
-				GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES dashedLineProps{};
-				dashedLineProps.miterLimit = 1.0f;
-				dashedLineProps.dashStyle = GmpiDrawing_API::MP1_DASH_STYLE_CUSTOM;
 
 				auto strokeStyle = g.GetFactory().CreateStrokeStyle(
-					dashedLineProps, dashes, static_cast<int32_t>(std::size(dashes))
+					GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES
+					{
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// start
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// end
+						(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// cap
+
+						GmpiDrawing_API::MP1_LINE_JOIN_MITER,
+						1.0f,									// mitre limit
+						(GmpiDrawing_API::MP1_DASH_STYLE)dashStyle,
+						0.0f,									// dash offset
+						GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
+					}
+					, dashes, static_cast<int32_t>(std::size(dashes))
 				);
 				g.DrawLine({ 10.0, y }, { 100.0, y }, blackBrush, 2.0f, strokeStyle);
 			}

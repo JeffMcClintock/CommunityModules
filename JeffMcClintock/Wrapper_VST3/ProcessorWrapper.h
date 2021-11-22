@@ -138,47 +138,18 @@ struct myEventList : public Steinberg::FObject, public Steinberg::Vst::IEventLis
 	REFCOUNT_METHODS (Steinberg::FObject)
 };
 
-class Vst3ParamSet : public MpBase2
-{
-	FloatInPin pinFloatIn;
-	IntInPin pinParamIdx;
-	MidiOutPin pinParameterAccessOut;
-
-public:
-	Vst3ParamSet()
-	{
-		initializePin( pinFloatIn );
-		initializePin( pinParamIdx );
-		initializePin( pinParameterAccessOut );
-	}
-
-	void onSetPins(void) override
-	{
-		if( pinFloatIn.isUpdated() )
-		{
-			// Send MIDI HD-Protocol Note Expression message.
-			const int channel = 0;
-			GmpiMidiHdProtocol::Midi2 msg;
-			const int32_t intControllerVal20 = 0x0FFF & (int32_t)(pinFloatIn.getValue() * (float)0x0FFF);
-			GmpiMidiHdProtocol::setMidiMessage(msg, GmpiMidi::MIDI_ControlChange, intControllerVal20, 0xFF, pinParamIdx.getValue());
-			pinParameterAccessOut.send(msg.data(), msg.size());
-		}
-	}
-};
-
 class ProcessorWrapper : public MpBase2
 {
-	Steinberg::IPtr<Steinberg::Vst::IComponent> component_;
-	Steinberg::IPtr<Steinberg::Vst::IAudioProcessor> vstEffect_;
+	Steinberg::Vst::IComponent* component_ = {};
+	Steinberg::Vst::IAudioProcessor* vstEffect_ = {};
 	Steinberg::Vst::ProcessContext vstTime_;
 	myEventList vstEventList;
 	myParameterChanges parameterEvents;
 	Steinberg::Vst::HostProcessData processData;
 	Steinberg::Vst::ProcessSetup processSetup;
-	class ControllerWrapper* controller_ = {};
 
-	int inputChannelCount = {};
-	int outputChannelCount = {};
+	std::vector<int> inputBusses; // bus/chans
+	std::vector<int> outputBusses; // bus/chans
 
 	bool bypassMode;
 
@@ -206,40 +177,49 @@ public:
 		(this->*(currentVstSubProcess))(count, events);
 	}
 	void subProcess(int32_t count, const gmpi::MpEvent* events);
-	void subProcessPreSleep(int32_t count, const gmpi::MpEvent* events);
-	void subProcessSilence(int32_t count, const gmpi::MpEvent* events);
 	void subProcessBypass(int32_t count, const gmpi::MpEvent* events);
-	void subProcessBypassSilence(int32_t count, const gmpi::MpEvent* events);
+	void DoBypass(int32_t count);
 
 	int32_t MP_STDCALL open() override;
 	void initVst();
-	bool setupBuffers(int numBusses, Steinberg::Vst::AudioBusBuffers* audioBuffers, Steinberg::Vst::BusDirection dir);
-	bool setupBuffers(Steinberg::Vst::AudioBusBuffers& audioBuffers);
-	virtual void onSetPins(void);
+	void onSetPins(void) override;
 private:
 
 	inline void	ProcessPlugin(int count)
 	{
-		for (int i = 0; i < inputChannelCount; ++i)
+#ifdef CANCELLATION_TEST_ENABLE2
+        if (!cancellation_done && vstTime_.continousTimeSamples > CANCELLATION_SNAPSHOT_TIMESTAMP) // don't account for oversample, but should be good enough
+        {
+			cancellation_done = true;
+			debugDumpPresetToFile();
+        }
+#endif
+
+		for (int bus = 0; bus < inputBusses.size(); ++bus)
 		{
-			processData.setChannelBuffer(
-				Steinberg::Vst::kInput,
-				0,
-				i,
-	            getBuffer(*(AudioIns[i]))
-			);
+			for (int i = 0; i < inputBusses[bus]; ++i)
+			{
+				processData.setChannelBuffer(
+					Steinberg::Vst::kInput,
+					bus,
+					i,
+					getBuffer(*(AudioIns[i]))
+				);
+			}
 		}
 
-		for (int i = 0; i < outputChannelCount; ++i)
+		for (int bus = 0; bus < outputBusses.size(); ++bus)
 		{
-			processData.setChannelBuffer(
-				Steinberg::Vst::kOutput,
-				0,
-				i,
-	            getBuffer(*(AudioOuts[i]))
-			);
+			for (int i = 0; i < outputBusses[bus]; ++i)
+			{
+				processData.setChannelBuffer(
+					Steinberg::Vst::kOutput,
+					bus,
+					i,
+					getBuffer(*(AudioOuts[i]))
+				);
+			}
 		}
-
 		myParameterChanges outputParameterChanges;
 		myEventList outputEvents;
 
@@ -278,32 +258,43 @@ private:
 		vstTime_.continousTimeSamples += count;
 	}
 
-	inline void	CopySilenceToOutput(int count)
+	inline void	CopyInputOverOutput(int count)
 	{
-		// No significant change to input signal. Output Silence.
-		if (silenceCounter > 0)
-		{
-			// If we havn't already, communicate "static" status from outputs.
-			bool outputStreaming = !AudioOuts.empty() && AudioOuts[0]->isStreaming();
-			if (outputStreaming)
-			{
-				for (auto& outPin : AudioOuts)
-				{
-					outPin->setStreaming(false, 0);
-				}
-			}
+		float fade = {};
+		constexpr float fadeTimeS = 0.02f;
+		const float fadeInc = copysignf(1.f / (getSampleRate() * fadeTimeS), targetLevel - fadeLevel);
 
-			for (auto& outPin : AudioOuts)
+		for (size_t i = 0; i < AudioOuts.size(); ++i)
+		{
+			fade = fadeLevel;
+
+			// Copy audio input to output.
+			auto out = getBuffer(*(AudioOuts[i]));
+			if (i < AudioIns.size())
 			{
-				auto out = getBuffer(*outPin);
+				float* in = getBuffer(*(AudioIns[i]));
 				for (int s = count; s > 0; --s)
 				{
-					*out++ = 0.0f;
+					fade = std::clamp(fade + fadeInc, 0.0f, 1.0f);
+					*out = *in + fade * (*out - *in);
+
+					++out;
+					++in;
 				}
 			}
-			silenceCounter -= count;
+			else
+			{
+				// if not audio input pins, output silence.
+				for (int s = count; s > 0; --s)
+				{
+					fade = std::clamp(fade + fadeInc, 0.0f, 1.0f);
+					*out = 0.0f + fade * (*out - 0.0f);
+					++out;
+				}
+			}
 		}
-		vstTime_.continousTimeSamples += count;
+
+		fadeLevel = fade;
 	}
 
 	void addParameterEvent(int clock, int index, float value);
@@ -313,10 +304,9 @@ private:
 
 	std::vector< std::unique_ptr<AudioInPin> > AudioIns;
 	std::vector< std::unique_ptr<AudioOutPin> > AudioOuts;
-	std::vector< std::unique_ptr<FloatInPin> > ParameterPins;
 
 	BoolInPin pinOnOffSwitch;
-	BlobInPin pinAeffectPointer;
+	BlobInPin pinControllerPointer;
 
 	// Musical time
 	FloatInPin pinHostBpm;
@@ -329,5 +319,47 @@ private:
 
 	int firstParameterPinIndex = {};
 	int parameterAccessPinIndex = {};
+
+	float fadeLevel = 1.0f;
+	float targetLevel = 1.0f;
 };
 
+class Vst3ParamSet : public MpBase2
+{
+	bool initialUpdateDone = false;
+
+	FloatInPin pinFloatIn;
+	IntInPin pinParamIdx;
+	MidiOutPin pinParameterAccessOut;
+
+public:
+	Vst3ParamSet()
+	{
+		initializePin(pinFloatIn);
+		initializePin(pinParamIdx);
+		initializePin(pinParameterAccessOut);
+	}
+
+	void sendPinValueAsMidi()
+	{
+		const int paramId = pinParamIdx.getValue();
+        assert(paramId < 256);
+
+		// Send MIDI HD-Protocol Note Expression message. key is paramId, value is normalised cast to int32.
+		GmpiMidiHdProtocol::Midi2 msg;
+		GmpiMidiHdProtocol::setMidiMessage(msg, GmpiMidi::MIDI_ControlChange, 0, paramId, 0);
+
+		const float normalized = pinFloatIn.getValue();
+        msg.value = *(int32_t*) &normalized;
+
+		pinParameterAccessOut.send(msg.data(), msg.size(), getBlockPosition());// + paramId);
+	}
+
+	void onSetPins(void) override
+	{
+		if (pinFloatIn.isUpdated())
+		{
+			sendPinValueAsMidi();
+		}
+	}
+};

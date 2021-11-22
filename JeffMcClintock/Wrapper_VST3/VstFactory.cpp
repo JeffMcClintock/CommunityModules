@@ -346,7 +346,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	}
 
 	// TODO!!!: Hide and handle MIDI CC dummy parameters
-
+#if 0
 	// Gather parameter names.
 	vector<string> paramNames;
 	const auto parameterCount = plugProvider.controller->getParameterCount();
@@ -357,6 +357,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 
 		paramNames.push_back(WStringToUtf8(info.title));
 	}
+#endif
 
 	auto classIdString = classId.toString();
 
@@ -377,11 +378,13 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	oss << "<Parameters>";
 
 	int i = 0;
+#if 0
 	for (auto name : paramNames)
 	{
 		oss << "<Parameter id=\"" << std::dec << i << "\" name=\"" << name << "\" datatype=\"float\" metadata=\",,1,0\" />";
 		++i;
 	}
+#endif
 
 	// next-to last parameter stores state from getChunk() / setChunk().
 	oss << "<Parameter id=\"" << std::dec << i << "\" name=\"chunk\" ignorePatchChange=\"true\" datatype=\"blob\" />";
@@ -438,6 +441,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 		<Pin name = "Numerator" datatype = "int" hostConnect = "Time/Timesignature/Numerator" />
 		<Pin name = "Denominator" datatype = "int" hostConnect = "Time/Timesignature/Denominator" />
 		<Pin name = "Host Bar Start" datatype = "float" hostConnect = "Time/BarStartPosition" />
+		<Pin name = "" datatype = "int" hostConnect = "Processor/OfflineRenderMode" />
 	)XML";
 
 	auto controllerPointerParamId = i;
@@ -457,11 +461,13 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	for (int i = 0; i < numOutputs; ++i)
 		oss << "<Pin name=\"Signal Out\" direction=\"out\" datatype=\"float\" rate=\"audio\" />";
 
+#if 0
 	// DSP pins for receiving normalised parameter values from GUI.
 	for(int i = 0; i < parameterCount; ++i)
 	{
 		oss << "<Pin datatype=\"float\" parameterId=\"" << i << "\" />";
 	}
+#endif
 
 	oss << "</Audio>";
 

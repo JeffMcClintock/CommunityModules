@@ -1,9 +1,8 @@
 #include "./ProcessorWrapper.h"
 #include "../shared/xplatform.h"
 #include <algorithm>
-#include "ControllerWrapper.h"
-#include "myPluginProvider.h"
 #include "./MyViewStream.h"
+#include "./PeerCommunication.h"
 
 #if defined(SE_TARGET_WAVES)
 #include "../../ug_base.h"
@@ -46,9 +45,9 @@ ProcessorWrapper::ProcessorWrapper() :
 
 ProcessorWrapper::~ProcessorWrapper()
 {
-	if( component_ )
+	if (component_)
 	{
-		component_->setActive(false);
+        component_->setActive(false);
 	}
 }
 
@@ -83,11 +82,6 @@ int32_t ProcessorWrapper::open()
 
 					// This pin added later. Check if it's in XML yet. Only need this if statement until both Grand80 and RHP ported again.
 					it->getPinDatatype(datatype);
-					//if (datatype == MP_BOOL)
-					//{
-					//	initializePin(idx++, pinAutoSleep);
-					//	r = it->next();
-					//}
 
 					initializePin(idx++, pinHostBpm);
 					r = it->next();
@@ -99,42 +93,28 @@ int32_t ProcessorWrapper::open()
 					r = it->next();
 					initializePin(idx++, pinDenominator);
 					r = it->next();
-					initializePin(idx, pinHostBarStart);
+					initializePin(idx++, pinHostBarStart);
+					r = it->next();
+					initializePin(idx, pinOfflineRenderMode);
 					break;
 
 				case MP_MIDI:
 					midiPinsIdxs.push_back(idx);
 					break;
 
-					// This does not apply when Parameter pins are on GUI.
-				case MP_FLOAT32:
-					// not VS2012		ParameterPins.push_back(make_unique<FloatInPin>());
-					ParameterPins.push_back(std::unique_ptr<FloatInPin>(new FloatInPin()));
-
-					initializePin(idx, *(ParameterPins.back()));
-
-					if(!firstParameterPinIndex)
-					{
-						firstParameterPinIndex = idx;
-					}
-
-					break;
-
 				case MP_BLOB:
-					initializePin(idx, pinAeffectPointer);
+					initializePin(idx, pinControllerPointer);
 					break;
 
 				default: // MP_AUDIO
-// not VS2012		AudioIns.push_back(make_unique<AudioInPin>());
-					AudioIns.push_back(std::unique_ptr<AudioInPin>(new AudioInPin()));
+                    AudioIns.push_back(std::make_unique<AudioInPin>());
 					initializePin(idx, *(AudioIns.back()));
 					break;
 				}
 			}
 			else
 			{
-				//AudioOuts.push_back(make_unique<AudioOutPin>());
-				AudioOuts.push_back(std::unique_ptr<AudioOutPin>(new AudioOutPin()));
+				AudioOuts.push_back(std::make_unique<AudioOutPin>());
 				initializePin(idx, *(AudioOuts.back()));
 			}
 			r = it->next();
@@ -151,38 +131,14 @@ int32_t ProcessorWrapper::open()
 
 	vstTime_.sampleRate = (double)getSampleRate();
 
-	// Preserve FPU state (Waves plugins trash it).
-#if _MSC_VER >= 1600 // Not Avail in VS2005.
-	unsigned int fpState;
-	_controlfp_s(&fpState, 0, 0);
-#endif
-
-#if defined(SE_TARGET_WAVES)
-	{
-		int32_t handle;
-		getHost()->getHandle(handle);
-
-		auto ug = dynamic_cast< ug_base*>( getHost() );
-		auto synthRuntime_ = ug->AudioMaster()->Application();
-		vstEffect_ = synthRuntime_->WavesGetChildPlugin(shellPluginId_, handle);
-		initVst();
-	}
-#endif
-
 	for (auto it = AudioOuts.begin(); it != AudioOuts.end(); ++it)
 	{
 		(*it)->setStreaming(true);
 	}
 
-	unsigned int unused;
-#if defined (_WIN32) && !defined(_WIN64)
-	_controlfp_s(&unused, fpState, MCW_PC | _MCW_DN);
-#else
-	_controlfp_s(&unused, fpState, _MCW_DN);
-#endif
-
 	processData.inputEvents = &vstEventList;
 	processData.inputParameterChanges = &parameterEvents;
+
 	return MP_OK;
 }
 
@@ -190,151 +146,66 @@ void ProcessorWrapper::initVst()
 {
 	bypassMode = true;
 	currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
-	vstEffect_ = {};
-	component_ = {};
 
-	if (!controller_ || !controller_->plugin->controller)
+	if (!vstEffect_)
 	{
 		return;
 	}
 
-	{
-		component_ = controller_->plugin->component;
-
-		if (!component_)
-		{
-			return;
-		}
-
-		{
-			Steinberg::Vst::IAudioProcessor* vstEffect = {};
-			component_->queryInterface(IAudioProcessor::iid, (void**)&vstEffect);
-			vstEffect_.reset(vstEffect);
-		}
-
-		if (!vstEffect_)
-		{
-			component_ = nullptr;
-			return;
-		}
-
-		processSetup = {
+	processSetup = {
 		pinOfflineRenderMode.getValue() == 2 ? kOffline : kRealtime,
-			kSample32,
-			getBlockSize(),
-			getSampleRate()
-		};
+		kSample32,
+		getBlockSize(),
+		getSampleRate()
+	};
 
-		if(vstEffect_->setupProcessing(processSetup) != kResultOk)
-		{
-			return;
-		}
-
-		processData.prepare (*component_, 0, processSetup.symbolicSampleSize);
-
-		{
-			BusDirection dir = kInput;
-			int32 numBusses = component_->getBusCount (kAudio, dir);
-			if(!setupBuffers(numBusses, processData.inputs, dir))
-				return;// false;
-
-			processData.numInputs = numBusses;
-		}
-		{
-			BusDirection dir = kOutput;
-			int32 numBusses = component_->getBusCount (kAudio, dir);
-			if(!setupBuffers(numBusses, processData.outputs, dir))
-				return;// false;
-
-			processData.numOutputs = numBusses;
-		}
-
-		component_->setActive(true);
-
-		bypassMode = false;
-		currentVstSubProcess = &ProcessorWrapper::subProcess;
-	}
-}
-
-bool ProcessorWrapper::setupBuffers (int numBusses, AudioBusBuffers* audioBuffers, BusDirection dir)
-{
-	if (((numBusses > 0) && !audioBuffers) || !component_)
-		return false;
-	for (int32 busIndex = 0; busIndex < numBusses; busIndex++) // buses
+	if(vstEffect_->setupProcessing(processSetup) != kResultOk)
 	{
-		BusInfo busInfo;
-		if (component_->getBusInfo (kAudio, dir, busIndex, busInfo) == kResultTrue)
-		{
-			if (!setupBuffers (audioBuffers[busIndex]))
-				return false;
-
-			if(dir == kInput)
-			{
-				inputChannelCount = busInfo.channelCount;
-			}
-			else
-			{
-				outputChannelCount = busInfo.channelCount;
-			}
-/* todo
-			if ((busInfo.flags & BusInfo::kDefaultActive) != 0)
-			{
-				for (int32 chIdx = 0; chIdx < busInfo.channelCount; chIdx++) // channels per bus
-					audioBuffers[busIndex].silenceFlags |=
-					    (TestDefaults::instance().channelIsSilent << chIdx);
-			}
-*/
-		}
-		else
-			return false;
+		return;
 	}
-	return true;
-}
 
-bool ProcessorWrapper::setupBuffers (AudioBusBuffers& audioBuffers)
-{
-	//if (processSetup.symbolicSampleSize != processData.symbolicSampleSize)
-	//	return false;
+	processData.prepare (*component_, 0, processSetup.symbolicSampleSize);
 
-	audioBuffers.silenceFlags = 0;
-	for (int32 chIdx = 0; chIdx < audioBuffers.numChannels; chIdx++)
+	bypassMode = false;
+	currentVstSubProcess = &ProcessorWrapper::subProcess;
+
+	// init busses
 	{
-//		if (processSetup.symbolicSampleSize == kSample32)
+		for (MediaType type = kAudio; type <= kNumMediaTypes; type++) // audio or MIDI
 		{
-			if (audioBuffers.channelBuffers32)
+			for (int busDirection = kInput; busDirection <= kOutput; busDirection++)
 			{
-				audioBuffers.channelBuffers32[chIdx] =
-				    new Sample32[processSetup.maxSamplesPerBlock];
-				if (audioBuffers.channelBuffers32[chIdx])
-					memset (audioBuffers.channelBuffers32[chIdx], 0,
-					        processSetup.maxSamplesPerBlock * sizeof (Sample32));
-				else
-					return false;
+				auto busCount = component_->getBusCount(type, busDirection);
+
+				if (kAudio == type && busCount > 0)
+				{
+					std::vector<int>& channelCounts = (busDirection == kInput) ? inputBusses : outputBusses;
+
+					for (int busIndex = 0; busIndex < busCount; ++busIndex)
+					{
+						BusInfo busInfo{};
+						if (component_->getBusInfo(kAudio, busDirection, busIndex, busInfo) == kResultTrue)
+						{
+							channelCounts.push_back(busInfo.channelCount);
+						}
+						else
+						{
+							break;
+						}
+					}
+				}
+
+				for (auto busIndex = 0; busIndex < busCount; ++busIndex)
+				{
+					component_->activateBus(type, busDirection, busIndex, true);
+				}
 			}
-			else
-				return false;
 		}
-		//else if (processSetup.symbolicSampleSize == kSample64)
-		//{
-		//	if (audioBuffers.channelBuffers64)
-		//	{
-		//		audioBuffers.channelBuffers64[chIdx] =
-		//		    new Sample64[processSetup.maxSamplesPerBlock];
-		//		if (audioBuffers.channelBuffers64[chIdx])
-		//			memset (audioBuffers.channelBuffers64[chIdx], 0,
-		//			        processSetup.maxSamplesPerBlock * sizeof (Sample64));
-		//		else
-		//			return false;
-		//	}
-		//	else
-		//		return false;
-		//}
-		//else
-		//	return false;
 	}
+
+	component_->setActive(true);
+
 	host.SetLatency(vstEffect_->getLatencySamples()); // this newer method not suported on Waves (but harmless)
-
-	return true;
 }
 
 void ProcessorWrapper::addParameterEvent(int clock, int id, float value)
@@ -364,11 +235,11 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
             _RPT3(0, "   setParameter %9d: %2d -> %f\n", handle, paramId, normalized);
 #endif
 
-#ifdef SE_TARGET_SEM
+#if 0 // def SE_TARGET_SEM
 			// Also send parameter to Controller
 			if (controller_)
 			{
-//??				controller_->UnsafeAddParameterChangeFromProcessor(paramId, normalized);
+				controller_->UnsafeAddParameterChangeFromProcessor(paramId, normalized);
 			}
 #endif
 
@@ -376,7 +247,6 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 		return;
 	}
 
-	// 1.1, complaints system msg needed.		if( !is_system_msg ) // FMHeaven crashes if sent system messages
 	// pass to plug. !! NEED TO CHECK IT SUPPORTS EVENTS!!
 	const int b1 = midiData[0];
 	const int status = midiData[0] & 0xf0;
@@ -497,15 +367,7 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 		e = next_event;
 		do
 		{
-			if(e->eventType == EVENT_PIN_SET && e->parm1 >= firstParameterPinIndex)
-			{
-				addParameterEvent(
-					e->timeDelta,
-					e->parm1 - firstParameterPinIndex,
-					*(float*)(&e->parm3)
-				);
-			}
-			else if (e->eventType == EVENT_MIDI)
+			if (e->eventType == EVENT_MIDI)
 			{
 				if (e->extraData == 0) // short msg
 				{
@@ -543,132 +405,50 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 	}
 }
 
-void ProcessorWrapper::subProcessBypass(int32_t count, const gmpi::MpEvent* events)
-{
-	ProcessEvents(count, events);
-
-	CopyInputToOutput(count);
-}
-
-void ProcessorWrapper::subProcessBypassSilence(int32_t count, const gmpi::MpEvent* events)
-{
-	if (silenceCounter <= 0 && events == nullptr)
-	{
-		getHost()->sleep();
-		return;
-	}
-
-	inputStatusChanged = false;
-
-	ProcessEvents(count, events);
-
-	// If any input signal changes, set output to run, else stop.
-	bool outputStreaming = !AudioOuts.empty() && AudioOuts[0]->isStreaming();
-	if (outputStreaming != inputStatusChanged)
-	{
-		for (auto& outPin : AudioOuts)
-		{
-			outPin->setStreaming(inputStatusChanged, 0);
-		}
-	}
-
-	if (inputStatusChanged)
-	{
-		for (auto& outPin : AudioOuts)
-		{
-			outPin->setStreaming(inputStatusChanged, 0);
-		}
-
-		// If the input changed in any way, need to feed entire input block to output.
-		CopyInputToOutput(count);
-	}
-	else
-	{
-		// No significant change to input signal. Output Silence.
-		CopySilenceToOutput(count);
-	}
-}
-
-void ProcessorWrapper::subProcessSilence(int32_t count, const gmpi::MpEvent* events)
-{
-	if (silenceCounter <= 0 && events == nullptr)
-	{
-		getHost()->sleep();
-		return;
-	}
-
-	inputStatusChanged = false;
-
-	ProcessEvents(count, events);
-
-	// If any input signal changes, set output to run, else stop.
-	bool outputStreaming = !AudioOuts.empty() && AudioOuts[0]->isStreaming();
-	if (outputStreaming != inputStatusChanged)
-	{
-		for (auto& outPin : AudioOuts)
-		{
-			outPin->setStreaming(inputStatusChanged, 0);
-		}
-	}
-
-	if (inputStatusChanged)
-	{
-		// If the input changed in any way, need to process block to output.
-		ProcessPlugin(count);
-
-		// return to monitoring output tail.
-		silenceCounter = getBlockSize();
-		if (currentVstSubProcess == &ProcessorWrapper::subProcessSilence) // it might already be witched elsewhere by "power" button.
-		{
-			currentVstSubProcess = &ProcessorWrapper::subProcessPreSleep;
-		}
-	}
-	else
-	{
-		CopySilenceToOutput(count);
-	}
-}
-
-// This processes the plugin, while waiting for the 'tail' to die away.
-void ProcessorWrapper::subProcessPreSleep(int32_t count, const gmpi::MpEvent* events)
-{
-	if (silenceCounter < 0 && events == nullptr )
-	{
-		silenceCounter = getBlockSize();
-		currentVstSubProcess = &ProcessorWrapper::subProcessSilence;
-		(this->*(currentVstSubProcess))(count, events);
-		return;
-	}
-
-	silenceCounter -= count;
-
-	inputStatusChanged = false;
-
-	ProcessEvents(count, events);
-
-	if (inputStatusChanged)
-	{
-		silenceCounter = tailSamples;
-	}
-
-	ProcessPlugin(count);
-}
-
 void ProcessorWrapper::subProcess(int32_t count, const gmpi::MpEvent* events)
 {
 	ProcessEvents(count, events);
 
     if (currentVstSubProcess != &ProcessorWrapper::subProcess) // have to check if VST loaded after processing events.
     {
-		CopyInputToOutput(count); // emulate bypass for this block.
+		assert(currentVstSubProcess == &ProcessorWrapper::subProcessBypass);
+		DoBypass(count);
         return;
     }
 
 	ProcessPlugin(count);
 }
 
+void ProcessorWrapper::subProcessBypass(int32_t count, const gmpi::MpEvent* events)
+{
+	ProcessEvents(count, events);
+
+	DoBypass(count);
+}
+
+void ProcessorWrapper::DoBypass(int32_t count)
+{
+	if (fadeLevel != targetLevel)
+	{
+		ProcessPlugin(count);
+		CopyInputOverOutput(count);
+
+		// fade-up complete?
+		if (fadeLevel == targetLevel && targetLevel == 1.0f)
+		{
+			currentVstSubProcess = &ProcessorWrapper::subProcess;
+		}
+	}
+	else
+	{
+		CopyInputToOutput(count);
+	}
+}
+
 void ProcessorWrapper::onSetPins(void)
 {
+	// Warning this method is not interleaved with processing like normal, all events are processed before running plugin process block.
+
 	if (pinHostBpm.isUpdated())
 	{
 		vstTime_.tempo = pinHostBpm;
@@ -682,23 +462,26 @@ void ProcessorWrapper::onSetPins(void)
 		vstTime_.timeSigDenominator = pinDenominator;
 	}
 
-#if !defined(SE_TARGET_WAVES)
-	if (pinAeffectPointer.isUpdated() && pinAeffectPointer.getValue().getSize() == sizeof(controller_) )
+	if (pinControllerPointer.isUpdated() && pinControllerPointer.getValue().getSize() == sizeof(gmpi::IMpUnknown*))
 	{
-		controller_ = *(ControllerWrapper**)pinAeffectPointer.getValue().getData();
+		auto unknown = *(gmpi::IMpUnknown**)pinControllerPointer.getValue().getData();
+
+		gmpi_sdk::mp_shared_ptr<IVST3PluginOwner> controller;
+		unknown->queryInterface(WV_IID_VST3CONTROLLERHOST, controller.asIMpUnknownPtr());
+
+		controller->registerProcessor(&component_, &vstEffect_);
 
 		initVst();
 	}
-#endif
 
 	if (pinOfflineRenderMode.isUpdated() && vstEffect_)
 	{
 		const int32 newProcessMode = pinOfflineRenderMode.getValue() == 2 ? kOffline : kRealtime;
-		if (newProcessMode != processSetup.processMode && vstEffect_ && controller_)
+		if (newProcessMode != processSetup.processMode && vstEffect_)
 		{
 			// reset processor
 			vstEffect_->setProcessing(false); // nesc?
-			controller_->plugin->setActive(false);
+			component_->setActive(false);
 
 			processSetup = {
 				newProcessMode,
@@ -709,14 +492,20 @@ void ProcessorWrapper::onSetPins(void)
 
 			if (vstEffect_->setupProcessing(processSetup) == kResultOk)
 			{
-				controller_->plugin->setActive(true);
+				component_->setActive(true);
 				vstEffect_->setProcessing(true);
 			}
 		}
 	}
 
-	bypassMode = vstEffect_ == 0 || !pinOnOffSwitch;
+	if (pinOnOffSwitch.isUpdated())
+    {
+	targetLevel = pinOnOffSwitch.getValue() ? 1.0f : 0.0f;
+		currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
+    }
 
+/*
+* // this code assume normal interleaved event processing, which is not the case for this wrapper.
 	bool inputStreaming = false;
 	bool inputUpdated = pinOnOffSwitch.isUpdated();
 	for (auto& p : AudioIns)
@@ -726,55 +515,27 @@ void ProcessorWrapper::onSetPins(void)
 	}
 	inputStatusChanged |= inputUpdated;
 
-	bool outputStreaming = !AudioOuts.empty() && AudioOuts[0]->isStreaming();
+	const bool isProcessingPlugin = vstEffect_ && (targetLevel != 0.f || fadeLevel != 0.f);
+	const bool isStreaming = isProcessingPlugin || inputStreaming;
+	const bool isFading = fadeLevel != targetLevel;
 
-	if (bypassMode)
+	for (auto& outPin : AudioOuts)
 	{
-		if (inputStreaming)
+		if (outPin->isStreaming() != isStreaming)
 		{
-			if (!outputStreaming)
-			{
-				for (auto& outPin : AudioOuts)
-				{
-					outPin->setStreaming(true);
-				}
-			}
-
-			currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
+			outPin->setStreaming(isStreaming);
 		}
-		else
-		{
-			if (inputUpdated)
-			{
-				silenceCounter = getBlockSize();
-			}
+	}
 
-			currentVstSubProcess = &ProcessorWrapper::subProcessBypassSilence;
-		}
+	if (isProcessingPlugin && !isFading)
+	{
+		currentVstSubProcess = &ProcessorWrapper::subProcess;
 	}
 	else
 	{
-		if (true)
-		{
-			if (!outputStreaming)
-			{
-				for (auto& outPin : AudioOuts)
-				{
-					outPin->setStreaming(true);
-				}
-			}
-
-			currentVstSubProcess = &ProcessorWrapper::subProcess;
-		}
-		else
-		{
-			if (inputUpdated)
-			{
-				silenceCounter = getBlockSize();
-				currentVstSubProcess = &ProcessorWrapper::subProcessPreSleep;
-			}
-		}
+		currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
 	}
+*/
 }
 
 #ifdef CANCELLATION_TEST_ENABLE2

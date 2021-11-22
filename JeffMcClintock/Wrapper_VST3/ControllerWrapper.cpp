@@ -1,6 +1,8 @@
 #include "ControllerWrapper.h"
 #include "unicode_conversion.h"
 #include "myPluginProvider.h"
+#include "./MyViewStream.h"
+
 #if !defined(SE_TARGET_WAVES)
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
@@ -11,133 +13,45 @@ using namespace gmpi;
 using namespace Steinberg;
 using namespace Steinberg::Vst;
 
-// for writting.
-class MyBufferStream : public Steinberg::FObject, public IBStream
+class VstComponentHandler : public Steinberg::FObject, public Steinberg::Vst::IComponentHandler
 {
 public:
-	MyBufferStream() {}
-	virtual ~MyBufferStream() {}
+	class ControllerWrapper* controller_;
 
-	//---from IBStream------------------
-	tresult PLUGIN_API read (void* buffer, int32 numBytes, int32* numBytesRead = nullptr) SMTG_OVERRIDE
-	{
-		return 0;
-	}
-	tresult PLUGIN_API write(void* buffer, int32 numBytes, int32* numBytesWritten = nullptr) SMTG_OVERRIDE
-	{
-		if(numBytesWritten)
-		{
-			*numBytesWritten = numBytes;
-		}
-
-		writePos_ += numBytes;
-		buffer_.insert(buffer_.end(), (uint8_t*)buffer, ((uint8_t*)buffer) + numBytes);
-		return 0;
-	}
-	tresult PLUGIN_API seek(int64 pos, int32 mode, int64* result = nullptr) SMTG_OVERRIDE
-	{
-		return 0;
-	}
-	tresult PLUGIN_API tell(int64* pos) SMTG_OVERRIDE
-	{
-		return 0;
-	}
-
-	std::vector<uint8_t> buffer_;
-	int writePos_ = {};
+	// IComponentHandler
+	Steinberg::tresult PLUGIN_API beginEdit(Steinberg::Vst::ParamID id) override;
+	Steinberg::tresult PLUGIN_API performEdit(Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override;
+	Steinberg::tresult PLUGIN_API endEdit(Steinberg::Vst::ParamID id) override;
+	Steinberg::tresult PLUGIN_API restartComponent(Steinberg::int32 flags) override;
 
 	//---Interface---------
-	OBJ_METHODS (MyBufferStream, Steinberg::FObject)
-	DEFINE_INTERFACES
-		DEF_INTERFACE (IBStream)
-	END_DEFINE_INTERFACES (Steinberg::FObject)
-	REFCOUNT_METHODS (Steinberg::FObject)
-};
-
-// for reading.
-class MyViewStream : public Steinberg::FObject, public IBStream
-{
-public:
-	MyViewStream(uint8_t* buffer, int32_t size) : buffer_(buffer), size_(size) {}
-	virtual ~MyViewStream() {}
-
-	//---from IBStream------------------
-	tresult PLUGIN_API read (void* buffer, int32 numBytes, int32* numBytesRead = nullptr) SMTG_OVERRIDE
-	{
-		const auto remaining = size_ - readPos_;
-		numBytes = (std::min)((int)numBytes, remaining);
-		if(numBytesRead)
-		{
-			*numBytesRead = numBytes;
-		}
-		memcpy(buffer, buffer_ + readPos_, numBytes);
-		readPos_ += numBytes;
-
-		return 0;
-	}
-	tresult PLUGIN_API write(void* buffer, int32 numBytes, int32* numBytesWritten = nullptr) SMTG_OVERRIDE
-	{
-		return 0;
-	}
-	tresult PLUGIN_API seek(int64 pos, int32 mode, int64* result = nullptr) SMTG_OVERRIDE
-	{
-		switch(mode)
-		{
-		case kIBSeekSet:
-			readPos_ = (std::min)((int)pos, size_);
-			break;
-
-		case kIBSeekCur:
-			{
-				const auto remaining = size_ - readPos_;
-				pos = (std::min)((int)pos, remaining);
-				readPos_ += pos;
-			}
-			break;
-
-		case kIBSeekEnd:
-			readPos_ = size_;
-			break;
-
-		default:
-			return 1;
-			break;
-		}
-
-		return 0;
-	}
-
-	tresult PLUGIN_API tell(int64* pos) SMTG_OVERRIDE
-	{
-		if(pos)
-		{
-			*pos = readPos_;
-		}
-		return 0;
-	}
-
-	const uint8_t* buffer_ = {};
-	int readPos_ = {};
-	int size_ = {};
-
-	//---Interface---------
-	OBJ_METHODS (MyBufferStream, Steinberg::FObject)
-	DEFINE_INTERFACES
-		DEF_INTERFACE (IBStream)
-	END_DEFINE_INTERFACES (Steinberg::FObject)
-	REFCOUNT_METHODS (Steinberg::FObject)
+	OBJ_METHODS(VstComponentHandler, Steinberg::FObject)
+		DEFINE_INTERFACES
+		DEF_INTERFACE(Steinberg::Vst::IComponentHandler)
+		END_DEFINE_INTERFACES(Steinberg::FObject)
+		REFCOUNT_METHODS(Steinberg::FObject)
 };
 
 ControllerWrapper::ControllerWrapper(const wchar_t* filename, const std::string& uuid) :
-handle_(0)
-, filename_(filename)
+ filename_(filename)
 , shellPluginId_(uuid)
+, handle_(0)
 {
-	componentHandler.controller_ = this;
+	componentHandler = std::make_unique<VstComponentHandler>();
+	componentHandler->controller_ = this;
+	plugin = std::make_unique<myPluginProvider>();
 }
 
 ControllerWrapper::~ControllerWrapper()
 {
+#if 0 // wv
+    if (processor_component_ptr && processor_vstEffect__ptr)
+    {
+		// ensure the processor don't try to access the plugin.
+		*processor_component_ptr = nullptr;
+		*processor_vstEffect__ptr = nullptr;
+    }
+#endif
 	if (windowController)
 	{
 		windowController->destroyView();
@@ -146,7 +60,7 @@ ControllerWrapper::~ControllerWrapper()
 	plugin->terminatePlugin();
 }
 
-int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size)
+int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId, int32_t /*voice*/, const void* data, int32_t size)
 {
 	// Avoid altering plugin state until we can determin if we are restoring a saved preset, or keeping init preset.
 	if(!isOpen)
@@ -163,8 +77,8 @@ int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId
 			return MP_FAIL;
 		}
 
-		const auto chunkParamId = plugin->controller->getParameterCount(); // todo cache this.!!!
-		if(chunkParamId != moduleParameterId)
+		const auto paramId = 0;
+		if(paramId != moduleParameterId)
 		{
 			return MP_OK;
 		}
@@ -172,6 +86,7 @@ int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId
 		if((size_t)(size) < sizeof(int32_t)) // Size of zero implies first-time init, no preset stored yet.
 		{
 			isSynthEditPresetEmpty = true;
+            return MP_OK;
 		}
 		else
 		{
@@ -180,6 +95,7 @@ int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId
 
 			_RPT0(_CRT_WARN, "{ ");
 			auto d = (unsigned char*)data;
+			for(int i = 0; i < 12; ++i)
 			for(int i = 0; i < 12; ++i)
 			{
 				_RPT1(_CRT_WARN, "%02x ", (int)d[i]);
@@ -256,10 +172,13 @@ int32_t ControllerWrapper::preSaveState()
 #endif
 
 		const int voiceId = 0;
-		auto paramId = plugin->controller->getParameterCount();
-
-		host_->setParameter(host_->getParameterHandle(handle_, paramId), MP_FT_VALUE, voiceId, (char*)stream.buffer_.data(), (int32_t) stream.buffer_.size());
-		// _RPT1(_CRT_WARN, "ControllerWrapper:: Saved State: %d bytes\n", chunkSize);
+		host_->setParameter(
+			host_->getParameterHandle(handle_, chunkParamId),
+			MP_FT_VALUE,
+			voiceId,
+			(char*)stream.buffer_.data(),
+			(int32_t) stream.buffer_.size()
+		);
 	}
 
 	stateDirty = false;
@@ -277,13 +196,12 @@ int32_t ControllerWrapper::open()
 		return MP_OK;
 	}
 
-	plugin->controller->setComponentHandler(&componentHandler);
+	plugin->controller->setComponentHandler(componentHandler.get());
 
 	// Pass pointer to 'this' to Process and GUI.
-	const int chunkParamId = plugin->controller->getParameterCount();
 	const int controllerPtrParamId = chunkParamId + 1;
 	const int voiceId = 0;
-	const auto me = this;
+	const auto me = static_cast<IVST3PluginOwner*>(this);
 	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &me, sizeof(me));
 
 	{
@@ -318,7 +236,7 @@ int32_t ControllerWrapper::setHost(gmpi::IMpUnknown* host)
 {
 	host->queryInterface(MP_IID_CONTROLLER_HOST, reinterpret_cast<void **>( &host_ ));
 
-	if( host_ == 0 )
+	if( !host_ )
 	{
 		return MP_NOSUPPORT; //  host Interfaces not supported
 	}
@@ -327,98 +245,41 @@ int32_t ControllerWrapper::setHost(gmpi::IMpUnknown* host)
 
 	LoadPlugin( JmUnicodeConversions::WStringToUtf8(filename_), shellPluginId_);
 
-	if( !plugin->controller ) // VST not installed.
+	if(plugin && plugin->component)
 	{
-		return MP_FAIL;
+		Steinberg::Vst::IAudioProcessor* vstEffect = {};
+		plugin->component->queryInterface(IAudioProcessor::iid, (void**)&vstEffect);
+		if (vstEffect)
+		{
+			host_->setLatency(vstEffect->getLatencySamples()); // this should be supported on Waves.
+			vstEffect->release();
+		}
 	}
-/* TODO
-	// Report latency to SE
-	host_->setLatency(ae->getLatency());
-
-	ae->registerObserver(this);
-*/
-	return MP_OK;
+	return plugin->controller != nullptr ? MP_OK : MP_FAIL;
 }
 
-#if defined (SE_TARGET_WAVES)
-AEffectWrapperWaves* ControllerWrapper::LoadVst2Plugin(intptr_t instance, const wvFM::WCStPath& filename, std::string uuid)
-#else
 int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
-#endif
 {
+	std::string error;
+    dll = VST3::Hosting::Module::create(path, error);
 
+	if(!dll)
 	{
-#if defined (SE_TARGET_WAVES)
-		pAEffectWrapper = new AEffectWrapperWaves();
-		gmpi_dynamic_linking::DLL_HANDLE dllHandle = 0;
-
-		bool bIsFirstPluginInstance = true;
-
-		for (auto it = pluginDllHandles.begin(); it != pluginDllHandles.end(); ++it)
-		{
-			if ((*it).first.handle == handle)
-			{
-				bIsFirstPluginInstance = false;
-				++(*it).first.refCounter;
-				dllHandle = (*it).second;
-				break;
-			}
-		}
-#endif
-
-#if !defined (_WAVES_PROCESS_TARGET ) && defined (SE_TARGET_WAVES)
-		pAEffectWrapper->LoadDll(filename, dllHandle, shellPluginId);
-#elif !defined (SE_TARGET_WAVES) // instead of all this shit, have a seperate class for waves vs SE
-		{
-			std::string error;
-			dll = VST3::Hosting::Module::create(path, error);
-			if(!dll)
-			{
-				// Could not create Module for file
-				return 0;
-			}
-
-			const auto classID = VST3::UID::fromString(uuid);
-			if(!classID)
-			{
-				return gmpi::MP_FAIL;
-			}
-
-			plugin = std::make_unique<myPluginProvider>();
-
-			auto& factory = dll->getFactory();
-			plugin->setup(factory, *classID);
-		}
-#endif
-
-#if 0 //TODO
-		if (pAEffectWrapper->IsLoaded())
-		{
-			pAEffectWrapper->dispatcher(effOpen);
-#if defined (SE_TARGET_WAVES)
-			pluginInstances.push_back(std::pair< intptr_t, AEffectWrapperWaves* >(instance, pAEffectWrapper));
-
-			if (bIsFirstPluginInstance)
-			{
-				sPluginHandle pluginHandle;
-				pluginHandle.handle = handle;
-				pluginHandle.refCounter = 1;
-				pluginDllHandles.push_back(std::pair< sPluginHandle, gmpi_dynamic_linking::DLL_HANDLE >(pluginHandle, dllHandle));
-
-			}
-#else
-			pluginInstance.reset(pAEffectWrapper);
-#endif
-
-		}
-		else
-		{
-			delete pAEffectWrapper;
-			pAEffectWrapper = 0;
-		}
-#endif
+		// Could not create Module for file
+        _RPT1(0, "Failed to load VST3 child plugin. UUID:%s\n", uuid.c_str());
+        return gmpi::MP_FAIL;
 	}
-	return 0;
+
+	const auto classID = VST3::UID::fromString(uuid);
+	if(!classID)
+	{
+        return gmpi::MP_FAIL;
+	}
+
+	auto factory = dll->getFactory();
+	plugin->setup(factory, *classID);
+
+    return gmpi::MP_OK;
 }
 
 void ControllerWrapper::OpenGui()
@@ -441,6 +302,16 @@ void ControllerWrapper::OpenGui()
 	{
 		// Could not get editor view size
 		return;
+	}
+
+	{
+		HDC hdc = ::GetDC(0);
+		int lx = GetDeviceCaps(hdc, LOGPIXELSX);
+		int ly = GetDeviceCaps(hdc, LOGPIXELSY);
+		::ReleaseDC(0, hdc);
+
+		plugViewSize.right = (plugViewSize.right * lx) / 96;
+		plugViewSize.bottom = (plugViewSize.bottom * ly) / 96;
 	}
 
 	const auto viewRect = ViewRectToRect (plugViewSize);
@@ -519,10 +390,30 @@ tresult VstComponentHandler::endEdit (ParamID paramId)
 	return kResultOk;
 }
 
-tresult VstComponentHandler::restartComponent (int32 flags)
+tresult VstComponentHandler::restartComponent (int32 /*flags*/)
 {
 	// TODO!
 	return kResultOk;
 }
 
+
+int32_t ControllerWrapper::registerProcessor(Steinberg::Vst::IComponent** component, Steinberg::Vst::IAudioProcessor** vstEffect)
+{
+	processor_component_ptr = component;
+	processor_vstEffect__ptr = vstEffect;
+
+	if (processor_component_ptr && processor_vstEffect__ptr)
+    {
+        *component = plugin->component.get();
+        (*component)->queryInterface(IAudioProcessor::iid, (void**)vstEffect);
+
+        // unusual. processor don't hold references on the plugin. This is becuase it's lifetime must be controlled exclusivly from the ALG.
+        if (*vstEffect)
+        {
+            (*vstEffect)->release();
+        }
+    }
+
+	return gmpi::MP_OK;
+}
 
