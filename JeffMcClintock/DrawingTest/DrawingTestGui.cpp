@@ -963,6 +963,58 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 
 		y += 5.0f;
 	}
+
+	// test caching geometry dashes
+	{
+		auto geometry = g.GetFactory().CreatePathGeometry();
+
+		{
+			auto sink = geometry.Open();
+
+			float x = 20;
+
+			Point p(x, y);
+
+			sink.BeginFigure(p);
+
+			sink.AddLine(Point(x + 30, y));
+			sink.AddLine(Point(x + 40, y + 30));
+			sink.AddLine(Point(x, y + 20));
+
+			sink.EndFigure();
+
+			sink.Close();
+		}
+		const GmpiDrawing_API::MP1_CAP_STYLE capstyle = GmpiDrawing_API::MP1_CAP_STYLE_SQUARE;
+		const auto dashStyle = GmpiDrawing_API::MP1_DASH_STYLE_DASH_DOT;
+
+		auto strokeStyle = g.GetFactory().CreateStrokeStyle(
+			GmpiDrawing_API::MP1_STROKE_STYLE_PROPERTIES
+			{
+				(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// start
+				(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// end
+				(GmpiDrawing_API::MP1_CAP_STYLE)capstyle,	// cap
+
+				GmpiDrawing_API::MP1_LINE_JOIN_MITER,
+				1.0f,									// mitre limit
+				(GmpiDrawing_API::MP1_DASH_STYLE)dashStyle, // _DASH_DOT_DOT,
+				0.f,									// dash offset (phase)
+				GmpiDrawing_API::MP1_STROKE_TRANSFORM_TYPE_NORMAL
+			}
+		);
+
+		g.DrawGeometry(geometry, blackBrush, 2, strokeStyle);
+
+		Matrix3x2 originalTransform = g.GetTransform();
+
+		auto adjustedTransform = Matrix3x2::Translation(+5, +5) * originalTransform;
+
+		g.SetTransform(adjustedTransform);
+
+		g.DrawGeometry(geometry, blackBrush, 2, strokeStyle);
+
+		g.SetTransform(originalTransform);
+	}
 }
 
 void DrawingTestGui::drawPerceptualColorPicker(GmpiDrawing::Graphics& g)
