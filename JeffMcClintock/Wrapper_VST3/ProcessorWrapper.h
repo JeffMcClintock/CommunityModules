@@ -152,6 +152,7 @@ class ProcessorWrapper : public MpBase2
 	std::vector<int> outputBusses; // bus/chans
 
 	bool bypassMode;
+	std::vector<std::vector<float>> bypassDelays;
 
 	// Silence detection.
 	int silenceCounter;

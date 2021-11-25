@@ -229,12 +229,6 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 			const float normalized = *(float*)&m2->value;
 			addParameterEvent(timeDelta, paramId, normalized);
 
-#if 0 // defined(_WIN32) && defined(_DEBUG)
-			int32_t handle;
-            this->getHost()->getHandle(handle);
-            _RPT3(0, "   setParameter %9d: %2d -> %f\n", handle, paramId, normalized);
-#endif
-
 #if 0 // def SE_TARGET_SEM
 			// Also send parameter to Controller
 			if (controller_)
@@ -242,7 +236,6 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 				controller_->UnsafeAddParameterChangeFromProcessor(paramId, normalized);
 			}
 #endif
-
 		}
 		return;
 	}
@@ -441,7 +434,14 @@ void ProcessorWrapper::DoBypass(int32_t count)
 	}
 	else
 	{
-		CopyInputToOutput(count);
+		if (fadeLevel == 1.0f)
+		{
+			ProcessPlugin(count);
+		}
+		else
+		{
+			CopyInputToOutput(count);
+		}
 	}
 }
 
@@ -500,42 +500,9 @@ void ProcessorWrapper::onSetPins(void)
 
 	if (pinOnOffSwitch.isUpdated())
     {
-	targetLevel = pinOnOffSwitch.getValue() ? 1.0f : 0.0f;
+		targetLevel = pinOnOffSwitch.getValue() ? 1.0f : 0.0f;
 		currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
     }
-
-/*
-* // this code assume normal interleaved event processing, which is not the case for this wrapper.
-	bool inputStreaming = false;
-	bool inputUpdated = pinOnOffSwitch.isUpdated();
-	for (auto& p : AudioIns)
-	{
-		inputStreaming |= p->isStreaming();
-		inputUpdated |= p->isUpdated();
-	}
-	inputStatusChanged |= inputUpdated;
-
-	const bool isProcessingPlugin = vstEffect_ && (targetLevel != 0.f || fadeLevel != 0.f);
-	const bool isStreaming = isProcessingPlugin || inputStreaming;
-	const bool isFading = fadeLevel != targetLevel;
-
-	for (auto& outPin : AudioOuts)
-	{
-		if (outPin->isStreaming() != isStreaming)
-		{
-			outPin->setStreaming(isStreaming);
-		}
-	}
-
-	if (isProcessingPlugin && !isFading)
-	{
-		currentVstSubProcess = &ProcessorWrapper::subProcess;
-	}
-	else
-	{
-		currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
-	}
-*/
 }
 
 #ifdef CANCELLATION_TEST_ENABLE2
