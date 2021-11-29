@@ -205,7 +205,16 @@ void ProcessorWrapper::initVst()
 
 	component_->setActive(true);
 
-	host.SetLatency(vstEffect_->getLatencySamples()); // this newer method not suported on Waves (but harmless)
+	// init buffers to cope with latency
+	latency = vstEffect_ ? vstEffect_->getLatencySamples() : 0;
+	const auto latencyBufferSize = getBlockSize() + latency;
+	bypassDelays.resize(AudioIns.size());
+	for (auto& delay : bypassDelays)
+	{
+		delay.resize(latencyBufferSize);
+	}
+
+	host.SetLatency(latency);
 }
 
 void ProcessorWrapper::addParameterEvent(int clock, int id, float value)
@@ -419,8 +428,73 @@ void ProcessorWrapper::subProcessBypass(int32_t count, const gmpi::MpEvent* even
 	DoBypass(count);
 }
 
+void ProcessorWrapper::copyInputToBypassBuffers(int32_t count)
+{
+	for (size_t i = 0; i < AudioIns.size(); ++i)
+	{
+		const float* in = getBuffer(*(AudioIns[i]));
+		float* dest = bypassDelays[i].data() + bypassBufferPos;
+
+		int todo = count;
+		while (todo)
+		{
+			const int c = (std::min)(todo, (int) bypassDelays[0].size() - bypassBufferPos);
+			for (int s = c; s > 0; --s)
+			{
+				*dest++ = *in++;
+			}
+			dest = bypassDelays[i].data(); // wrap back arround.
+			todo -= c;
+		}
+	}
+	bypassBufferPos = (bypassBufferPos + count) % bypassDelays[0].size();
+}
+
+void ProcessorWrapper::CopyInputToOutput(int count)
+{
+	const int bypassDelaysize = static_cast<int>(bypassDelays[0].size());
+
+	for (size_t i = 0; i < AudioOuts.size(); ++i)
+	{
+		// Copy buffered audio input to output.
+
+		auto out = getBuffer(*(AudioOuts[i]));
+
+		if (i < AudioIns.size())
+		{
+			int bypassBufferReadPos = (bypassBufferPos + bypassDelaysize - latency) % bypassDelays[0].size();
+
+			const float* source = bypassDelays[i].data() + bypassBufferPos;
+			float* in = getBuffer(*(AudioIns[i]));
+
+			int todo = count;
+			while (todo)
+			{
+				const int c = (std::min)(todo, bypassDelaysize - bypassBufferReadPos);
+				for (int s = count; s > 0; --s)
+				{
+					*out++ = *in++;
+				}
+				source = bypassDelays[i].data(); // wrap back arround.
+				todo -= c;
+			}
+		}
+		else
+		{
+			// if not audio input pins, output silence.
+			for (int s = count; s > 0; --s)
+			{
+				*out++ = 0.0f;
+			}
+		}
+	}
+	vstTime_.continousTimeSamples += count;
+}
+
 void ProcessorWrapper::DoBypass(int32_t count)
 {
+	copyInputToBypassBuffers(count);
+
 	if (fadeLevel != targetLevel)
 	{
 		ProcessPlugin(count);

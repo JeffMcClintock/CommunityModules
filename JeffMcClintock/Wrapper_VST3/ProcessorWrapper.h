@@ -153,6 +153,8 @@ class ProcessorWrapper : public MpBase2
 
 	bool bypassMode;
 	std::vector<std::vector<float>> bypassDelays;
+	int bypassBufferPos = 0;
+	int latency = 0;
 
 	// Silence detection.
 	int silenceCounter;
@@ -175,8 +177,138 @@ public:
 	void ProcessEvents(int32_t count, const gmpi::MpEvent* events);
 	void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events) override
 	{
-		(this->*(currentVstSubProcess))(count, events);
+		//(this->*(currentVstSubProcess))(count, events);
+		subProcess2(count, events);
 	}
+
+	void subProcess2(const int32_t count, const gmpi::MpEvent* events)
+	{
+		ProcessEvents(count, events);
+
+		const int bypassDelaysize = static_cast<int>(bypassDelays[0].size());
+
+		// add input to bypass latency buffers
+		{
+			for (size_t i = 0; i < AudioIns.size(); ++i)
+			{
+				const float* in = getBuffer(*(AudioIns[i]));
+				float* dest = bypassDelays[i].data() + bypassBufferPos;
+
+				int todo = count;
+				int c = (std::min)(todo, bypassDelaysize - bypassBufferPos);
+				while (todo)
+				{
+					for (int s = 0; s < c; ++s)
+					{
+						*dest++ = *in++;
+					}
+					dest = bypassDelays[i].data(); // wrap back arround.
+					todo -= c;
+					c = todo;
+				}
+			}
+		}
+
+		// process plugin
+		{
+			for (int bus = 0; bus < inputBusses.size(); ++bus)
+			{
+				for (int i = 0; i < inputBusses[bus]; ++i)
+				{
+					processData.setChannelBuffer(
+						Steinberg::Vst::kInput,
+						bus,
+						i,
+						getBuffer(*(AudioIns[i]))
+					);
+				}
+			}
+
+			for (int bus = 0; bus < outputBusses.size(); ++bus)
+			{
+				for (int i = 0; i < outputBusses[bus]; ++i)
+				{
+					processData.setChannelBuffer(
+						Steinberg::Vst::kOutput,
+						bus,
+						i,
+						getBuffer(*(AudioOuts[i]))
+					);
+				}
+			}
+			myParameterChanges outputParameterChanges;
+			myEventList outputEvents;
+
+			processData.outputParameterChanges = &outputParameterChanges; // todo
+			processData.outputEvents = &outputEvents;
+			processData.numSamples = count;
+
+			vstEffect_->process(processData);
+		}
+
+
+		// Copy buffered audio input to output.
+		for (size_t i = 0; i < AudioOuts.size(); ++i)
+		{
+			auto out = getBuffer(*(AudioOuts[i]));
+
+			if (i < AudioIns.size())
+			{
+				int bypassBufferReadPos = (bypassDelaysize + bypassBufferPos - latency) % bypassDelaysize;
+
+				const float* source = bypassDelays[i].data() + bypassBufferReadPos;
+				int todo = count;
+				while (todo)
+				{
+					const int c = (std::min)(todo, bypassDelaysize - bypassBufferReadPos);
+					for (int s = 0 ; s < c ; ++s)
+					{
+						*out++ = *source++;
+					}
+					source = bypassDelays[i].data(); // wrap back arround.
+					bypassBufferReadPos = 0;
+					todo -= c;
+				}
+			}
+			else
+			{
+				// if not audio input pins, output silence.
+				for (int s = count; s > 0; --s)
+				{
+					*out++ = 0.0f;
+				}
+			}
+		}
+
+#if 0
+		if (fadeLevel != targetLevel)
+		{
+			ProcessPlugin(count);
+			CopyInputOverOutput(count);
+
+			// fade-up complete?
+			if (fadeLevel == targetLevel && targetLevel == 1.0f)
+			{
+				currentVstSubProcess = &ProcessorWrapper::subProcess;
+			}
+		}
+		else
+		{
+			if (fadeLevel == 1.0f)
+			{
+				ProcessPlugin(count);
+			}
+			else
+			{
+				CopyInputToOutput(count);
+			}
+		}
+#endif
+		bypassBufferPos = (bypassBufferPos + count) % bypassDelaysize;
+
+		vstTime_.continousTimeSamples += count;
+	}
+
 	void subProcess(int32_t count, const gmpi::MpEvent* events);
 	void subProcessBypass(int32_t count, const gmpi::MpEvent* events);
 	void DoBypass(int32_t count);
@@ -185,6 +317,7 @@ public:
 	void initVst();
 	void onSetPins(void) override;
 private:
+	void copyInputToBypassBuffers(int32_t count);
 
 	inline void	ProcessPlugin(int count)
 	{
@@ -233,31 +366,7 @@ private:
 		vstTime_.continousTimeSamples += count;
 	}
 
-	inline void	CopyInputToOutput(int count)
-	{
-		for (size_t i = 0; i < AudioOuts.size(); ++i)
-		{
-			// Copy audio input to output.
-			auto out = getBuffer(*(AudioOuts[i]));
-			if (i < AudioIns.size())
-			{
-				float* in = getBuffer(*(AudioIns[i]));
-				for (int s = count; s > 0; --s)
-				{
-					*out++ = *in++;
-				}
-			}
-			else
-			{
-				// if not audio input pins, output silence.
-				for (int s = count; s > 0; --s)
-				{
-					*out++ = 0.0f;
-				}
-			}
-		}
-		vstTime_.continousTimeSamples += count;
-	}
+	void CopyInputToOutput(int count);
 
 	inline void	CopyInputOverOutput(int count)
 	{

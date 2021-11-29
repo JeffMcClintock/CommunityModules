@@ -390,12 +390,15 @@ tresult VstComponentHandler::endEdit (ParamID paramId)
 	return kResultOk;
 }
 
-tresult VstComponentHandler::restartComponent (int32 /*flags*/)
+tresult VstComponentHandler::restartComponent (int32 flags)
 {
-	// TODO!
+	if ((kIoChanged | kLatencyChanged | kReloadComponent) & flags)
+	{
+		controller_->host_->setLatency(-1);
+	}
+
 	return kResultOk;
 }
-
 
 int32_t ControllerWrapper::registerProcessor(Steinberg::Vst::IComponent** component, Steinberg::Vst::IAudioProcessor** vstEffect)
 {
