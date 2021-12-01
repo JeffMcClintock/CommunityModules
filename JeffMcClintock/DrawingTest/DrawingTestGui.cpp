@@ -965,15 +965,17 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 	}
 
 	// test caching geometry dashes
+	const Point cornerOfShape(20, y);
+
 	{
 		auto geometry = g.GetFactory().CreatePathGeometry();
 
 		{
 			auto sink = geometry.Open();
 
-			float x = 20;
+			float x = cornerOfShape.x;
 
-			Point p(x, y);
+			Point p = cornerOfShape;
 
 			sink.BeginFigure(p);
 
@@ -1005,15 +1007,51 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 
 		g.DrawGeometry(geometry, blackBrush, 2, strokeStyle);
 
-		Matrix3x2 originalTransform = g.GetTransform();
+		// test rotation, and caching of dash-style on macOS (it shouldn't need to reapply the dash-style to the geometry repeatedly)
+		{
+			Matrix3x2 originalTransform = g.GetTransform();
+			for (int rot = 0; rot < 8; ++rot)
+			{
+				const float angle = (rot / 8.f) * 2.f * M_PI;
 
-		auto adjustedTransform = Matrix3x2::Translation(+5, +5) * originalTransform;
+				const auto adjustedTransform = Matrix3x2::Translation(+20, +60) * Matrix3x2::Rotation(angle, { 40, y + 80 }) * originalTransform;
 
-		g.SetTransform(adjustedTransform);
+				g.SetTransform(adjustedTransform);
 
-		g.DrawGeometry(geometry, blackBrush, 2, strokeStyle);
+				g.DrawGeometry(geometry, blackBrush, 2, strokeStyle);
+/*
+				auto test = Matrix3x2::Rotation(angle);
+				_RPTN(0, "\nangle=%f\n", angle);
+				_RPTN(0, "%f, %f\n", test._11, test._12);
+				_RPTN(0, "%f, %f\n", test._21, test._22);
+				_RPTN(0, "%f, %f\n", test._31, test._32);
+*/
+			}
 
-		g.SetTransform(originalTransform);
+			g.SetTransform(originalTransform);
+		}
+
+//		y += 100;
+
+		// test scaling
+		{
+			Matrix3x2 originalTransform = g.GetTransform();
+			// UNUSUAL. You have to transform the center point by the *original* transform before using it.
+			auto center = originalTransform.TransformPoint(cornerOfShape);
+
+			for (int s = 0; s < 8; ++s)
+			{
+				const float scale = 1.f + s / 4.f;
+
+				const auto adjustedTransform = originalTransform * Matrix3x2::Scale({ scale, scale }, center) * Matrix3x2::Translation(50, 0);
+
+				g.SetTransform(adjustedTransform);
+
+				g.DrawGeometry(geometry, blackBrush, 2, strokeStyle);
+			}
+
+			g.SetTransform(originalTransform);
+		}
 	}
 }
 

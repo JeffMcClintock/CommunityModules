@@ -24,8 +24,8 @@ using namespace Steinberg;
 using namespace Steinberg::Vst;
 
 ProcessorWrapper::ProcessorWrapper() :
-	bypassMode(true)
-	, tailSamples(32)
+	//bypassMode(true)
+	tailSamples(32)
 	, currentVstSubProcess(&ProcessorWrapper::subProcessBypass)
 {
 	memset(&vstTime_, 0, sizeof(vstTime_));
@@ -49,6 +49,11 @@ ProcessorWrapper::~ProcessorWrapper()
 	{
         component_->setActive(false);
 	}
+}
+
+void ProcessorWrapper::process(int32_t count, const gmpi::MpEvent* events)
+{
+	(this->*(currentVstSubProcess))(count, events);
 }
 
 int32_t ProcessorWrapper::open()
@@ -144,8 +149,9 @@ int32_t ProcessorWrapper::open()
 
 void ProcessorWrapper::initVst()
 {
-	bypassMode = true;
-	currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
+//	bypassMode = true;
+//	currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
+	currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PROCESS>;
 
 	if (!vstEffect_)
 	{
@@ -166,8 +172,8 @@ void ProcessorWrapper::initVst()
 
 	processData.prepare (*component_, 0, processSetup.symbolicSampleSize);
 
-	bypassMode = false;
-	currentVstSubProcess = &ProcessorWrapper::subProcess;
+//	bypassMode = false;
+//	currentVstSubProcess = &ProcessorWrapper::subProcess;
 
 	// init busses
 	{
@@ -575,7 +581,7 @@ void ProcessorWrapper::onSetPins(void)
 	if (pinOnOffSwitch.isUpdated())
     {
 		targetLevel = pinOnOffSwitch.getValue() ? 1.0f : 0.0f;
-		currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
+//		currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
     }
 }
 

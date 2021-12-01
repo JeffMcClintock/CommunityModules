@@ -623,10 +623,10 @@ public:
 		getHost()->getBlockSize(returnValue);
 		return returnValue;
 	}
-	float getSampleRate(void)
+	float getSampleRate(void) const
 	{
 		float returnValue;
-		getHost()->getSampleRate(returnValue);
+		const_cast<MpPluginBase*>(this)->getHost()->getSampleRate(returnValue);
 		return returnValue;
 	}
 	void resetSleepCounter();

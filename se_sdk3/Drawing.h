@@ -728,15 +728,25 @@ namespace GmpiDrawing
 		}
 
 		static inline Matrix3x2 Rotation(
-			float angle,
-			Point center = Point()
+			float angleRadians,
+			Point center = {}
 		)
 		{
-			Matrix3x2 rotation;
-			assert(false); // TODO
-						   //MP1MakeRotateMatrix(angle, center, &rotation);
+			// https://www.ques10.com/p/11014/derive-the-matrix-for-2d-rotation-about-an-arbitra/
+			const auto cosR = cosf(angleRadians);
+			const auto sinR = sinf(angleRadians);
+			const auto& Xm = center.x;
+			const auto& Ym = center.y;
 
-			return rotation;
+			return
+			{
+				cosR,
+				sinR,
+				-sinR,
+				cosR,
+				-Xm * cosR + Ym * sinR + Xm,
+				-Xm * sinR - Ym * cosR + Ym
+			};
 		}
 
 		static inline Matrix3x2 Skew(

@@ -151,10 +151,11 @@ class ProcessorWrapper : public MpBase2
 	std::vector<int> inputBusses; // bus/chans
 	std::vector<int> outputBusses; // bus/chans
 
-	bool bypassMode;
+//	bool bypassMode;
 	std::vector<std::vector<float>> bypassDelays;
 	int bypassBufferPos = 0;
 	int latency = 0;
+	int bufferPrimingCounter = {};
 
 	// Silence detection.
 	int silenceCounter;
@@ -168,6 +169,7 @@ class ProcessorWrapper : public MpBase2
     bool cancellation_done = false;
 	void debugDumpPresetToFile();
 #endif
+	enum { ST_PROCESS, ST_PRIME_BUFFERS, ST_FADING, ST_BYPASS };
 
 public:
 	ProcessorWrapper();
@@ -175,12 +177,9 @@ public:
 
 	void onMidiMessage(int pin, int timeDelta, const unsigned char* midiMessage, int size);
 	void ProcessEvents(int32_t count, const gmpi::MpEvent* events);
-	void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events) override
-	{
-		//(this->*(currentVstSubProcess))(count, events);
-		subProcess2(count, events);
-	}
+	void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events) override;
 
+	template<int CURRENT_STATE>
 	void subProcess2(const int32_t count, const gmpi::MpEvent* events)
 	{
 		ProcessEvents(count, events);
@@ -188,6 +187,7 @@ public:
 		const int bypassDelaysize = static_cast<int>(bypassDelays[0].size());
 
 		// add input to bypass latency buffers
+		if constexpr (CURRENT_STATE != ST_PROCESS)
 		{
 			for (size_t i = 0; i < AudioIns.size(); ++i)
 			{
@@ -210,6 +210,7 @@ public:
 		}
 
 		// process plugin
+		if constexpr (CURRENT_STATE != ST_BYPASS)
 		{
 			for (int bus = 0; bus < inputBusses.size(); ++bus)
 			{
@@ -246,67 +247,121 @@ public:
 			vstEffect_->process(processData);
 		}
 
-
-		// Copy buffered audio input to output.
-		for (size_t i = 0; i < AudioOuts.size(); ++i)
+		float fade = {};
+		//		constexpr if (BYPASS_STATE != ST_BYPASS)
 		{
-			auto out = getBuffer(*(AudioOuts[i]));
-
-			if (i < AudioIns.size())
+			// Copy buffered audio input to output.
+			for (size_t i = 0; i < AudioOuts.size(); ++i)
 			{
-				int bypassBufferReadPos = (bypassDelaysize + bypassBufferPos - latency) % bypassDelaysize;
+				fade = fadeLevel;
+				auto out = getBuffer(*(AudioOuts[i]));
 
-				const float* source = bypassDelays[i].data() + bypassBufferReadPos;
-				int todo = count;
-				while (todo)
+				if (i < AudioIns.size())
 				{
-					const int c = (std::min)(todo, bypassDelaysize - bypassBufferReadPos);
-					for (int s = 0 ; s < c ; ++s)
+					int bypassBufferReadPos = (bypassDelaysize + bypassBufferPos - latency) % bypassDelaysize;
+
+					const float* source = bypassDelays[i].data() + bypassBufferReadPos;
+					int todo = count;
+					while (todo)
 					{
-						*out++ = *source++;
+						const int c = (std::min)(todo, bypassDelaysize - bypassBufferReadPos);
+						for (int s = 0; s < c; ++s)
+						{
+							fade = std::clamp(fade + fadeInc, 0.0f, 1.0f);
+//							*out += fade * (*source - *out);
+							*out = *source + fade * (*out - *source);
+
+							++out;
+							++source;
+						}
+						source = bypassDelays[i].data(); // wrap back arround.
+						bypassBufferReadPos = 0;
+						todo -= c;
 					}
-					source = bypassDelays[i].data(); // wrap back arround.
-					bypassBufferReadPos = 0;
-					todo -= c;
 				}
-			}
-			else
-			{
-				// if not audio input pins, output silence.
-				for (int s = count; s > 0; --s)
+				else
 				{
-					*out++ = 0.0f;
+					// if not audio input pins, output silence.
+					for (int s = count; s > 0; --s)
+					{
+						fade = std::clamp(fade + fadeInc, 0.0f, 1.0f);
+//						*out -= fade * *out; // equivalent to cross-fade with zero.
+						*out *= fade;
+
+						++out;
+					}
 				}
 			}
+
+			fadeLevel = fade;
 		}
 
-#if 0
-		if (fadeLevel != targetLevel)
-		{
-			ProcessPlugin(count);
-			CopyInputOverOutput(count);
-
-			// fade-up complete?
-			if (fadeLevel == targetLevel && targetLevel == 1.0f)
-			{
-				currentVstSubProcess = &ProcessorWrapper::subProcess;
-			}
-		}
-		else
-		{
-			if (fadeLevel == 1.0f)
-			{
-				ProcessPlugin(count);
-			}
-			else
-			{
-				CopyInputToOutput(count);
-			}
-		}
-#endif
 		bypassBufferPos = (bypassBufferPos + count) % bypassDelaysize;
 
 		vstTime_.continousTimeSamples += count;
+
+		// switch state machine state if nesc.
+		// enum { ST_PROCESS, ST_PRIME_BUFFERS, ST_FADING, ST_FADED_ZEROING, ST_BYPASS };
+		// ST_PROCESS -> ST_PRIME_BUFFERS -> ST_FADING (down) -> ST_BYPASS
+		// ST_BYPASS  -> ST_PRIME_BUFFERS -> ST_FADING ( up ) -> ST_PROCESS
+		// also ST_FADING (down) -> ST_FADING ( up ) -> ST_FADING (down) etc
+		if constexpr (ST_PROCESS == CURRENT_STATE)
+		{
+			if (1.0f != targetLevel)
+			{
+				bufferPrimingCounter = latency + 20;
+				fadeInc = 0.0f;
+				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PRIME_BUFFERS>;
+				_RPT0(0, "ST_PRIME_BUFFERS\n");
+			}
+		}
+
+		if constexpr (ST_PRIME_BUFFERS == CURRENT_STATE)
+		{
+			assert(fadeInc == 0.0f);
+
+			bufferPrimingCounter -= count;
+			if (bufferPrimingCounter < 0)
+			{
+				fadeInc = calcFade();
+				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_FADING>;
+				_RPT0(0, "ST_FADING\n");
+			}
+		}
+
+		if constexpr (ST_FADING == CURRENT_STATE)
+		{
+			assert(fadeInc != 0.0f);
+
+			fadeInc = calcFade();
+			if (fadeLevel == 0.0f) // faded down.
+			{
+				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_BYPASS>;
+				_RPT0(0, "ST_BYPASS\n");
+			}
+			else if (fadeLevel == 1.0f) // faded up.
+			{
+				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PROCESS>;
+				_RPT0(0, "ST_PROCESS\n");
+			}
+		}
+
+		if constexpr (ST_BYPASS == CURRENT_STATE)
+		{
+			if (1.0f == targetLevel)
+			{
+				bufferPrimingCounter = latency + 20;
+				fadeInc = 0.0f;
+				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PRIME_BUFFERS>;
+				_RPT0(0, "ST_PRIME_BUFFERS\n");
+			}
+		}
+	}
+
+	float calcFade() const
+	{
+		constexpr float fadeTimeS = 0.5f; // 0.02f;
+		return copysignf(1.f / (getSampleRate() * fadeTimeS), targetLevel - fadeLevel);
 	}
 
 	void subProcess(int32_t count, const gmpi::MpEvent* events);
@@ -367,6 +422,7 @@ private:
 	}
 
 	void CopyInputToOutput(int count);
+
 
 	inline void	CopyInputOverOutput(int count)
 	{
@@ -432,6 +488,7 @@ private:
 
 	float fadeLevel = 1.0f;
 	float targetLevel = 1.0f;
+	float fadeInc = 0.0f;
 };
 
 class Vst3ParamSet : public MpBase2

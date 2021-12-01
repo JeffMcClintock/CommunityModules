@@ -492,7 +492,7 @@ unsigned, can't handle negative points. not much practical use.
 	};
 
 	// Notes:
-	// * On macOS all cap styles are taken from 'startCap'. These is no way to have a different end cap for example.
+	// * On macOS all cap styles are taken from 'startCap'. There is no way to have a different end cap for example.
 	// * MP1_CAP_STYLE_FLAT is not recommended for dashed or dotted lines. It does not draw 'dots' on Windows.
 	// * MP1_CAP_STYLE_TRIANGLE is not supported on macOS, it draws as MP1_CAP_STYLE_ROUND.
 
