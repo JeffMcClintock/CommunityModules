@@ -151,16 +151,10 @@ class ProcessorWrapper : public MpBase2
 	std::vector<int> inputBusses; // bus/chans
 	std::vector<int> outputBusses; // bus/chans
 
-//	bool bypassMode;
 	std::vector<std::vector<float>> bypassDelays;
 	int bypassBufferPos = 0;
 	int latency = 0;
 	int bufferPrimingCounter = {};
-
-	// Silence detection.
-	int silenceCounter;
-	int tailSamples;
-	bool inputStatusChanged;
 
 	typedef void (ProcessorWrapper::* VstSubProcess_ptr)(int32_t count, const gmpi::MpEvent* events);
 
@@ -311,7 +305,7 @@ public:
 				bufferPrimingCounter = latency + 20;
 				fadeInc = 0.0f;
 				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PRIME_BUFFERS>;
-				_RPT0(0, "ST_PRIME_BUFFERS\n");
+//				_RPT0(0, "ST_PRIME_BUFFERS\n");
 			}
 		}
 
@@ -324,7 +318,7 @@ public:
 			{
 				fadeInc = calcFade();
 				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_FADING>;
-				_RPT0(0, "ST_FADING\n");
+//				_RPT0(0, "ST_FADING\n");
 			}
 		}
 
@@ -339,13 +333,13 @@ public:
 			{
 				fadeInc = 0.0f;
 				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_BYPASS>;
-				_RPT0(0, "ST_BYPASS\n");
+//				_RPT0(0, "ST_BYPASS\n");
 			}
 			else if (fadeLevel == 1.0f) // faded up.
 			{
 				fadeInc = 0.0f;
 				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PROCESS>;
-				_RPT0(0, "ST_PROCESS\n");
+//				_RPT0(0, "ST_PROCESS\n");
 			}
 		}
 
@@ -356,10 +350,11 @@ public:
 				bufferPrimingCounter = latency + 20;
 				fadeInc = 0.0f;
 				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PRIME_BUFFERS>;
-				_RPT0(0, "ST_PRIME_BUFFERS\n");
+//				_RPT0(0, "ST_PRIME_BUFFERS\n");
 			}
 		}
 	}
+	void subProcessNotLoaded(const int32_t count, const gmpi::MpEvent* events);
 
 	float calcFade() const
 	{
@@ -367,105 +362,11 @@ public:
 		return copysignf(1.f / (getSampleRate() * fadeTimeS), targetLevel - fadeLevel);
 	}
 
-	void subProcess(int32_t count, const gmpi::MpEvent* events);
-	void subProcessBypass(int32_t count, const gmpi::MpEvent* events);
-	void DoBypass(int32_t count);
-
 	int32_t MP_STDCALL open() override;
 	void initVst();
 	void onSetPins(void) override;
+
 private:
-	void copyInputToBypassBuffers(int32_t count);
-
-	inline void	ProcessPlugin(int count)
-	{
-#ifdef CANCELLATION_TEST_ENABLE2
-        if (!cancellation_done && vstTime_.continousTimeSamples > CANCELLATION_SNAPSHOT_TIMESTAMP) // don't account for oversample, but should be good enough
-        {
-			cancellation_done = true;
-			debugDumpPresetToFile();
-        }
-#endif
-
-		for (int bus = 0; bus < inputBusses.size(); ++bus)
-		{
-			for (int i = 0; i < inputBusses[bus]; ++i)
-			{
-				processData.setChannelBuffer(
-					Steinberg::Vst::kInput,
-					bus,
-					i,
-					getBuffer(*(AudioIns[i]))
-				);
-			}
-		}
-
-		for (int bus = 0; bus < outputBusses.size(); ++bus)
-		{
-			for (int i = 0; i < outputBusses[bus]; ++i)
-			{
-				processData.setChannelBuffer(
-					Steinberg::Vst::kOutput,
-					bus,
-					i,
-					getBuffer(*(AudioOuts[i]))
-				);
-			}
-		}
-		myParameterChanges outputParameterChanges;
-		myEventList outputEvents;
-
-		processData.outputParameterChanges = &outputParameterChanges; // todo
-		processData.outputEvents = &outputEvents;
-		processData.numSamples = count;
-
-		vstEffect_->process(processData);
-
-		vstTime_.continousTimeSamples += count;
-	}
-
-	void CopyInputToOutput(int count);
-
-
-	inline void	CopyInputOverOutput(int count)
-	{
-		float fade = {};
-		constexpr float fadeTimeS = 0.02f;
-		const float fadeInc = copysignf(1.f / (getSampleRate() * fadeTimeS), targetLevel - fadeLevel);
-
-		for (size_t i = 0; i < AudioOuts.size(); ++i)
-		{
-			fade = fadeLevel;
-
-			// Copy audio input to output.
-			auto out = getBuffer(*(AudioOuts[i]));
-			if (i < AudioIns.size())
-			{
-				float* in = getBuffer(*(AudioIns[i]));
-				for (int s = count; s > 0; --s)
-				{
-					fade = std::clamp(fade + fadeInc, 0.0f, 1.0f);
-					*out = *in + fade * (*out - *in);
-
-					++out;
-					++in;
-				}
-			}
-			else
-			{
-				// if not audio input pins, output silence.
-				for (int s = count; s > 0; --s)
-				{
-					fade = std::clamp(fade + fadeInc, 0.0f, 1.0f);
-					*out = 0.0f + fade * (*out - 0.0f);
-					++out;
-				}
-			}
-		}
-
-		fadeLevel = fade;
-	}
-
 	void addParameterEvent(int clock, int index, float value);
 
 	MidiInPin pinMidi;

@@ -24,9 +24,7 @@ using namespace Steinberg;
 using namespace Steinberg::Vst;
 
 ProcessorWrapper::ProcessorWrapper() :
-	//bypassMode(true)
-	tailSamples(32)
-	, currentVstSubProcess(&ProcessorWrapper::subProcessBypass)
+	currentVstSubProcess(&ProcessorWrapper::subProcessNotLoaded)
 {
 	memset(&vstTime_, 0, sizeof(vstTime_));
 	vstTime_.state =
@@ -149,10 +147,6 @@ int32_t ProcessorWrapper::open()
 
 void ProcessorWrapper::initVst()
 {
-//	bypassMode = true;
-//	currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
-	currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PROCESS>;
-
 	if (!vstEffect_)
 	{
 		return;
@@ -171,9 +165,6 @@ void ProcessorWrapper::initVst()
 	}
 
 	processData.prepare (*component_, 0, processSetup.symbolicSampleSize);
-
-//	bypassMode = false;
-//	currentVstSubProcess = &ProcessorWrapper::subProcess;
 
 	// init busses
 	{
@@ -221,6 +212,8 @@ void ProcessorWrapper::initVst()
 	}
 
 	host.SetLatency(latency);
+
+	currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PROCESS>;
 }
 
 void ProcessorWrapper::addParameterEvent(int clock, int id, float value)
@@ -413,116 +406,22 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 	}
 }
 
-void ProcessorWrapper::subProcess(int32_t count, const gmpi::MpEvent* events)
+void ProcessorWrapper::subProcessNotLoaded(const int32_t count, const gmpi::MpEvent* events)
 {
 	ProcessEvents(count, events);
 
-    if (currentVstSubProcess != &ProcessorWrapper::subProcess) // have to check if VST loaded after processing events.
-    {
-		assert(currentVstSubProcess == &ProcessorWrapper::subProcessBypass);
-		DoBypass(count);
-        return;
-    }
-
-	ProcessPlugin(count);
-}
-
-void ProcessorWrapper::subProcessBypass(int32_t count, const gmpi::MpEvent* events)
-{
-	ProcessEvents(count, events);
-
-	DoBypass(count);
-}
-
-void ProcessorWrapper::copyInputToBypassBuffers(int32_t count)
-{
-	for (size_t i = 0; i < AudioIns.size(); ++i)
+	for (auto& outBuffer : AudioOuts)
 	{
-		const float* in = getBuffer(*(AudioIns[i]));
-		float* dest = bypassDelays[i].data() + bypassBufferPos;
+		auto out = getBuffer(*outBuffer);
 
-		int todo = count;
-		while (todo)
+		// output silence.
+		for (int s = count; s > 0; --s)
 		{
-			const int c = (std::min)(todo, (int) bypassDelays[0].size() - bypassBufferPos);
-			for (int s = c; s > 0; --s)
-			{
-				*dest++ = *in++;
-			}
-			dest = bypassDelays[i].data(); // wrap back arround.
-			todo -= c;
+			*out++ = 0.0f;
 		}
 	}
-	bypassBufferPos = (bypassBufferPos + count) % bypassDelays[0].size();
-}
 
-void ProcessorWrapper::CopyInputToOutput(int count)
-{
-	const int bypassDelaysize = static_cast<int>(bypassDelays[0].size());
-
-	for (size_t i = 0; i < AudioOuts.size(); ++i)
-	{
-		// Copy buffered audio input to output.
-
-		auto out = getBuffer(*(AudioOuts[i]));
-
-		if (i < AudioIns.size())
-		{
-			int bypassBufferReadPos = (bypassBufferPos + bypassDelaysize - latency) % bypassDelays[0].size();
-
-			const float* source = bypassDelays[i].data() + bypassBufferPos;
-			float* in = getBuffer(*(AudioIns[i]));
-
-			int todo = count;
-			while (todo)
-			{
-				const int c = (std::min)(todo, bypassDelaysize - bypassBufferReadPos);
-				for (int s = count; s > 0; --s)
-				{
-					*out++ = *in++;
-				}
-				source = bypassDelays[i].data(); // wrap back arround.
-				todo -= c;
-			}
-		}
-		else
-		{
-			// if not audio input pins, output silence.
-			for (int s = count; s > 0; --s)
-			{
-				*out++ = 0.0f;
-			}
-		}
-	}
 	vstTime_.continousTimeSamples += count;
-}
-
-void ProcessorWrapper::DoBypass(int32_t count)
-{
-	copyInputToBypassBuffers(count);
-
-	if (fadeLevel != targetLevel)
-	{
-		ProcessPlugin(count);
-		CopyInputOverOutput(count);
-
-		// fade-up complete?
-		if (fadeLevel == targetLevel && targetLevel == 1.0f)
-		{
-			currentVstSubProcess = &ProcessorWrapper::subProcess;
-		}
-	}
-	else
-	{
-		if (fadeLevel == 1.0f)
-		{
-			ProcessPlugin(count);
-		}
-		else
-		{
-			CopyInputToOutput(count);
-		}
-	}
 }
 
 void ProcessorWrapper::onSetPins(void)
@@ -581,7 +480,6 @@ void ProcessorWrapper::onSetPins(void)
 	if (pinOnOffSwitch.isUpdated())
     {
 		targetLevel = pinOnOffSwitch.getValue() ? 1.0f : 0.0f;
-//		currentVstSubProcess = &ProcessorWrapper::subProcessBypass;
     }
 }
 
