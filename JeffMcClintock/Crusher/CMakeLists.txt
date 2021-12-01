@@ -6,15 +6,21 @@ set(sdk_folder
 set(sdk_srcs
 ${sdk_folder}/mp_sdk_common.cpp
 ${sdk_folder}/mp_sdk_audio.cpp
+${sdk_folder}/mp_sdk_audio.h
+${sdk_folder}/mp_sdk_common.h
 )
 set(srcs
 module.rc
+Crusher.xml
 Crusher.cpp
 )
 
 include_directories(
 ${sdk_folder}
 )
+
+source_group(se_sdk FILES ${sdk_srcs})
+source_group("Resource Files" FILES module.rc ${PROJECT_NAME}.xml)
 
 include (GenerateExportHeader)
 add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})

@@ -9,19 +9,34 @@
             <Parameters>
                 <param type="10" handle="11655005" shortName="Capture Data B" ignorePC="true" private="true" stateful="false" isPolyphonic="true" module="1977364532" moduleParamId="1"/>
                 <param type="10" handle="157665963" shortName="Capture Data A" ignorePC="true" private="true" stateful="false" isPolyphonic="true" module="1977364532" moduleParamId="0"/>
+                <param type="10" handle="197517855" shortName="Capture Data A" ignorePC="true" private="true" stateful="false" isPolyphonic="true" module="2062053248" moduleParamId="0"/>
+                <param type="10" handle="379175916" shortName="Capture Data B" ignorePC="true" private="true" stateful="false" isPolyphonic="true" module="2062053248" moduleParamId="1"/>
                 <param type="10" handle="383909182" private="true" hostControl="49">
                     <patch-list>'' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' ''</patch-list>
                 </param>
                 <param type="6" handle="871687593" shortName="Crusher Downsample" vstParameterNumber="0" module="291147991" moduleParamId="0">
-                    <patch-list>6.45 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5</patch-list>
+                    <patch-list>5.4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5</patch-list>
                 </param>
                 <param type="6" handle="1132070928" shortName="Oscillator Pitch" vstParameterNumber="1" module="1326883926" moduleParamId="0">
-                    <patch-list>4.9 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5</patch-list>
+                    <patch-list>3.55 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5</patch-list>
                 </param>
+                <param type="4" handle="1704469672" shortName="polyDetect" ignorePC="true" private="true" stateful="false" module="2062053248" moduleParamId="2"/>
                 <param type="4" handle="2105514488" shortName="polyDetect" ignorePC="true" private="true" stateful="false" module="1977364532" moduleParamId="2"/>
             </Parameters>
         </PatchManager>
         <modules>
+            <module type="SE Degrader" handle="579024396">
+                <structRect l="251" r="347" t="383" b="431"/>
+                <panelRect l="260" r="260" t="154" b="154"/>
+            </module>
+            <module type="SE Scope3 XP" handle="2062053248">
+                <structRect l="552" r="840" t="180" b="516"/>
+                <panelRect l="296" r="296" t="248" b="248"/>
+            </module>
+            <module type="JM Reducer" handle="2099568908">
+                <structRect l="240" r="324" t="300" b="336"/>
+                <panelRect l="260" r="260" t="154" b="154"/>
+            </module>
             <module type="Slider" handle="1326883926">
                 <plugs>
                     <plug parameterId="-1" idx="13"/>
@@ -51,8 +66,8 @@
                 </plugs>
                 <structRect l="120" r="204" t="72" b="156"/>
             </module>
-            <module type="JM Crusher" handle="1043734359">
-                <structRect l="221" r="317" t="190" b="226"/>
+            <module type="JM Crusher" handle="1043734359" muted="true">
+                <structRect l="240" r="336" t="132" b="168"/>
                 <panelRect l="281" r="281" t="123" b="123"/>
             </module>
         </modules>
@@ -63,6 +78,13 @@
             <line type="Line" handle="1335171181" lineType="1" fMod="2134884669" tMod="1977364532" fPlg="3" tPlg="6"/>
             <line type="Line" handle="1916347934" lineType="1" fMod="1043734359" tMod="1977364532" fPlg="2" tPlg="7"/>
             <line type="Line" handle="1314220171" lineType="1" fMod="1326883926" tMod="2134884669" fPlg="6"/>
+            <line type="Line" handle="2095005197" lineType="1" fMod="291147991" tMod="2099568908" fPlg="6" tPlg="1"/>
+            <line type="Line" handle="843443510" lineType="1" fMod="2134884669" tMod="2099568908" fPlg="3"/>
+            <line type="Line" handle="1866691384" lineType="1" fMod="2099568908" tMod="1720088710" fPlg="2" tPlg="1"/>
+            <line type="Line" handle="1505295758" lineType="1" fMod="2099568908" tMod="2062053248" fPlg="2" tPlg="6"/>
+            <line type="Line" handle="586953611" lineType="1" fMod="291147991" tMod="579024396" fPlg="6" tPlg="1"/>
+            <line type="Line" handle="1086001710" lineType="1" fMod="2134884669" tMod="579024396" fPlg="3"/>
+            <line type="Line" handle="165236493" lineType="1" fMod="579024396" tMod="2062053248" fPlg="3" tPlg="7"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
         <PanelLocation l="30" r="530" t="30" b="330"/>
@@ -94,6 +116,13 @@
                 <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
             </Audio>
         </Plugin>
+        <Plugin id="JM Reducer" name="Reducer" flags="256" category="Effects">
+            <Audio>
+                <Pin name="Signal In" datatype="float" rate="audio"/>
+                <Pin name="Bit Size" datatype="float" rate="audio" default="0.5"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+        </Plugin>
         <Plugin id="Oscillator" name="Oscillator" flags="4352" category="Waveform">
             <Audio>
                 <Pin name="Pitch" datatype="float" rate="audio" default="0.5" metadata="100, 0, 10, 0"/>
@@ -106,6 +135,14 @@
                 <Pin name="PM Depth" datatype="float" rate="audio" default="0.5" metadata="100, 0, 10, 0"/>
                 <Pin name="Smooth Peaks (Gibbs Effect)" datatype="bool" default="1" isMinimised="true"/>
                 <Pin name="Sync X-Fade (Anti Alias)" datatype="bool" default="1" isMinimised="true"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Degrader" name="Degrader" flags="256" category="Waves">
+            <Audio>
+                <Pin name="Signal In" datatype="float" rate="audio"/>
+                <Pin name="Bit Size" datatype="float" rate="audio" default="0.5"/>
+                <Pin name="Downsample" datatype="float" rate="audio" default="0.5"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
             </Audio>
         </Plugin>
         <Plugin id="SE Scope3 XP" name="Scope3" flags="384" category="Controls">

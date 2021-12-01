@@ -1,9 +1,16 @@
 <?xml version="1.0" ?>
 <PluginList>
-  <Plugin id="JM Crusher" name="Crusher" category="Effects">
+  <Plugin id="JM Crusher" name="Bit Crusher" category="Effects">
     <Audio>
       <Pin name="Signal In" datatype="float" rate="audio" />
       <Pin name="Downsample" datatype="float" rate="audio" default="0.5" />
+      <Pin name="Signal Out" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+  <Plugin id="JM Reducer" name="Bit Reducer" category="Effects">
+    <Audio>
+      <Pin name="Signal In" datatype="float" rate="audio" />
+      <Pin name="Bit Size" datatype="float" rate="audio" default="0.5" />
       <Pin name="Signal Out" datatype="float" rate="audio" direction="out" />
     </Audio>
   </Plugin>
