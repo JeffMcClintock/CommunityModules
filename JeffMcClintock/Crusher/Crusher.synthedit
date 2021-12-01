@@ -15,7 +15,7 @@
                     <patch-list>'' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' ''</patch-list>
                 </param>
                 <param type="6" handle="871687593" shortName="Crusher Downsample" vstParameterNumber="0" module="291147991" moduleParamId="0">
-                    <patch-list>5.4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5</patch-list>
+                    <patch-list>7.15 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5</patch-list>
                 </param>
                 <param type="6" handle="1132070928" shortName="Oscillator Pitch" vstParameterNumber="1" module="1326883926" moduleParamId="0">
                     <patch-list>3.55 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5</patch-list>
@@ -25,12 +25,12 @@
             </Parameters>
         </PatchManager>
         <modules>
-            <module type="SE Degrader" handle="579024396">
+            <module type="SE Degrader" handle="579024396" muted="true">
                 <structRect l="251" r="347" t="383" b="431"/>
                 <panelRect l="260" r="260" t="154" b="154"/>
             </module>
             <module type="SE Scope3 XP" handle="2062053248">
-                <structRect l="552" r="840" t="180" b="516"/>
+                <structRect l="516" r="804" t="336" b="672"/>
                 <panelRect l="296" r="296" t="248" b="248"/>
             </module>
             <module type="JM Reducer" handle="2099568908">
@@ -46,7 +46,7 @@
                 <panelRect l="297" r="297" t="179" b="179"/>
             </module>
             <module type="SE Scope3 XP" handle="1977364532">
-                <structRect l="504" r="792" t="36" b="372"/>
+                <structRect l="504" r="792" t="0" b="336"/>
                 <panelRect l="228" r="228" t="168" b="168"/>
             </module>
             <module type="Slider" handle="291147991">
@@ -66,7 +66,7 @@
                 </plugs>
                 <structRect l="120" r="204" t="72" b="156"/>
             </module>
-            <module type="JM Crusher" handle="1043734359" muted="true">
+            <module type="JM Crusher" handle="1043734359">
                 <structRect l="240" r="336" t="132" b="168"/>
                 <panelRect l="281" r="281" t="123" b="123"/>
             </module>
@@ -81,14 +81,14 @@
             <line type="Line" handle="2095005197" lineType="1" fMod="291147991" tMod="2099568908" fPlg="6" tPlg="1"/>
             <line type="Line" handle="843443510" lineType="1" fMod="2134884669" tMod="2099568908" fPlg="3"/>
             <line type="Line" handle="1866691384" lineType="1" fMod="2099568908" tMod="1720088710" fPlg="2" tPlg="1"/>
-            <line type="Line" handle="1505295758" lineType="1" fMod="2099568908" tMod="2062053248" fPlg="2" tPlg="6"/>
             <line type="Line" handle="586953611" lineType="1" fMod="291147991" tMod="579024396" fPlg="6" tPlg="1"/>
             <line type="Line" handle="1086001710" lineType="1" fMod="2134884669" tMod="579024396" fPlg="3"/>
-            <line type="Line" handle="165236493" lineType="1" fMod="579024396" tMod="2062053248" fPlg="3" tPlg="7"/>
+            <line type="Line" handle="2081681151" lineType="1" fMod="2099568908" tMod="2062053248" fPlg="2" tPlg="7"/>
+            <line type="Line" handle="1923513144" lineType="1" fMod="2134884669" tMod="2062053248" fPlg="3" tPlg="6"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
         <PanelLocation l="30" r="530" t="30" b="330"/>
-        <StructLocation l="0" r="955" t="0" b="588"/>
+        <StructLocation l="0" r="955" t="0" b="761"/>
         <PanelScroll x="0" y="0"/>
         <StructScroll x="0" y="0"/>
         <PanelWndOffset cx="-99999" cy="-99999"/>

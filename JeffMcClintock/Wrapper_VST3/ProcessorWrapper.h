@@ -248,7 +248,7 @@ public:
 		}
 
 		float fade = {};
-		//		constexpr if (BYPASS_STATE != ST_BYPASS)
+		if constexpr (CURRENT_STATE != ST_PROCESS)
 		{
 			// Copy buffered audio input to output.
 			for (size_t i = 0; i < AudioOuts.size(); ++i)
@@ -268,7 +268,6 @@ public:
 						for (int s = 0; s < c; ++s)
 						{
 							fade = std::clamp(fade + fadeInc, 0.0f, 1.0f);
-//							*out += fade * (*source - *out);
 							*out = *source + fade * (*out - *source);
 
 							++out;
@@ -285,7 +284,7 @@ public:
 					for (int s = count; s > 0; --s)
 					{
 						fade = std::clamp(fade + fadeInc, 0.0f, 1.0f);
-//						*out -= fade * *out; // equivalent to cross-fade with zero.
+						// equivalent to cross-fade with zero.
 						*out *= fade;
 
 						++out;
@@ -301,10 +300,10 @@ public:
 		vstTime_.continousTimeSamples += count;
 
 		// switch state machine state if nesc.
-		// enum { ST_PROCESS, ST_PRIME_BUFFERS, ST_FADING, ST_FADED_ZEROING, ST_BYPASS };
 		// ST_PROCESS -> ST_PRIME_BUFFERS -> ST_FADING (down) -> ST_BYPASS
 		// ST_BYPASS  -> ST_PRIME_BUFFERS -> ST_FADING ( up ) -> ST_PROCESS
-		// also ST_FADING (down) -> ST_FADING ( up ) -> ST_FADING (down) etc
+		// also ST_FADING (down) -> ST_FADING ( up ) -> ST_FADING (down) etc.
+
 		if constexpr (ST_PROCESS == CURRENT_STATE)
 		{
 			if (1.0f != targetLevel)
@@ -333,14 +332,18 @@ public:
 		{
 			assert(fadeInc != 0.0f);
 
+			// account for possiblity of use switching mode *during* the fade.
 			fadeInc = calcFade();
+
 			if (fadeLevel == 0.0f) // faded down.
 			{
+				fadeInc = 0.0f;
 				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_BYPASS>;
 				_RPT0(0, "ST_BYPASS\n");
 			}
 			else if (fadeLevel == 1.0f) // faded up.
 			{
+				fadeInc = 0.0f;
 				currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PROCESS>;
 				_RPT0(0, "ST_PROCESS\n");
 			}
@@ -360,7 +363,7 @@ public:
 
 	float calcFade() const
 	{
-		constexpr float fadeTimeS = 0.5f; // 0.02f;
+		constexpr float fadeTimeS = 0.02f;
 		return copysignf(1.f / (getSampleRate() * fadeTimeS), targetLevel - fadeLevel);
 	}
 
