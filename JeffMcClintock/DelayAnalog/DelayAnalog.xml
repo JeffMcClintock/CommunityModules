@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<PluginList>
+  <Plugin id="SE Delay (Analog)" name="Delay (Analog)" category="Community/Under Construction">
+    <Audio>
+      <Pin name="Signal In" datatype="float" rate="audio" linearInput="true" />
+      <Pin name="Signal Out" datatype="float" rate="audio" direction="out" />
+      <Pin name="Modulation" datatype="float" rate="audio" default="1" />
+      <Pin name="Feedback" datatype="float" rate="audio" />
+      <Pin name="Clear" datatype="bool" />
+      <Pin name="Delay Time (secs)" datatype="float" default="1" />
+      <Pin name="Mode" datatype="enum" metadata="Analog,Digital" />
+    </Audio>
+  </Plugin>
+</PluginList>
