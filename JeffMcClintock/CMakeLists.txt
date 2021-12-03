@@ -3,6 +3,7 @@ project(JeffMcClintock)
 
 add_subdirectory(ADSR)
 add_subdirectory(Crusher)
+add_subdirectory(DelayAnalog)
 add_subdirectory(DrawingTest)
 add_subdirectory(OscillatorHD)
 if(WIN32)
