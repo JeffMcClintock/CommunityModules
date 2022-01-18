@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<PluginList>
+  <Plugin id="SE ms2factor" name="Ms to Factor" category="Debug">
+    <Audio>
+      <Pin name="ms In" datatype="float" rate="audio" />
+      <Pin name="Gain Out" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+
+  <Plugin id="SE factor2ms" name="Factor to Ms" category="Debug">
+    <Audio>
+      <Pin name="Gain In" datatype="float" rate="audio" />
+      <Pin name="ms Out" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+
+  <Plugin id="SE Peak" name="Peak" category="Community/Dynamics">
+    <Audio>
+      <Pin name="Left" datatype="float" rate="audio" />
+      <Pin name="Right" datatype="float" rate="audio" />
+      <Pin name="Peak" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+  <Plugin id="SE Integrator" name="Integrator" category="Community/Dynamics">
+    <Audio>
+      <Pin name="Input" datatype="float" rate="audio" />
+      <Pin name="Output" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+  <Plugin id="SE Hard Knee" name="Hard Knee" category="Community/Dynamics">
+    <Audio>
+      <Pin name="Thresh" datatype="float" default = "0.95" />
+      <Pin name="Input" datatype="float" rate="audio" />
+      <Pin name="Gain Out" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+
+  <Plugin id="SE Peak Hold" name="Gain Hold" category="Community/Dynamics">
+    <Audio>
+      <Pin name="Time (ms)" datatype="float" default = "1.451247" />
+      <Pin name="Gain In" datatype="float" rate="audio" />
+      <Pin name="Gain Out" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+
+  <Plugin id="SE SmootherG" name="Smoother - Gausian" category="Community/Dynamics">
+    <Audio>
+      <Pin name="Smoothing (ms)" datatype="float" default = "1.4512" />
+      <Pin name="Input" datatype="float" rate="audio" />
+      <Pin name="Gain Out" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+</PluginList>
