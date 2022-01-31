@@ -312,8 +312,6 @@ public:
 			sum += *input;
 			*output = sum;
 
-			//			sum *= 0.999999f;
-
 			++input;
 			++output;
 		}

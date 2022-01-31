@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document file_format="130040" vst_latencyCompensation="1" vst_preset_count="64">
+    <master_container type="Container" handle="1724923321" name="Main" ViewOpenFlags="256" skin="default2">
+        <plugs>
+            <plug idx="7"/>
+        </plugs>
+        <structRect l="0" r="0" t="0" b="0"/>
+        <PatchManager>
+            <Parameters>
+                <param type="10" handle="1537666507" private="true" hostControl="49">
+                    <patch-list>'' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' ''</patch-list>
+                </param>
+            </Parameters>
+        </PatchManager>
+        <modules>
+            <module type="Subtract" handle="787380096">
+                <plugs>
+                    <plug default="6.32" idx="1"/>
+                </plugs>
+                <structRect l="361" r="421" t="298" b="334"/>
+            </module>
+            <module type="Wave Recorder" handle="120522355">
+                <structRect l="539" r="623" t="277" b="313"/>
+            </module>
+            <module type="SE Peak Follower2" handle="1640760472">
+                <plugs>
+                    <plug default="10"/>
+                </plugs>
+                <structRect l="178" r="274" t="192" b="240"/>
+                <panelRect l="424" r="424" t="208" b="208"/>
+            </module>
+        </modules>
+        <lines>
+            <line type="Line" handle="1769332641" lineType="1" fMod="1640760472" tMod="120522355" fPlg="3"/>
+            <line type="Line" handle="1459029410" lineType="1" fMod="1640760472" tMod="787380096" fPlg="3"/>
+            <line type="Line" handle="2082446745" lineType="1" fMod="787380096" tMod="120522355" fPlg="2" tPlg="1"/>
+        </lines>
+        <PanelWndPosition l="0" r="0" t="0" b="0"/>
+        <PanelLocation l="30" r="530" t="30" b="330"/>
+        <StructLocation l="0" r="1030" t="0" b="710"/>
+        <PanelScroll x="0" y="0"/>
+        <StructScroll x="0" y="0"/>
+        <PanelWndOffset cx="-99999" cy="-99999"/>
+        <panel_rect l="16" r="312" t="16" b="216"/>
+    </master_container>
+    <PluginList>
+        <Plugin id="Container" name="Container" flags="384" category="">
+            <Audio>
+                <Pin name="Spare" datatype="float" rate="audio" autoRename="true" autoDuplicate="true"/>
+                <Pin name="Polyphony" datatype="enum" default="6" private="true" isMinimised="true" metadata="range 1,128"/>
+                <Pin name="MIDI Automation" datatype="bool" private="true" isMinimised="true"/>
+                <Pin name="Show Controls" datatype="enum" private="true" isMinimised="true" metadata="Off,On Panel,On Module"/>
+            </Audio>
+            <GUI>
+                <Pin name="Controls on Parent" datatype="bool" direction="out" isMinimised="true"/>
+                <Pin name="Controls on Module" datatype="bool" noAutomation="true"/>
+                <Pin name="Controls on Parent" datatype="bool"/>
+                <Pin name="Ignore Program Change" datatype="bool" noAutomation="true"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE Peak Follower2" name="Peak Follower2" flags="256" category="Modifiers">
+            <Audio>
+                <Pin name="Signal in" datatype="float" rate="audio"/>
+                <Pin name="Attack (ms)" datatype="float" rate="audio" default="1"/>
+                <Pin name="Release (ms)" datatype="float" rate="audio" default="5"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Voice Mute" name="Voice Mute" flags="33562880" category="Debug" simdOverwritesBufferEnd="true">
+            <Audio>
+                <Pin name="Input1" datatype="float" rate="audio"/>
+                <Pin name="VoiceActive" datatype="float" private="true" isPolyphonic="true" hostConnect="Voice/Active"/>
+                <Pin name="Output" datatype="float" rate="audio" direction="out"/>
+                <Pin name="legacyMode" datatype="bool"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="Subtract" name="Subtract" flags="4352" category="Math">
+            <Audio>
+                <Pin name="Input 1" datatype="float" rate="audio" default="0.8"/>
+                <Pin name="Input 2" datatype="float" rate="audio" default="0.8"/>
+                <Pin name="Output" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="Wave Recorder" name="Wave Recorder" flags="4352" category="Input-Output">
+            <Audio>
+                <Pin name="Left (Mono)" datatype="float" rate="audio" linearInput="true"/>
+                <Pin name="Right" datatype="float" rate="audio" linearInput="true"/>
+                <Pin name="File Name" datatype="string" default="Wavefile" isFilename="true" metadata="wav"/>
+                <Pin name="Format" datatype="enum" isMinimised="true" metadata="16 bit, 32 bit float"/>
+                <Pin name="Time Limit" datatype="double" default="4" isMinimised="true"/>
+                <Pin name="Play Wavefile" datatype="bool" isMinimised="true"/>
+                <Pin name="Report Stats" datatype="bool" isMinimised="true"/>
+            </Audio>
+        </Plugin>
+    </PluginList>
+</Document>

@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<PluginList>
+  <Plugin id="SE Peak Follower2" name="Peak Follower2" category="Modifiers">
+    <Audio>
+      <Pin name="Signal in" datatype="float" rate="audio" />
+      <Pin name="Attack (ms)" datatype="float" rate="audio" default="1" />
+      <Pin name="Release (ms)" datatype="float" rate="audio" default="5" />
+      <Pin name="Signal Out" datatype="float" rate="audio" direction="out" />
+    </Audio>
+  </Plugin>
+</PluginList>
