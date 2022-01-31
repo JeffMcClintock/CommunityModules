@@ -6,7 +6,7 @@ add_subdirectory(Crusher)
 add_subdirectory(DelayAnalog)
 add_subdirectory(DrawingTest)
 add_subdirectory(OscillatorHD)
-add_subdirectory("SignalLogger")
+add_subdirectory(SignalLogger)
 add_subdirectory(PeakFollower)
 add_subdirectory(Dynamics)
 
