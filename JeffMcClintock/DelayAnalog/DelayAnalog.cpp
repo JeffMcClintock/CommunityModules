@@ -26,6 +26,7 @@
 */
 #include "../se_sdk3/mp_sdk_audio.h"
 #include "../shared/xp_simd.h"
+#include "math.h"
 
 using namespace gmpi;
 #define interpolationExtraSamples 3
