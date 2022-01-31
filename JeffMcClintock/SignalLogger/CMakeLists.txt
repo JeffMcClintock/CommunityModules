@@ -75,7 +75,8 @@ endif()
 # TODO need this set on mac dll, else SE can't scan it.
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
 
-
+# fails on CI
+if(FALSE)
 if(CMAKE_HOST_WIN32)
 add_custom_command(TARGET ${PROJECT_NAME}
     # Run after all other rules within the target have been executed
@@ -84,4 +85,5 @@ add_custom_command(TARGET ${PROJECT_NAME}
     COMMENT "Copy to system plugin folder"
     VERBATIM
 )
+endif()
 endif()

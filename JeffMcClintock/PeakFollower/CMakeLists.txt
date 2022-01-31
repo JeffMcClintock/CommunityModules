@@ -67,7 +67,8 @@ endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
 
-if(CMAKE_HOST_WIN32)
+# fails on CI
+if(FALSE) # CMAKE_HOST_WIN32)
 add_custom_command(TARGET ${PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
