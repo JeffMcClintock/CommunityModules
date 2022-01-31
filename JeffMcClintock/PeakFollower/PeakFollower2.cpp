@@ -25,6 +25,7 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "mp_sdk_audio.h"
+#include <cmath>
 
 using namespace gmpi;
 
