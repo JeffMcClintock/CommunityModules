@@ -1,6 +1,8 @@
-#include "../../se_sdk3/mp_sdk_audio.h"
-#include "../../shared/xp_simd.h"
+#include "mp_sdk_audio.h"
+#include "xp_simd.h"
 #include <math.h>
+
+SE_DECLARE_INIT_STATIC_FILE(Dynamics)
 
 using namespace gmpi;
 

@@ -9,6 +9,7 @@ set(sdk_folder
 
 include_directories(
     se_sdk3
+    shared
     )
 
 set(CMAKE_CXX_STANDARD 17)
