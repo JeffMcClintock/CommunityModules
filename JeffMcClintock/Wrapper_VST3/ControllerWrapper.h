@@ -1,10 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <atomic>
 #include "../se_sdk3/mp_sdk_common.h" 
 #include "../se_sdk3/TimerManager.h"
 #include "WindowManager.h"
-#include "./PeerCommunication.h"
 
 namespace VST3
 {
@@ -13,10 +13,19 @@ namespace VST3
 		class Module;
 	}
 }
+namespace Steinberg
+{
+namespace Vst
+{
+	class IComponent;
+	class IAudioProcessor;
+}
+}
+
 class VstComponentHandler;
 class myPluginProvider;
 
-class ControllerWrapper : public gmpi::IMpController, public TimerClient, public IVST3PluginOwner
+class ControllerWrapper : public gmpi::IMpController, public TimerClient
 {
 protected:
 	static const int chunkParamId = 0;
@@ -36,6 +45,16 @@ protected:
 	Steinberg::Vst::IAudioProcessor** processor_vstEffect__ptr = {};
 
 public:
+	std::atomic<bool> parameters_dirty;
+	struct vstParameterVal
+	{
+		uint32_t id = {};
+		std::atomic<bool> dirty;
+		std::atomic<float> normalized = {};
+	};
+
+	std::vector<std::unique_ptr<vstParameterVal>> parametersToProcessor; // communicated parameter changes from editor to processor
+
 	std::unique_ptr<myPluginProvider> plugin;
 	int32_t handle_ = -1;
 	bool stateDirty = {};
@@ -68,8 +87,10 @@ public:
 	int32_t LoadPlugin(std::string path, std::string uuid);
 	bool OnTimer() override;
 	void OpenGui();
-	// IVST3PluginOwner methods.
-	int32_t MP_STDCALL registerProcessor(Steinberg::Vst::IComponent**, Steinberg::Vst::IAudioProcessor**) override;
+
+	int32_t registerProcessor(Steinberg::Vst::IComponent**, Steinberg::Vst::IAudioProcessor**);
+	void setParameterFromEditor(uint32_t paramId, double valueNormalized);
+
 
 	GMPI_REFCOUNT;
 	int32_t MP_STDCALL queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override
@@ -79,20 +100,6 @@ public:
 		if (iid == gmpi::MP_IID_CONTROLLER || iid == gmpi::MP_IID_UNKNOWN)
 		{
 			*returnInterface = static_cast<gmpi::IMpController*>(this);
-			addRef();
-			return gmpi::MP_OK;
-		}
-#if 0
-		if (iid == MP_IID_VST3_CONTROLLER_WRAPPER)
-		{
-			*returnInterface = static_cast<IVst3ControllerWrapper*>(this);
-			addRef();
-			return gmpi::MP_OK;
-		}
-#endif
-		if (iid == WV_IID_VST3CONTROLLERHOST)
-		{
-			*returnInterface = static_cast<IVST3PluginOwner*>(this);
 			addRef();
 			return gmpi::MP_OK;
 		}

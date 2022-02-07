@@ -11,8 +11,7 @@ int32_t EditButtonGui::setPin(int32_t pinId, int32_t voice, int32_t size, const 
 {
 	if (controllertPtrPinId == pinId && size == sizeof(void*))
 	{
-		auto temp = *(IVST3PluginOwner**)data;
-		controller_ = dynamic_cast<ControllerWrapper*>(temp);
+		controller_ = *(ControllerWrapper**) data;
 	}
 
 	return GuiPinOwner::setPin2(pinId, voice, size, data);

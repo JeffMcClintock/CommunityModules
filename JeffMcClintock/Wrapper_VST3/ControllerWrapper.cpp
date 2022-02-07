@@ -201,7 +201,7 @@ int32_t ControllerWrapper::open()
 	// Pass pointer to 'this' to Process and GUI.
 	const int controllerPtrParamId = chunkParamId + 1;
 	const int voiceId = 0;
-	const auto me = static_cast<IVST3PluginOwner*>(this);
+	auto me = this;
 	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &me, sizeof(me));
 
 	{
@@ -279,7 +279,17 @@ int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 	auto factory = dll->getFactory();
 	plugin->setup(factory, *classID);
 
-    return gmpi::MP_OK;
+	const auto parameterCount = plugin->controller->getParameterCount();
+	parametersToProcessor.reserve(parameterCount);
+	for (int i = 0; i < parameterCount; ++i)
+	{
+		Steinberg::Vst::ParameterInfo info{};
+		plugin->controller->getParameterInfo(i, info);
+		parametersToProcessor.push_back(std::make_unique<ControllerWrapper::vstParameterVal>());
+		parametersToProcessor.back()->id = info.id;
+	}
+
+	return gmpi::MP_OK;
 }
 
 void ControllerWrapper::OpenGui()
@@ -342,6 +352,7 @@ bool ControllerWrapper::OnTimer()
 
 tresult VstComponentHandler::beginEdit(ParamID paramId)
 {
+	/*
 	const bool value = true;
 	const int voiceId = 0;
 
@@ -352,14 +363,16 @@ tresult VstComponentHandler::beginEdit(ParamID paramId)
 		(const void*)&value,
 		(int32_t) sizeof(value)
 	);
-
+	*/
 	return kResultOk;
 }
 
 tresult VstComponentHandler::performEdit (ParamID paramId, ParamValue valueNormalized)
 {
-	controller_->stateDirty = true;
+	controller_->setParameterFromEditor(paramId, valueNormalized);
 
+	controller_->stateDirty = true;
+/*
 	// Sync VST param -> SE Param
 	const float valueNormalizedF = static_cast<float>(valueNormalized);
 	const int voiceId = 0;
@@ -370,12 +383,13 @@ tresult VstComponentHandler::performEdit (ParamID paramId, ParamValue valueNorma
 		(const void*)&valueNormalizedF,
 		(int32_t) sizeof(valueNormalizedF)
 	);
-
+*/
 	return kResultOk;
 }
 
 tresult VstComponentHandler::endEdit (ParamID paramId)
 {
+	/*
 	const bool value = true;
 	const int voiceId = 0;
 
@@ -386,7 +400,7 @@ tresult VstComponentHandler::endEdit (ParamID paramId)
 		(const void*)&value,
 		(int32_t) sizeof(value)
 	);
-
+	*/
 	return kResultOk;
 }
 
@@ -409,14 +423,29 @@ int32_t ControllerWrapper::registerProcessor(Steinberg::Vst::IComponent** compon
     {
         *component = plugin->component.get();
         (*component)->queryInterface(IAudioProcessor::iid, (void**)vstEffect);
-
-        // unusual. processor don't hold references on the plugin. This is becuase it's lifetime must be controlled exclusivly from the ALG.
+/*
+        // unusual. processor don't hold references on the plugin. This is because it's lifetime must be controlled exclusivly from the ALG.
         if (*vstEffect)
         {
             (*vstEffect)->release();
         }
+*/
     }
 
 	return gmpi::MP_OK;
 }
 
+void ControllerWrapper::setParameterFromEditor(uint32_t paramId, double valueNormalized)
+{
+	for (auto& p : parametersToProcessor)
+	{
+		if (p->id == paramId)
+		{
+			parametersToProcessor[paramId]->normalized.store(valueNormalized, std::memory_order_release);
+			parametersToProcessor[paramId]->dirty.store(true, std::memory_order_release);
+
+			parameters_dirty.store(true, std::memory_order_release);
+			break;
+		}
+	}
+}

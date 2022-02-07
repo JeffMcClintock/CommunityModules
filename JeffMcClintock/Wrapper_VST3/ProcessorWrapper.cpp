@@ -2,7 +2,6 @@
 #include "../shared/xplatform.h"
 #include <algorithm>
 #include "./MyViewStream.h"
-#include "./PeerCommunication.h"
 
 #if defined(SE_TARGET_WAVES)
 #include "../../ug_base.h"
@@ -315,7 +314,6 @@ void ProcessorWrapper::ProcessEvents(int32_t count, const gmpi::MpEvent* events)
 #endif
 
 	vstEventList.events.clear();
-	parameterEvents.clear();
 
 	blockPos_ = 0;
 	int lblockPos = blockPos_;
@@ -442,12 +440,9 @@ void ProcessorWrapper::onSetPins(void)
 		vstTime_.timeSigDenominator = pinDenominator;
 	}
 
-	if (pinControllerPointer.isUpdated() && pinControllerPointer.getValue().getSize() == sizeof(gmpi::IMpUnknown*))
+	if (pinControllerPointer.isUpdated() && pinControllerPointer.getValue().getSize() == sizeof(ControllerWrapper*))
 	{
-		auto unknown = *(gmpi::IMpUnknown**)pinControllerPointer.getValue().getData();
-
-		gmpi_sdk::mp_shared_ptr<IVST3PluginOwner> controller;
-		unknown->queryInterface(WV_IID_VST3CONTROLLERHOST, controller.asIMpUnknownPtr());
+		controller = *(ControllerWrapper**)pinControllerPointer.getValue().getData();
 
 		controller->registerProcessor(&component_, &vstEffect_);
 

@@ -13,6 +13,8 @@
 #include "public.sdk/source/vst/hosting/processdata.h"
 #include "pluginterfaces/vst/ivstparameterchanges.h"
 
+#include "./ControllerWrapper.h"
+
 #if defined(SE_TARGET_WAVES)
 #include "cancellation.h"
 #endif
@@ -156,6 +158,8 @@ class ProcessorWrapper : public MpBase2
 	int latency = 0;
 	int bufferPrimingCounter = {};
 
+	ControllerWrapper* controller = {};
+
 	typedef void (ProcessorWrapper::* VstSubProcess_ptr)(int32_t count, const gmpi::MpEvent* events);
 
 	VstSubProcess_ptr currentVstSubProcess;
@@ -237,6 +241,28 @@ public:
 			processData.outputParameterChanges = &outputParameterChanges; // todo
 			processData.outputEvents = &outputEvents;
 			processData.numSamples = count;
+
+			// parameter from Editor
+			{
+				parameterEvents.clear();
+
+				if (controller && controller->parameters_dirty)
+				{
+					for (auto& p : controller->parametersToProcessor)
+					{
+						const auto pdirty = p->dirty.load(std::memory_order_relaxed);
+						if (pdirty)
+						{
+							p->dirty.store(false, std::memory_order_release);
+
+							Steinberg::int32 index{};
+							auto queue = processData.inputParameterChanges->addParameterData(p->id, index);
+							Steinberg::int32 index2{};
+							queue->addPoint(0, p->normalized.load(std::memory_order_relaxed), index2);
+						}
+					}
+				}
+			}
 
 			vstEffect_->process(processData);
 		}
