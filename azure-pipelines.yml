@@ -63,7 +63,7 @@ steps:
     specificBuildWithTriggering: true
     buildVersionToDownload: 'latest'
     downloadType: 'single'
-    artifactName: 'MacOS_Modules'
+    artifactName: 'modules_mac'
     downloadPath: '$(build.artifactstagingdirectory)/modules_mac'
 
 - task: ArchiveFiles@2
