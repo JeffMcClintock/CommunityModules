@@ -55,6 +55,12 @@ steps:
     TargetFolder: '$(build.artifactstagingdirectory)'
     flattenFolders: true
 
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
+    ArtifactName: 'Windows Modules'
+
 - task: DownloadBuildArtifacts@0
   inputs:
     buildType: 'specific'
@@ -73,12 +79,6 @@ steps:
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/community_modules.zip'
     replaceExistingArchive: true
-    
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact'
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)'
-    ArtifactName: 'Windows Modules'
 
 - task: PublishTestResults@2
   inputs:
