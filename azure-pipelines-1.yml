@@ -20,12 +20,13 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(agent.builddirectory)'
-    Contents: '**/build/**/*.sem/**'
+    SourceFolder: '$(agent.builddirectory)/s/build'
+    Contents: '**/*.sem/**'
     TargetFolder: '$(build.artifactstagingdirectory)'
+
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifacts'
   inputs:
     PathtoPublish: '$(build.artifactstagingdirectory)'
-    ArtifactName: 'MacOS_Modules'
+    ArtifactName: 'modules_mac'
