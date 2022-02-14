@@ -64,7 +64,7 @@ steps:
     buildVersionToDownload: 'latest'
     downloadType: 'single'
     artifactName: 'modules_mac'
-    downloadPath: '$(build.artifactstagingdirectory)/modules_mac'
+    downloadPath: '$(build.artifactstagingdirectory)'
 
 - task: ArchiveFiles@2
   inputs:
