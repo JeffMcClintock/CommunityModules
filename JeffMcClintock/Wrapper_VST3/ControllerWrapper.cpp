@@ -441,8 +441,8 @@ void ControllerWrapper::setParameterFromEditor(uint32_t paramId, double valueNor
 	{
 		if (p->id == paramId)
 		{
-			parametersToProcessor[paramId]->normalized.store(valueNormalized, std::memory_order_release);
-			parametersToProcessor[paramId]->dirty.store(true, std::memory_order_release);
+			p->normalized.store(valueNormalized, std::memory_order_release);
+			p->dirty.store(true, std::memory_order_release);
 
 			parameters_dirty.store(true, std::memory_order_release);
 			break;
