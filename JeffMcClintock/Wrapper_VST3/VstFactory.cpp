@@ -750,7 +750,7 @@ int32_t VstFactory::createInstance(
 		return gmpi::MP_FAIL;
 	}
 	const auto vstUniqueId = uuidFromWrapperID(uniqueId);
-	const bool useGuiPins = true;
+//	const bool useGuiPins = true;
 
 	for( auto& pluginInfo : plugins )
 	{
