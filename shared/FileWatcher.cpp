@@ -5,8 +5,6 @@
 #include "../se_sdk3/MpString.h"
 #include <thread>
 
-
-
 using namespace std;
 using namespace gmpi;
 using namespace gmpi_sdk;
@@ -15,7 +13,7 @@ namespace file_watcher
 {
 #if defined(_WIN32)
 
-	void WatchDirectoryPrivate(HANDLE stopEvent, platform_string fullPath, std::function<void(void)> callback)
+	void WatchDirectoryPrivate(HANDLE stopEvent, platform_string fullPath, std::function<void()> callback)
 	{
 		HANDLE eventHandles[2];
 		TCHAR lpDrive[4];
@@ -60,7 +58,7 @@ namespace file_watcher
 			switch(dwWaitStatus)
 			{
 			case WAIT_OBJECT_0:
-				_RPT0(_CRT_WARN, "FileWatcher: terminate signalled.\n");
+				//_RPT0(_CRT_WARN, "FileWatcher: terminate signalled.\n");
 				return; // we are done.
 				break;
 
@@ -68,7 +66,7 @@ namespace file_watcher
 
 				// A file was created, renamed, or deleted in the directory.
 				// Refresh this directory and restart the notification.
-				_RPT0(_CRT_WARN, "FileWatcher: file change signalled.\n");
+				//_RPT0(_CRT_WARN, "FileWatcher: file change signalled.\n");
 
 				callback();
 				if(FindNextChangeNotification(eventHandles[1]) == FALSE)
@@ -107,7 +105,7 @@ void fse_handle_events(
   const FSEventStreamEventId eventIds[]
 )
 {
-    auto& callback = (std::function<void(void)>&) data;
+    auto& callback = (std::function<void()>&) data;
     callback();
     /* TODO
   fse_watcher_t watcher = data;
@@ -133,13 +131,13 @@ void fse_handle_events(
 }
 
     // https://github.com/fsevents/fsevents/blob/master/src/rawfsevents.c
-    void WatchDirectoryPrivate(int stopEvent_todo, platform_string fullPath, std::function<void(void)>& callback)
+    void WatchDirectoryPrivate(int stopEvent_todo, platform_string fullPath, std::function<void()>& callback)
     {
 //        strncpy(watcher->path, path, PATH_MAX);
 //        watcher->handler = handler;
 //        watcher->context = context;
         auto loop = CFRunLoopGetCurrent();
-        CFRunLoopPerformBlock(loop, kCFRunLoopDefaultMode, ^(void){
+        CFRunLoopPerformBlock(loop, kCFRunLoopDefaultMode, ^(){
                 
             //          if (hookstart)
             //              hookstart(watcher->context);
@@ -167,10 +165,10 @@ void fse_handle_events(
     }
 #endif
 
-	void FileWatcher::Start(const platform_string& fullPath, std::function<void(void)> pCallback)
+	void FileWatcher::Start(const platform_string& fullPath, std::function<void()> pCallback)
 	{
 #if defined(_WIN32)
-		_RPT1(_CRT_WARN, "FileWatcher::Start(%S)\n", fullPath.c_str());
+		//_RPT1(_CRT_WARN, "FileWatcher::Start(%S)\n", fullPath.c_str());
 		stopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 		backgroundThread = std::thread(
@@ -196,12 +194,12 @@ void fse_handle_events(
 	FileWatcher::~FileWatcher()
 	{
 #if defined(_WIN32)
-		_RPT0(_CRT_WARN, "~FileWatcher()\n");
+//		_RPT0(_CRT_WARN, "~FileWatcher()\n");
 		SetEvent(stopEvent);    // ask thread to stop
 
 		if (backgroundThread.joinable())
 		{
-        backgroundThread.join();
+			backgroundThread.join();
 		}
 #endif
 	}

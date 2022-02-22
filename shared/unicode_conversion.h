@@ -18,12 +18,12 @@ namespace JmUnicodeConversions
 inline std::string WStringToUtf8_mac(const std::wstring& p_cstring)
 {
 	const auto size = wcstombs(0, p_cstring.c_str(), 0);
-    std::string res;
+	std::string res;
 	res.resize(size);
 	wcstombs((char*)res.data(), p_cstring.c_str(), size);
 	return res;
 }
-    
+
 inline std::string WStringToUtf8(const std::wstring& p_cstring )
 {
 #if defined(_WIN32)
@@ -39,7 +39,7 @@ inline std::string WStringToUtf8(const std::wstring& p_cstring )
 		NULL
 	);
     
-    res.resize(size);
+	res.resize(size);
 
 	WideCharToMultiByte(
 		CP_UTF8,
@@ -67,7 +67,7 @@ inline std::wstring Utf8ToWstring_mac(const std::string& p_string)
 }
 
 inline std::wstring Utf8ToWstring( const std::string& p_string )
-    {
+{
 #if defined(_WIN32)
 	std::wstring res;
 	const size_t size = MultiByteToWideChar(
@@ -140,4 +140,4 @@ inline std::wstring Utf8ToWstring(const char* p_string)
     }
     
 #endif
-	}
+}

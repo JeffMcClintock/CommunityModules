@@ -167,6 +167,9 @@ struct FontMetadata
 		case GmpiDrawing::TextAlignment::Trailing: // right.
 			flags_ |= TTL_RIGHT;
 			break;
+                
+        case GmpiDrawing::TextAlignment::Leading: // left.
+            break;
 		};
 	}
 

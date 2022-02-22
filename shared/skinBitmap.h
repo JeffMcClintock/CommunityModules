@@ -45,21 +45,15 @@ protected:
 			bmOffset.width = (float)bitmapMetadata_->padding_left;
 			bmOffset.height = (float)bitmapMetadata_->padding_top;
 
-			//GmpiDrawing::Rect knob_rect(0.f, (float)drawAt, (float)bitmapMetadata_->frameSize.width, (float)(drawAt + bitmapMetadata_->frameSize.height));
-			//GmpiDrawing::Rect dest_rect(x, y, x + (float)bitmapMetadata_->frameSize.width, y + (float)bitmapMetadata_->frameSize.height);
-			//dc->DrawBitmap(bitmap, &dest_rect, 1.0f, 1, &knob_rect);
-
 			bmRect.left = 0;
 			bmRect.right = bmRect.left + bitmapMetadata_->frameSize.width;
-			bmRect.top = drawAt;
+			bmRect.top = static_cast<float>(drawAt);
 			bmRect.bottom = bmRect.top + bitmapMetadata_->frameSize.height;
 		}
 		break;
 
 		case ABM_SLIDER:
 		{
-			//			dc.DrawBitmap(lbitmap, dest_backgroundrect, backgroundRect);
-
 			if (!hitTestPixelAccurate)
 			{
 				GmpiDrawing::Rect backgroundRect(0, 0, (float)bitmapMetadata_->frameSize.width, (float)bitmapMetadata_->frameSize.height);
@@ -220,8 +214,10 @@ public:
 		return bitmap_.Get();
 	}
 
-	void renderBitmap(GmpiDrawing::Graphics& dc, GmpiDrawing_API::MP1_SIZE_U topLeft)
+	void renderBitmap(GmpiDrawing::Graphics& dc, GmpiDrawing_API::MP1_SIZE_U topLeftU)
 	{
+		const GmpiDrawing::Size topLeft(static_cast<float>(topLeftU.width), static_cast<float>(topLeftU.height));
+
 		auto lbitmap = getDrawBitmap();
 
 		if (lbitmap == nullptr)
@@ -316,7 +312,7 @@ public:
 
 		case ABM_BAR_GRAPH:
 		{
-			float y = bitmapMetadata_->frameSize.height - drawAt;
+			float y = static_cast<float>(bitmapMetadata_->frameSize.height - drawAt);
 			// draw lit seqments
 			{
 				GmpiDrawing::Rect knob_rect(0.f, y, (float)bitmapMetadata_->frameSize.width, bitmapMetadata_->frameSize.height);

@@ -53,7 +53,7 @@ public:
 #endif
 
     FileFinder(const char* folderPath);
-	~FileFinder(void);
+	~FileFinder();
 
 	FileFinder& operator++()
 	{
@@ -71,7 +71,7 @@ public:
 	{
 		return current_;
 	}
-	FileFinderItem& currentItem(void)
+	FileFinderItem& currentItem()
 	{
 		return current_;
 	}

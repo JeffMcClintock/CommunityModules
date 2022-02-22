@@ -40,7 +40,7 @@ FileFinder::FileFinder(const char* folderPath) :
 	first(searchFolder);
 }
 
-FileFinder::~FileFinder(void)
+FileFinder::~FileFinder()
 {
 #if defined(_WIN32)
 	FindClose( directoryHandle );

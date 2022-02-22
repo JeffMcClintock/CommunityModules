@@ -245,9 +245,9 @@ namespace gmpi_gui
 		virtual void MP_STDCALL invalidateRect(const GmpiDrawing_API::MP1_RECT* invalidRect) = 0;
 		virtual void MP_STDCALL invalidateMeasure() = 0;
 
-		virtual int32_t MP_STDCALL setCapture(void) = 0;
+		virtual int32_t MP_STDCALL setCapture() = 0;
 		virtual int32_t MP_STDCALL getCapture(int32_t& returnValue) = 0;
-		virtual int32_t MP_STDCALL releaseCapture(void) = 0;
+		virtual int32_t MP_STDCALL releaseCapture() = 0;
 
 		virtual int32_t MP_STDCALL createPlatformMenu(/* shouldbe const */ GmpiDrawing_API::MP1_RECT* rect, gmpi_gui::IMpPlatformMenu** returnMenu) = 0;
 		virtual int32_t MP_STDCALL createPlatformTextEdit(/* shouldbe const */ GmpiDrawing_API::MP1_RECT* rect, gmpi_gui::IMpPlatformText** returnTextEdit) = 0;
@@ -372,7 +372,7 @@ namespace gmpi_gui
 			return MpGuiBase2::setHost(host);
 		}
 
-		gmpi_gui::IMpGraphicsHost* getGuiHost(void) { return guiHost_; };
+		gmpi_gui::IMpGraphicsHost* getGuiHost() { return guiHost_; };
 
 		// !!! TODO: All host calls to have 'easy' wrapped versions !!!
 		// calling host.

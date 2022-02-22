@@ -322,7 +322,7 @@ void WavFile::readWavData( const std::string & filename, int maxChannels, int ex
 	rate_ = waveheader.nSamplesPerSec;
 	numFrames_ = wave_data_bytes / waveheader.nBlockAlign;
 	numchans_ = std::min(maxChannels, (int)waveheader.nChannels);
-	int channelsIgnored = waveheader.nChannels - numchans_;
+//	int channelsIgnored = waveheader.nChannels - numchans_;
 
 	int totalSamples = numchans_ * (numFrames_ + extraInterpolationSamples * 2);
 
@@ -748,17 +748,17 @@ std::tuple<const float*, int> WavFileCursor::GetMoreSamples(bool gate)
     const int64_t remainingDiskSamples = sampleData->totalSamples() - filePosition;
     const int64_t zeroPadding = (std::max)((int64_t)0, sampleReadCount - remainingDiskSamples);
  
-		sampleReadCount -= zeroPadding;  // 0 -> 4 frames.
+    sampleReadCount -= zeroPadding;  // 0 -> 4 frames.
 
-		for (int i = 0; i < zeroPadding; ++i)
-			buffer[bufferWriteStart + sampleReadCount + i] = 0.f;
-
+    for (int i = 0; i < zeroPadding; ++i)
+        buffer[bufferWriteStart + sampleReadCount + i] = 0.f;
+    
     if(sampleReadCount > 0)
     {
-	// Read samples off disk.
-	auto dest = buffer.data() + bufferWriteStart;
-	// _RPT1(_CRT_WARN, "DiskSamplesToBuffer %d\n", static_cast<int>(sampleReadCount));
-	DiskSamplesToBuffer(sampleData->waveheader, static_cast<int>(sampleReadCount), dest);
+        // Read samples off disk.
+        auto dest = buffer.data() + bufferWriteStart;
+        // _RPT1(_CRT_WARN, "DiskSamplesToBuffer %d\n", static_cast<int>(sampleReadCount));
+        DiskSamplesToBuffer(sampleData->waveheader, static_cast<int>(sampleReadCount), dest);
     }
 	auto returnData = buffer.data() + overlapSamples;
 	int returnSamples = static_cast<int>(returnSamplesCount);

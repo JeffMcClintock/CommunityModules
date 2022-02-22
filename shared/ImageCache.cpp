@@ -108,7 +108,7 @@ GmpiDrawing::Bitmap ImageCache::GetImage(gmpi::IMpUserInterfaceHost2* host, gmpi
 
 				if (pixelsDest.getPixelFormat() == IMpBitmapPixels::kBGRA_SRGB) // Win10 SRGB support?
 				{
-					constexpr float gamma = 2.2f;
+//					constexpr float gamma = 2.2f;
 					constexpr float inv255 = 1.0f / 255.0f;
 					for (int i = 0; i < totalPixels; ++i)
 					{

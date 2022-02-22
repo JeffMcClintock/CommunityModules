@@ -20,7 +20,7 @@ The basic theory of 'power saving' in SynthEdit is:
 
 Once all input and output pins are silent, the SDK will automatically sleep your module.
  
-FilterBase just helps with that stuff. It’s pretty simple to use.
+FilterBase just helps with that stuff. It's pretty simple to use.
 
 * For step 1, implement isFilterSettling() and just return ‘true’ if the input is silent.
 * For step 2, implement getOutputPin() which tells the base class what output to watch for silence.
@@ -55,7 +55,7 @@ Implement these member functions
 
 	Call 'initSettling()' as the last thing in your onSetPins() method. It will check if filter is settling and if so commence monitoring the output signal.
 
-	void MyFilter::onSetPins(void)
+	void MyFilter::onSetPins()
 	{
 
 		// ... usual stuff first.
@@ -174,7 +174,7 @@ public:
 		}
 	}
 
-	void initSettling(void)
+	void initSettling()
 	{
 		if (isFilterSettling())
 		{

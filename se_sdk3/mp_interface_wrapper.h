@@ -43,7 +43,7 @@ namespace GmpiSdk
 		class GmpiIWrapper
 		{
 		protected:
-			gmpi_sdk::mp_shared_ptr<InterfaceClass> m_ptr;
+			mutable gmpi_sdk::mp_shared_ptr<InterfaceClass> m_ptr;
 
 			GmpiIWrapper() {}
 			GmpiIWrapper(GmpiIWrapper const & other) : m_ptr(other.m_ptr) {}
@@ -56,7 +56,7 @@ namespace GmpiSdk
             {
             }
 
-            inline InterfaceClass* Get()
+            inline InterfaceClass* Get() const
 			{
 				return m_ptr.get();
 			}

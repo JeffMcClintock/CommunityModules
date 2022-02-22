@@ -42,7 +42,7 @@
 // To simplify plugin development. All the headers for the GMPI/SEM
 // API and SDK are inlined together here. You need only include this one header to make a plugin.
 #include <assert.h>
-#include <string.h> // for memcpy()
+//#include <string.h> // for memcpy()
 #include <string>	// for std::wstring
 
 //==== cross-platform integer datatypes =====
@@ -172,11 +172,11 @@ namespace gmpi
 }
 
 #define GMPI_REFCOUNT gmpi_sdk::selfInitializingInt refCount2_; \
-	int32_t MP_STDCALL addRef(void) override \
+	int32_t MP_STDCALL addRef() override \
 { \
 	return ++refCount2_.value_; \
 } \
-	int32_t MP_STDCALL release(void) override \
+	int32_t MP_STDCALL release() override \
 { \
 	if (--refCount2_.value_ == 0) \
 	{ \
@@ -187,11 +187,11 @@ namespace gmpi
 } \
 
 #define GMPI_REFCOUNT_NO_DELETE	\
-	int32_t MP_STDCALL addRef(void) override \
+	int32_t MP_STDCALL addRef() override \
 { \
 	return 1; \
 } \
-	int32_t MP_STDCALL release(void) override \
+	int32_t MP_STDCALL release() override \
 { \
 	return 1; \
 } \
@@ -255,10 +255,10 @@ public:
 	virtual int32_t MP_STDCALL queryInterface( const MpGuid& iid, void** returnInterface ) = 0;
 
 	// Increment the reference count of an object.
-	virtual int32_t MP_STDCALL addRef(void) = 0;
+	virtual int32_t MP_STDCALL addRef() = 0;
 
 	// Decrement the reference count of an object and possibly destroy.
-	virtual int32_t MP_STDCALL release(void) = 0;
+	virtual int32_t MP_STDCALL release() = 0;
 };
 
 // GUID for IMpUnknown - {00000000-0000-C000-0000-000000000046}
@@ -344,11 +344,28 @@ static const MpGuid MP_IID_PLUGIN2 =
 // {1E07E3E8-8118-457F-A63C-D4F282A0F519}
 { 0x1e07e3e8, 0x8118, 0x457f, { 0xa6, 0x3c, 0xd4, 0xf2, 0x82, 0xa0, 0xf5, 0x19 } };
 
+// Music plugin audio processing interface. simplified.
+class IMpAudioPlugin : public IMpUnknown
+{
+public:
+	// Establish connection to host.
+	virtual int32_t setHost(IMpUnknown* host) = 0;
+
+	// Processing about to start.  Allocate resources here.
+	virtual int32_t open() = 0;
+
+	// Notify plugin of audio buffer address, one pin at a time. Address may change between process() calls.
+	virtual int32_t setBuffer(int32_t pinId, float* buffer) = 0;
+
+	// Process a time slice. No Return code, must always succeed.
+	virtual void process(int32_t count, const MpEvent* events) = 0;
+};
+
 // IMpHost - The audio host interface.
 
 enum MP_PinDirection{ MP_IN, MP_OUT };
 
-enum MP_PinDatatype{ MP_ENUM=0, MP_STRING=1, MP_MIDI=2, MP_FLOAT64, MP_BOOL=4, MP_AUDIO=5, MP_FLOAT32=6, MP_INT32=8, MP_INT64=9, MP_BLOB=10 };
+enum MP_PinDatatype{ MP_ENUM=0, MP_STRING=1, MP_MIDI=2, MP_FLOAT64, MP_BOOL=4, MP_AUDIO=5, MP_FLOAT32=6, MP_INT32=8, MP_INT64=9, MP_BLOB=10, MP_STRING_UTF8=12 };
 
 // SynthEdit imbedded file.
 class IProtectedFile
@@ -976,7 +993,7 @@ int32_t RegisterPluginXml( const char* xmlFile );
 #define PASTE_FUNC(x,y) PASTE_FUNC1(x,y,__LINE__)
 
 // Old way using Macro. macros are evil.
-#define GMPI_REGISTER( plugintype, className, pluginId ) namespace{ gmpi::IMpUnknown* PASTE_FUNC(create,className)(void){ return static_cast<gmpi::IMpUnknown*> (new className()); }; int32_t PASTE_FUNC(r,className) = RegisterPlugin( plugintype, pluginId, &PASTE_FUNC(create,className) );}
+#define GMPI_REGISTER( plugintype, className, pluginId ) namespace{ gmpi::IMpUnknown* PASTE_FUNC(create,className)(){ return static_cast<gmpi::IMpUnknown*> (new className()); }; int32_t PASTE_FUNC(r,className) = RegisterPlugin( plugintype, pluginId, &PASTE_FUNC(create,className) );}
 
 // Ensure linker includes file in static-library. See also INIT_STATIC_FILE in UgDatabase.cpp
 #define SE_DECLARE_INIT_STATIC_FILE(filename) void se_static_library_init_##filename(){}
@@ -1042,7 +1059,7 @@ public:
 	static bool withId(const wchar_t* moduleIdentifier)
 	{
 		RegisterPlugin(subType((moduleClass*) nullptr), moduleIdentifier,
-			[](void) -> gmpi::IMpUnknown* { return toUnknown(new moduleClass()); }
+			[]() -> gmpi::IMpUnknown* { return toUnknown(new moduleClass()); }
 		);
 
 		return false; // value not used, but required.
@@ -1051,7 +1068,7 @@ public:
 	static bool withXml(const char* xml)
 	{
 		RegisterPluginWithXml(subType((moduleClass*) nullptr), xml,
-			[](void) -> gmpi::IMpUnknown* { return toUnknown(new moduleClass()); }
+			[]() -> gmpi::IMpUnknown* { return toUnknown(new moduleClass()); }
 		);
 
 		return false;
@@ -1149,6 +1166,10 @@ private:
 	{
 		enum { result = gmpi::MP_STRING };
 	};
+	template<int N> struct PinDataTypeTraits<std::string,N>
+	{
+		enum { result = gmpi::MP_STRING_UTF8 };
+	};
 	template<int N> struct PinDataTypeTraits<MpBlob,N>
 	{
 		enum { result = gmpi::MP_BLOB };
@@ -1173,6 +1194,12 @@ inline int variableRawSize<std::wstring>( const std::wstring& value )
 }
 
 template<>
+inline int variableRawSize<std::string>( const std::string& value )
+{
+	return static_cast<int>(value.size());
+}
+
+template<>
 inline int variableRawSize<MpBlob>( const MpBlob& value )
 {
 	return value.getSize();
@@ -1192,6 +1219,12 @@ inline void* variableRawData<std::wstring>( const std::wstring& value )
 }
 
 template<>
+inline void* variableRawData<std::string>( const std::string& value )
+{
+	return (void*) value.data();
+}
+
+template<>
 inline void* variableRawData<MpBlob>( const MpBlob& value )
 {
 	return (void*) value.getData();
@@ -1202,13 +1235,6 @@ inline void* variableRawData<MpBlob>( const MpBlob& value )
 template <typename T>
 inline bool variablesAreEqual( const T& a, const T& b )
 {
-	return a == b;
-}
-
-template <>
-inline bool variablesAreEqual<std::wstring>( const std::wstring& a, const std::wstring& b )
-{
-//	return a.compare(b) == 0;
 	return a == b;
 }
 
@@ -1245,6 +1271,12 @@ template <>
 inline void VariableFromRaw<std::wstring>( int size, const void* data, std::wstring& returnValue )
 {
 	returnValue.assign( (wchar_t* ) data, size / sizeof(wchar_t) );
+}
+
+template <>
+inline void VariableFromRaw<std::string>( int size, const void* data, std::string& returnValue )
+{
+	returnValue.assign( (const char*)data, (size_t) size );
 }
 
 // Specializations of above for various types.
@@ -1439,12 +1471,10 @@ namespace gmpi_sdk
 	template<class wrappedObjT>
 	class mp_shared_ptr
 	{
-		wrappedObjT* obj;
+		mutable wrappedObjT* obj = {};
 
 	public:
-		mp_shared_ptr() : obj(0)
-		{
-		}
+		mp_shared_ptr(){}
 
 		explicit mp_shared_ptr(wrappedObjT* newobj) : obj(0)
 		{
@@ -1518,7 +1548,7 @@ namespace gmpi_sdk
 
 		bool isNull()
 		{
-			return obj == 0;
+			return obj == nullptr;
 		}
 
 	private:

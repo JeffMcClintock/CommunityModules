@@ -16,7 +16,7 @@ using namespace GmpiDrawing_API;
 	* Support additive composing (for lighting effects) (already works on Windows, not Mac)
 */
 
-// todo, no dependancy on Gmpi plugins.
+// todo, no dependancy on Gmpi.
 #include "mp_sdk_common.h"
 
 namespace GmpiDrawing_API

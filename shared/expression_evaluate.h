@@ -21,7 +21,7 @@ public:
 	{
 		ClearAllVars(); // init expression evaluator
 	}
-	virtual ~Evaluator(){};
+	virtual ~Evaluator() {}
 
 	int SetValue( const char* name, double* value );
 	int Evaluate( const char* e, double* result, int* a );

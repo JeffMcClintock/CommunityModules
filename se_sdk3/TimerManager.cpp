@@ -77,7 +77,7 @@ void TimerManager::OnTimer(se_sdk_timers::timer_id_t timerId)
 }
 
 
-TimerManager::TimerManager(void) :
+TimerManager::TimerManager() :
 interval_( IDLE_PERIOD )
 {
 }
@@ -150,44 +150,28 @@ void Timer::OnTimer()
 	// When running under WPF. Need to ensure clients linked against MFC behave OK.
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 #endif
-	/*
-#if 0 //why a copy? A: "iterator invalidation"
-	clientContainer_t safeCopy(clients_);
-	for (auto it = safeCopy.begin(); it != safeCopy.end(); ++it)
-	{
-		if ((*it)->OnTimer() == false)
-		{
-			auto it2 = find(clients_.begin(), clients_.end(), *it);
-			if (it2 != clients_.end())
-			{
-				clients_.erase(it2);
 
-				if (clients_.empty())
-				{
-					Stop();
-				}
-			}
-		}
-	}
-#else
-	// NOPE. Crash if additional timer added during timer callback becuase iterator becomes invalid.
-	for (auto it = clients_.begin(); it != clients_.end(); )
+	clientContainer_t safeCopy(clients_);
+	for (auto client : safeCopy)
 	{
-		if ((*it)->OnTimer() == false)
+		// Access VERY cautiously. Anything can happen to clients during callback (add, remove etc).
+
+		// is client still in main list?
+		if (std::find(clients_.begin(), clients_.end(), client) == clients_.end())
+			continue;
+
+		if (!client->OnTimer())
 		{
-			it = clients_.erase(it);
-			if (clients_.empty())
-			{
-				Stop();
-			}
-		}
-		else
-		{
-			++it;
+			clients_.erase(std::remove(clients_.begin(), clients_.end(), client), clients_.end());
 		}
 	}
-#endif
-*/
+
+	if (clients_.empty())
+	{
+		Stop();
+	}
+
+#if 0 // was flaky - when an element removed, vector shrunk and skipped the next client.
 
 	// Iterate with index, std iterators can become invalidated when new clients added during callback.
 	for (int i = 0; i < clients_.size(); ++i)
@@ -207,11 +191,11 @@ void Timer::OnTimer()
 				Stop();
 			}
 		}
+#endif
 	}
 }
-}
 
-TimerManager::~TimerManager(void)
+TimerManager::~TimerManager()
 {
 	for (auto& timer : timers)
 	{

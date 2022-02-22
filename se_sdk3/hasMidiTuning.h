@@ -8,14 +8,14 @@ typedef int64_t timestamp_t;
 class hasMidiTuning
 {
 public:
-	hasMidiTuning(void)
+	hasMidiTuning()
     {
 	    for( int i = 0 ; i < 128 ; i++ )
 	    {
 		    tuningTable[i] = i << 14;
 	    }
     }
-	virtual ~hasMidiTuning(void) {};
+	virtual ~hasMidiTuning() {}
 
 	bool onMidiMessage(int p_clock, const unsigned char* midiMessage, int /* size */)
 	{
@@ -146,6 +146,12 @@ public:
 		constexpr float c = 1.0f / (float) 0x4000; // convert 7.14 bit number to float.
 	    return (float) tuningTable[midiKeyNumber] * c;
     }
+	void SetKeyTune(int midiKeyNumber, float semitones)
+	{
+		// convert 7.14 bit number from float.
+		tuningTable[midiKeyNumber] = static_cast<int>(semitones * (float)0x4000);
+	}
+
     int GetIntKeyTune( int midiKeyNumber )
     {
 	    return tuningTable[midiKeyNumber];
@@ -153,7 +159,7 @@ public:
 	virtual void OnKeyTuningChanged(int /* blockrelativetimestamp */, int /* MidiKeyNumber */, int /* tune */) {}
 	virtual void OnKeyTuningChangedA(timestamp_t absolutetimestamp, int MidiKeyNumber, int tune)
 	{
-		// call relative version by default to support older clients.
+		// call deprecated version by default to support older clients.
 		OnKeyTuningChanged(static_cast<int>(absolutetimestamp), MidiKeyNumber, tune);
 	}
 

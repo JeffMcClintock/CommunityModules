@@ -291,7 +291,7 @@ namespace GmpiGui
 		{
 			Get()->invalidateMeasure();
 		}
-		inline void setCapture(void)
+		inline void setCapture()
 		{
 			/* auto r = */ Get()->setCapture();
 		}
@@ -301,7 +301,7 @@ namespace GmpiGui
 			/* auto r = */ Get()->getCapture(returnValue);
 			return returnValue != 0;
 		}
-		inline void releaseCapture(void)
+		inline void releaseCapture()
 		{
 			/* auto r = */ Get()->releaseCapture();
 		}

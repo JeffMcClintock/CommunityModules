@@ -585,7 +585,8 @@ namespace GmpiDrawing
 		result.top = (std::max)(a.top, b.top);
 		result.right = (std::min)(a.right, b.right);
 		result.bottom = (std::min)(a.bottom, b.bottom);
-		// fix negative dimensions.
+
+		// clamp negative dimensions to zero.
 		result.right = (std::max)(result.left, result.right);
 		result.bottom = (std::max)(result.top, result.bottom);
 		return result;
@@ -2674,6 +2675,7 @@ namespace GmpiDrawing
 			Get()->DrawTextU(utf8String.c_str(), (int32_t)utf8String.size(), (GmpiDrawing_API::IMpTextFormat*) textFormat.Get(), &rect, brush.Get(), flags);
 		}
 
+		// don't care about rect, only position. DEPRECATED, works only when text is left-aligned.
 		inline void DrawTextW(std::wstring wString, TextFormat_readonly textFormat, float x, float y, Brush brush, DrawTextOptions options = DrawTextOptions::None)
 		{
 			static std::wstring_convert<std::codecvt_utf8<wchar_t>> stringConverter;

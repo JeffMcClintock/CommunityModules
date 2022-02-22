@@ -327,3 +327,8 @@ float RampGenerator::getInstantValue()
 {
 	return currentValue_;
 }
+
+float RampGenerator::getTargetValue()
+{
+	return targetValue_;
+}

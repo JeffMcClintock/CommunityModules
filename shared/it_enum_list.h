@@ -60,14 +60,14 @@ public:
 	void Next();
 	it_enum_list &operator++(){Next();return *this;} //Prefix increment
 	void First();
-	int size(void);
+	int size();
 	bool FindValue( int p_value );
 	bool FindIndex( int p_index );
 	static bool IsValidValue( const std::wstring  &p_enum_list, int p_value );
 	static int ForceValidValue( const std::wstring  &p_enum_list, int p_value );
-	bool IsRange(void){return m_range_mode;};
-	int RangeHi(void){return range_hi;}
-	int RangeLo(void){return range_lo;}
+	bool IsRange(){return m_range_mode;};
+	int RangeHi(){return range_hi;}
+	int RangeLo(){return range_lo;}
 
 private:
 	int StringToInt(const std::wstring  &string, int p_base = 10);

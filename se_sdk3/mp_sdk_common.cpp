@@ -1,13 +1,13 @@
 // Copyright 2006 Jeff McClintock
 
-#include <memory.h>
+#include <memory>
 #include "mp_sdk_gui.h"
 #include <sstream>
 
 using namespace gmpi;
 
 // Only standalone plugins need entrypoint.
-#if defined( SE_EDIT_SUPPORT ) || defined( SE_TARGET_VST3 ) || defined( SE_TARGET_AU )
+#if defined( SE_EDIT_SUPPORT ) || defined( SE_TARGET_PLUGIN )
 #define COMPILE_HOST_SUPPORT
 #endif
 

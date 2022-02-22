@@ -421,7 +421,7 @@ void MpPinBase::sendPinUpdate( int32_t rawSize, void* rawData, int32_t blockPosi
 	plugin_->getHost()->setPin( blockPosition, getId(), rawSize, rawData );
 }
 
-MpBaseMemberPtr MidiInPin::getDefaultEventHandler(void)
+MpBaseMemberPtr MidiInPin::getDefaultEventHandler()
 {
 	return &MpPluginBase::midiHelper;
 }

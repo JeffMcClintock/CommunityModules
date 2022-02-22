@@ -138,7 +138,7 @@ void it_enum_list::Next()
 	}
 }
 
-int it_enum_list::size(void)
+int it_enum_list::size()
 {
 	if(m_range_mode)
 	{
