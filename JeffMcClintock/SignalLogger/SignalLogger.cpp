@@ -17,7 +17,7 @@ class SignalLogger final : public MpBase2
 	int blockIndex = 0;
 
 public:
-	static const int recordingBufferSize_ = 4048;
+	int recordingBufferSize_ = {};
 	static const int recordingBufferHeaderFloats_ = 2;
 
 	SignalLogger()
@@ -27,6 +27,9 @@ public:
 
 	int32_t open() override
 	{
+		const int assumedGuiUpdateRateHz = 20;
+		recordingBufferSize_ = host.getSampleRate() / assumedGuiUpdateRateHz;
+
 		// Register pins.
 		PinIterator it(this);
 
