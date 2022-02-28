@@ -15,7 +15,6 @@ set(srcs
 ${PROJECT_NAME}.rc
 DrawingTestGui.cpp
 DrawingTestLinesGui.cpp
-GUI_3_0.cpp
 colorspace.c
 )
 include_directories(
