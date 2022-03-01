@@ -17,6 +17,14 @@ DrawingTestGui.cpp
 DrawingTestLinesGui.cpp
 colorspace.c
 )
+
+if(MSVC)
+set(srcs ${srcs}
+GUI_3_0.cpp
+GUI_3_0.h
+)
+endif()
+
 include_directories(
 ${sdk_folder}
 )

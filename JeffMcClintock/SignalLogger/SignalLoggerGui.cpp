@@ -24,10 +24,11 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "mp_sdk_gui2.h"
-#include "Drawing.h"
 #include <list>
 #include <vector>
+#include "mp_sdk_gui2.h"
+#include "Drawing.h"
+#include "GraphHelpers.h"
 
 using namespace gmpi;
 using namespace GmpiDrawing;
@@ -38,83 +39,6 @@ struct captureChunk
 	float* signal;
 	float* signal_peak;
 };
-
-inline void SimplifyGraph(const std::vector<Point>& in, std::vector<Point>& out)
-{
-	out.clear();
-
-	if (in.size() < 2)
-	{
-		out = in;
-		return;
-	}
-
-	const float tollerance = 0.3f;
-
-	float slope{};
-	bool first = true;
-	Point prev{};
-
-	for (int i = 0; i < in.size(); ++i)
-	{
-		if (first)
-		{
-			prev = in[i];
-			out.push_back(prev);
-
-			assert(i != in.size() - 1); // should never be last one?
-
-//			if (i != in.size() - 1) // last one?
-			{
-				slope = (in[i + 1].y - prev.y) / (in[i + 1].x - prev.x);
-				++i; // next one can be assumed to fit the prediction (so skip it).
-				first = false;
-			}
-		}
-		else
-		{
-			const float predictedY = prev.y + slope * (in[i].x - prev.x);
-			const float err = in[i].y - predictedY;
-
-			if (err > tollerance || err < -tollerance)
-			{
-				i -= 2; // insert prev in 'out', then recalc slope
-				first = true;
-			}
-		}
-	}
-
-	if (out.back() != in.back())
-	{
-		out.push_back(in.back());
-	}
-}
-
-inline PathGeometry DataToGraph(Graphics& g, const std::vector<Point>& inData)
-{
-	const float tollerance = 0.3f;
-
-	auto geometry = g.GetFactory().CreatePathGeometry();
-	auto sink = geometry.Open();
-	bool first = true;
-	for (const auto& p : inData)
-	{
-		if (first)
-		{
-			sink.BeginFigure(p);
-			first = false;
-		}
-		else
-		{
-			sink.AddLine(p);
-		}
-	}
-
-	sink.EndFigure(FigureEnd::Open);
-	sink.Close();
-
-	return geometry;
-}
 
 class SignalLoggerGui final : public gmpi_gui::MpGuiGfxBase
 {
@@ -233,8 +157,6 @@ public:
 
 				for (int i = 0 ; i < framesPerChunk; ++i)
 				{
-					//chunk.data.size() - traceCount + trace;
-					//int index = i * traceCount + trace;
 					p.y = chunk.data[chunk.data.size() - traceCount * (i+1) + trace];
 
 					if (isnan(p.y) || isinf(p.y))
