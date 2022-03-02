@@ -53,7 +53,7 @@ class SignalLoggerGui final : public gmpi_gui::MpGuiGfxBase
 
 	std::list<TraceChunk> chunks;
 
-	std::vector<Point> temp1; // to save reallocating every frame, we keep these arround.
+	std::vector<Point> temp1; // to save reallocating every frame, we keep these around.
 	std::vector<Point> temp2;
 
 	void onSetBlob()
