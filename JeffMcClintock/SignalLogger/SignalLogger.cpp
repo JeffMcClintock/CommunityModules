@@ -86,6 +86,7 @@ public:
 	void onSetPins(void) override
 	{
 		setSubProcess(&SignalLogger::subProcess);
+		setSleep(false);
 	}
 };
 
