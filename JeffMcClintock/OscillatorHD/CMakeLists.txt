@@ -17,6 +17,7 @@ ${sdk_folder}/mp_sdk_audio.cpp
 )
 set(srcs
 ${PROJECT_NAME}.rc
+${PROJECT_NAME}.h
 ${PROJECT_NAME}.cpp
 real_fft.cpp
 )

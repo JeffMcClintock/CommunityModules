@@ -221,7 +221,10 @@ struct LinearInterpolator
 };
 
 // 4-point
-struct CubicInterpolator_1
+#ifndef GMPI_SSE_AVAILABLE
+	// No SSE. Use C++ instead.
+
+struct CubicInterpolator
 {
 	inline static float Interpolate(phasor_t count, Grain& grain)
 	{
@@ -264,6 +267,9 @@ struct CubicInterpolator_1
 	}
 };
 
+#else
+// Use SSE instructions. Not ARM compatible
+
 // 4-point
 struct CubicInterpolator
 {
@@ -305,6 +311,7 @@ struct CubicInterpolator
 		return returnValue;
 	}
 };
+#endif
 
 class Oscillator : public MpBase2
 {
