@@ -12,7 +12,7 @@ pool:
 steps:
 - task: CMake@1
   inputs:
-    cmakeArgs: '..'
+    cmakeArgs: '.. -D"CMAKE_OSX_ARCHITECTURES=arm64;x86_64"'
 
 - task: CMake@1
   inputs:
