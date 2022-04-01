@@ -74,7 +74,7 @@ if(CMAKE_HOST_WIN32)
 add_custom_command(TARGET ${PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
-    COMMAND copy "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules"
+    COMMAND xcopy /c /y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules"
     COMMENT "Copy to system plugin folder"
     VERBATIM
 )
