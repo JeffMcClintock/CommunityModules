@@ -104,7 +104,7 @@ private:
 
     /** Number of audio channels.
      */
-    static const int numberOfChannels = 2;
+    static inline const int numberOfChannels = 2;
 
     /** Stores the previous value of the variable factorForB2 for every audio channel.
      */
