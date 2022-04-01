@@ -8,6 +8,8 @@ if(HAS_DSP)
 set(srcs ${srcs}
 Ebu128LoudnessMeter.h
 Ebu128LoudnessMeter.cpp
+filters/SecondOrderIIRFilter.h
+filters/SecondOrderIIRFilter.cpp
 )
 endif()
 
