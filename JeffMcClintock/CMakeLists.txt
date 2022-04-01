@@ -9,6 +9,7 @@ add_subdirectory(OscillatorHD)
 add_subdirectory(SignalLogger)
 add_subdirectory(PeakFollower)
 add_subdirectory(Dynamics)
+add_subdirectory(Loudness)
 
 if(WIN32)
 # don't build on macOS yet

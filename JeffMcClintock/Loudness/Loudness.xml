@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<PluginList>
+  <Plugin id="SE Loudness" name="Loudness" category="Conversion">
+    <Audio>
+      <Pin name="Left In" datatype="float" rate="audio" />
+      <Pin name="Right In" datatype="float" rate="audio" />
+      <Pin name="Response" datatype="enum" metadata="LUFS" />
+      <Pin name="Reset" datatype="bool" />
+      <Pin name="Momentary" datatype="float" direction="out" />
+      <Pin name="Short Term" datatype="float" direction="out" />
+      <Pin name="Integrated" datatype="float" direction="out" />
+      <Pin name="Momentary Max" datatype="float" direction="out" />
+      <Pin name="Short Term Max" datatype="float" direction="out" />
+    </Audio>
+  </Plugin>
+</PluginList>
