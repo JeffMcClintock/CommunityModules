@@ -2112,28 +2112,58 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBo
 
 		// Text Weight
 		{
-				float x = 10.0f;
-				for (int fontWeight = 100; fontWeight < 800 /*1000*/; fontWeight += 100)
-				{
-					// Arial draws top two font weights lower than the rest.
-					// Verdana, Times New Roman, and Trebuchet MS draws only two distinct weights.
-					//auto textFormat = g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight) fontWeight);
-					TextFormat textFormat = useFixedBoundingbox ?
-						g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight)fontWeight)
-						: g.GetFactory().CreateTextFormat(28.0f, "Arial", (GmpiDrawing::FontWeight)fontWeight);
+			float x = 10.0f;
+			for (int fontWeight = 100; fontWeight < 800 /*1000*/; fontWeight += 100)
+			{
+				// Arial draws top two font weights lower than the rest.
+				// Verdana, Times New Roman, and Trebuchet MS draws only two distinct weights.
+				//auto textFormat = g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight) fontWeight);
+				TextFormat textFormat = useFixedBoundingbox ?
+					g.GetFactory().CreateTextFormat2(28.0f, "Arial", (GmpiDrawing::FontWeight)fontWeight)
+					: g.GetFactory().CreateTextFormat(28.0f, "Arial", (GmpiDrawing::FontWeight)fontWeight);
 
 
-					Rect textRect2 (x, 64, x + 23, 110);
+				Rect textRect2 (x, 64, x + 23, 110);
 
-					fallbackBrush.SetColor(Color::PapayaWhip);
-					g.FillRectangle(textRect2, fallbackBrush);
+				fallbackBrush.SetColor(Color::PapayaWhip);
+				g.FillRectangle(textRect2, fallbackBrush);
 
-					fallbackBrush.SetColor(Color::Black);
-					g.DrawTextU("A", textFormat, textRect2, fallbackBrush);
-					x += 24;
-				}
+				fallbackBrush.SetColor(Color::Black);
+				g.DrawTextU("A", textFormat, textRect2, fallbackBrush);
+				x += 24;
+			}
 		}
 
+		// Text Styles
+		{
+			const char* styles[] =
+			{
+				"Normal",
+				"Oblique",
+				"Italic"
+			};
+
+			float y = 84.0f;
+			float x = 200.0f;
+			for (int style = 0; style < 3; style++)
+			{
+				auto textFormat = g.GetFactory().CreateTextFormat2(
+					12.0f,
+					"Arial",
+					GmpiDrawing::FontWeight::Regular,
+					(GmpiDrawing::FontStyle)style
+				);
+
+				Rect textRect2 (x, y, x + 40, y + 20);
+
+				fallbackBrush.SetColor(Color::PapayaWhip);
+				g.FillRectangle(textRect2, fallbackBrush);
+
+				fallbackBrush.SetColor(Color::Black);
+				g.DrawTextU(styles[style], textFormat, textRect2, fallbackBrush);
+				x += 44;
+			}
+		}
 		DrawAlignmentCrossHairs(g);
 
 		// Scale
