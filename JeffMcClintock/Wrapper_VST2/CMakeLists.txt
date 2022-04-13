@@ -18,7 +18,7 @@ ${sdk_folder}/mp_sdk_gui.cpp
 ${sdk_folder}/mp_sdk_gui2.cpp
 ${sdk_folder}/TimerManager.cpp
 ${sdk_shared_folder}/FileFinder.cpp
-${sdk_shared_folder}/xp_dynamic_linking
+${sdk_shared_folder}/xp_dynamic_linking.cpp
 )
 
 set(srcs

@@ -43,11 +43,10 @@
 #ifndef __EBU128_LOUDNESS_METER__
 #define __EBU128_LOUDNESS_METER__
 
-//#include "MacrosAndJuceHeaders.h"
 #include "filters/SecondOrderIIRFilter.h"
 #include <map>
 #include <vector>
-#include "../../se_sdk3/mp_sdk_audio.h"
+#include "mp_sdk_audio.h"
 
 using namespace gmpi;
 
