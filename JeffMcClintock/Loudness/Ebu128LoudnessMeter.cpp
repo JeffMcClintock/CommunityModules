@@ -102,20 +102,15 @@ Ebu128LoudnessMeter::Ebu128LoudnessMeter()
 	initializePin(pinIntegratedOut);
 	initializePin(pinMomentaryMaxOut);
 	initializePin(pinShortTermMaxOut);
+	initializePin(pinLraMin);
+	initializePin(pinLraMax);
 }
 
-//void Ebu128LoudnessMeter::prepareToPlay (double sampleRate, 
-//                                         int numberOfInputChannels,
-//                                         int estimatedSamplesPerBlock, 
-//                                         int expectedRequestRate)
 int32_t Ebu128LoudnessMeter::open()
 {
     const int numberOfInputChannels = 2;
     inputBufferPointers.assign(numChannels, nullptr);
 
-    // Resize the buffer.
-//    bufferForMeasurement.setSize (numberOfInputChannels, estimatedSamplesPerBlock);
-    
     for(auto& buffer : bufferForMeasurement)
         buffer.assign(host.getBlockSize(), 0.0f);
 
@@ -228,6 +223,9 @@ void Ebu128LoudnessMeter::subProcess(int sampleFrames)
 		pinIntegratedOut.setValue(getIntegratedLoudness(), 0);
 		pinMomentaryMaxOut.setValue(getMaximumMomentaryLoudness(), 0);
 		pinShortTermMaxOut.setValue(getMaximumShortTermLoudness(), 0);
+
+		pinLraMin.setValue(loudnessRangeStart, 0);
+		pinLraMax.setValue(loudnessRangeEnd, 0);
     }
     updateCounter -= sampleFrames;
 

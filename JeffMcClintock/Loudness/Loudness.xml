@@ -11,6 +11,8 @@
       <Pin name="Integrated" datatype="float" direction="out" />
       <Pin name="Momentary Max" datatype="float" direction="out" />
       <Pin name="Short Term Max" datatype="float" direction="out" />
+      <Pin name="LRA Min" datatype="float" direction="out" />
+      <Pin name="LRA Max" datatype="float" direction="out" />
     </Audio>
   </Plugin>
 </PluginList>

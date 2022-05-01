@@ -75,6 +75,8 @@ class Ebu128LoudnessMeter : public MpBase2
 	FloatOutPin pinIntegratedOut;
 	FloatOutPin pinMomentaryMaxOut;
 	FloatOutPin pinShortTermMaxOut;
+	FloatOutPin pinLraMin;
+	FloatOutPin pinLraMax;
 
     static const int numChannels = 2;
     std::vector<float*> inputBufferPointers;
@@ -99,13 +101,8 @@ public:
         0.1 second a gating block needs to be measured (for the
         integrated loudness measurement).
      */
-    //void prepareToPlay (double sampleRate,
-    //                    int numberOfInputChannels,
-    //                    int estimatedSamplesPerBlock, 
-    //                    int expectedRequestRate);
     int32_t MP_STDCALL open() override;
 
-//    void processBlock (const AudioSampleBuffer& buffer);
     void subProcess(int sampleFrames);
 
     float getShortTermLoudness() const;
