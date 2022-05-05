@@ -14,6 +14,9 @@
             </Parameters>
         </PatchManager>
         <modules>
+            <module type="Oscillator" handle="183560334" muted="true">
+                <structRect l="282" r="366" t="52" b="136"/>
+            </module>
             <module type="Sound Out" handle="72585305">
                 <structRect l="366" r="402" t="283" b="427"/>
             </module>
@@ -56,6 +59,20 @@
                 <Pin name="Controls on Parent" datatype="bool"/>
                 <Pin name="Ignore Program Change" datatype="bool" noAutomation="true"/>
             </GUI>
+        </Plugin>
+        <Plugin id="Oscillator" name="Oscillator" flags="4352" category="Waveform">
+            <Audio>
+                <Pin name="Pitch" datatype="float" rate="audio" default="0.5" metadata="100, 0, 10, 0"/>
+                <Pin name="Pulse Width" datatype="float" rate="audio" default="0.5"/>
+                <Pin name="Waveform" datatype="enum" default="1" metadata="Sine, Saw, Ramp, Triangle, Pulse,White Noise,Pink Noise"/>
+                <Pin name="Audio Out" datatype="float" rate="audio" direction="out"/>
+                <Pin name="Sync" datatype="float" rate="audio" metadata="100, 0, 5, -5"/>
+                <Pin name="Phase Mod" datatype="float" rate="audio" metadata="100, 0, 10, 0"/>
+                <Pin name="Freq Scale" datatype="enum" isMinimised="true" metadata="1 Volt/Octave, 1 Volt/kHz "/>
+                <Pin name="PM Depth" datatype="float" rate="audio" default="0.5" metadata="100, 0, 10, 0"/>
+                <Pin name="Smooth Peaks (Gibbs Effect)" datatype="bool" default="1" isMinimised="true"/>
+                <Pin name="Sync X-Fade (Anti Alias)" datatype="bool" default="1" isMinimised="true"/>
+            </Audio>
         </Plugin>
         <Plugin id="SE Phase Scope" name="Phase Scope" flags="384" category="Diagnostic">
             <Parameters>

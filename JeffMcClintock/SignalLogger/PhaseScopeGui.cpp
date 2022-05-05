@@ -29,6 +29,8 @@
 #include "mp_sdk_gui2.h"
 #include "Drawing.h"
 #include "GraphHelpers.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 using namespace gmpi;
 using namespace GmpiDrawing;
@@ -136,32 +138,35 @@ public:
 			Color::LightCyan,
 		};
 
-//		for (int trace = 0; trace < traceCount; ++trace)
+		const float sinNeg45 = sinf(M_PI * 0.25f);
+		const float cosNeg45 = cosf(M_PI * 0.25f);
 		{
 			temp1.clear();
 			temp2.clear();
 
-			Point p{};
-			Point p_screen{};
+			auto& chunk = chunks.begin();
 
-//			for (auto it = chunks.rbegin(); it != chunks.rend(); ++it)
+			for (int i = 0 ; i < framesPerChunk; ++i)
 			{
-				auto& chunk = chunks.begin();
+				Point pt(
+					chunk->data[chunk->data.size() - traceCount * (i + 1)],
+					chunk->data[chunk->data.size() - traceCount * (i + 1) + 1]
+				);
 
-				for (int i = 0 ; i < framesPerChunk; ++i)
+				// Rotate point 45 degrees (better to pre-do? rather than re-apply repeatedly)
+				Point p(
+					pt.x * cosNeg45 - pt.y * sinNeg45,
+					pt.x * sinNeg45 + pt.y * cosNeg45
+					);
+
+				if (isnan(p.y) || isinf(p.y))
 				{
-					p.x = chunk->data[chunk->data.size() - traceCount * (i + 1)];
-					p.y = chunk->data[chunk->data.size() - traceCount * (i + 1) + 1];
-
-					if (isnan(p.y) || isinf(p.y))
-					{
-						p.y = 100.0; // Nans should stick out.
-					}
-
-					p_screen = transform.TransformPoint(p);
-
-					temp1.push_back(p_screen);
+					p.y = 100.0; // Nans should stick out.
 				}
+
+				const auto p_screen = transform.TransformPoint(p);
+
+				temp1.push_back(p_screen);
 			}
 
 //			SimplifyGraph(temp1, temp2);
