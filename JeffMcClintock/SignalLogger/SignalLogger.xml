@@ -17,6 +17,21 @@
       <Pin name="Pan-Y" direction="in" datatype="float" default="0" />
     </GUI>
 	</Plugin>
+
+  <Plugin id="SE Phase Scope" name="Phase Scope" category="Diagnostic">
+    <Parameters>
+      <Parameter id="0" datatype="blob" persistant="false" />
+    </Parameters>
+    <Audio>
+      <Pin name="PM Value Out" direction="out" datatype="blob" parameterId="0" private ="true"/>
+      <Pin name="L" direction="in" datatype="float" rate="audio"/>
+      <Pin name="R" direction="in" datatype="float" rate="audio"/>
+    </Audio>
+    <GUI graphicsApi="GmpiGui">
+      <Pin name="PM Value In" direction="in" datatype="blob" parameterId="0" />
+    </GUI>
+	</Plugin>
+  
 </PluginList>
 
 

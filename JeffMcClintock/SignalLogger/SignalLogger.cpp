@@ -93,4 +93,5 @@ public:
 namespace
 {
 	auto r = Register<SignalLogger>::withId(L"SE Signal Logger");
+	auto r2 = Register<SignalLogger>::withId(L"SE Phase Scope");
 }

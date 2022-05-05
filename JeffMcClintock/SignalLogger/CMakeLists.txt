@@ -16,6 +16,7 @@ endif()
 if(HAS_GUI)
 set(srcs ${srcs}
 ${PROJECT_NAME}Gui.cpp
+PhaseScopeGui.cpp
 )
 endif()
 

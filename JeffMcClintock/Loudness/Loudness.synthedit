@@ -1,32 +1,172 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Document file_format="130040" vst_latencyCompensation="1" vst_preset_count="64">
-    <master_container type="Container" handle="2094740415" name="Main" ViewOpenFlags="384" skin="prophetblack">
+<Document file_format="130040" vst_latencyCompensation="1" vst_user_email="Jeff McClintock" vst_preset_count="64">
+    <master_container type="Container" handle="2094740415" name="Main" ViewOpenFlags="256" skin="prophetblack">
         <plugs>
             <plug idx="7"/>
         </plugs>
         <structRect l="0" r="0" t="0" b="0"/>
         <PatchManager>
             <Parameters>
+                <param type="6" handle="184805030" shortName="Level Adj Input 1" vstParameterNumber="2" module="889898701" moduleParamId="0" RangeMaximum="30">
+                    <patch-list>30 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8</patch-list>
+                </param>
                 <param type="10" handle="347548295" shortName="chunk" ignorePC="true" vstParameterNumber="0" module="60066095" moduleParamId="0">
                     <patch-list>AAAAAFZzdFcAAAAIAAAAAQAAAABDY25LAAALL0ZCQ2gAAAACTHVmMgACAQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqXVkMyIVIKAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8TFVGU01ldGVyU3RhdGUgYXBwbGljYXRpb25WZXJzaW9uPSIyLjEuMiIgcmVhZE9ubHk9IjAiIGVkaXRvcldpZHRoPSI4NjIiIGVkaXRvckhlaWdodD0iNDE1IiBsb3VkbmVzc0JhcldpZHRoPSItNDIiIGFkanVzdG1lbnRTZWN0aW9uV2lkdGg9Ii04OSIgbG91ZG5lc3NCYXJNaW5WYWx1ZT0iLTI4IiBsb3VkbmVzc0Jhck1heFZhbHVlPSItMSIgc2hvd0ludGVncmF0ZWRMb3VkbmVzc0hpc3Rvcnk9IjEiIHNob3dMb3VkbmVzc1JhbmdlSGlzdG9yeT0iMSIgc2hvd1Nob3J0VGVybUxvdWRuZXNzSGlzdG9yeT0iMSIgc2hvd01vbWVudGFyeUxvdWRuZXNzSGlzdG9yeT0iMCIgc2hvd0ludGVncmF0ZWRMb3VkbmVzc0Jhcj0iMSIgc2hvd0xvdWRuZXNzUmFuZ2VCYXI9IjEiIHNob3dTaG9ydFRlcm1Mb3VkbmVzc0Jhcj0iMSIgc2hvd01vbWVudGFyeUxvdWRuZXNzQmFyPSIxIiBsb3VkbmVzc0hpc3RvcnlUaW1lUmFuZ2U9IjMwIiB0aW1lQ2FwdGlvbk1vZGU9IjEiIHNob3dUcnVlUGVhaz0iMSIgdHJ1ZVBlYWtUb2xlcmFuY2U9Ii0xLjAiIHNob3dNYXhpbXVtU2hvcnRUZXJtTG91ZG5lc3M9IjEiIHNob3dNYXhpbXVtTW9tZW50YXJ5TG91ZG5lc3M9IjEiIGludGVncmF0ZWRVcHBlclRvbGVyYW5jZT0iMS4wIiBpbnRlZ3JhdGVkVGFyZ2V0PSItMTYuMCIgaW50ZWdyYXRlZExvd2VyVG9sZXJhbmNlPSItMS4wIiBzaG9ydFRlcm1VcHBlclRvbGVyYW5jZT0iMS4wIiBzaG9ydFRlcm1UYXJnZXQ9Ii0xNi4wIiBzaG9ydFRlcm1Mb3dlclRvbGVyYW5jZT0iLTEuMCIgcmVsYXRpdmVTY2FsZU9mZnNldD0iMCIgbWVhc3VyZVRydWVQZWFrPSIxIiBhdXRvbWF0aWNPdmVyc2FtcGxpbmc9IjEiIG92ZXJzYW1wbGluZ0V4cG9uZW50PSIyIiBpbnRlZ3JhdGVkTWVhc3VyZW1lbnRNZXRob2Q9IjIiIGZyZWV6ZUxyYU9uU2lsZW5jZT0iMCIgYWRqdXN0bWVudFRocmVzaG9sZD0iLTcwIiBpbnRlZ3JhdGVkTG91ZG5lc3NPdmVyQ29sb3VyPSJmZmZmMDAwMCIgaW50ZWdyYXRlZExvdWRuZXNzVXBwZXJUb2xlcmFuY2VDb2xvdXI9ImZmZmY2MjAwIiBpbnRlZ3JhdGVkTG91ZG5lc3NMb3dlclRvbGVyYW5jZUNvbG91cj0iZmYwMGVkMDAiIGludGVncmF0ZWRMb3VkbmVzc0xvd0NvbG91cj0iZmYyODg1MWEiIGludGVncmF0ZWRMb3VkbmVzc1JlbGF0aXZlVGV4dENvbG91cj0iZmYwMDAwMDAiIGludGVncmF0ZWRMb3VkbmVzc092ZXJUZXh0Q29sb3VyPSJmZmZmMDAwMCIgaW50ZWdyYXRlZExvdWRuZXNzVXBwZXJUb2xlcmFuY2VUZXh0Q29sb3VyPSJmZmQzZDNkMyIgaW50ZWdyYXRlZExvdWRuZXNzTG93ZXJUb2xlcmFuY2VUZXh0Q29sb3VyPSJmZmQzZDNkMyIgaW50ZWdyYXRlZExvdWRuZXNzTG93VGV4dENvbG91cj0iZmZkM2QzZDMiIGxvdWRuZXNzUmFuZ2VDb2xvdXI9IjRjMDAwMGI2IiBsb3VkbmVzc1JhbmdlVGV4dENvbG91cj0iZmZkM2QzZDMiIHNob3J0VGVybUxvdWRuZXNzT3ZlckNvbG91cj0iZmZmZjAwNTMiIHNob3J0VGVybUxvdWRuZXNzVXBwZXJUb2xlcmFuY2VDb2xvdXI9ImZmZmY2MjAwIiBzaG9ydFRlcm1Mb3VkbmVzc0xvd2VyVG9sZXJhbmNlQ29sb3VyPSJmZmZmODgwMCIgc2hvcnRUZXJtTG91ZG5lc3NMb3dDb2xvdXI9ImZmZmZjODAwIiBzaG9ydFRlcm1Mb3VkbmVzc092ZXJUZXh0Q29sb3VyPSJmZmZmMDA1MyIgc2hvcnRUZXJtTG91ZG5lc3NVcHBlclRvbGVyYW5jZVRleHRDb2xvdXI9ImZmZDNkM2QzIiBzaG9ydFRlcm1Mb3VkbmVzc0xvd2VyVG9sZXJhbmNlVGV4dENvbG91cj0iZmZkM2QzZDMiIHNob3J0VGVybUxvdWRuZXNzTG93VGV4dENvbG91cj0iZmZkM2QzZDMiIG1vbWVudGFyeUxvdWRuZXNzQ29sb3VyPSJmZjIxMWU4MCIgbW9tZW50YXJ5TG91ZG5lc3NTdW1Db2xvdXI9ImZmMTgxNjU4IiBtb21lbnRhcnlMb3VkbmVzc1RleHRDb2xvdXI9ImZmZDNkM2QzIiB0cnVlUGVha0NvbG91cj0iZmZkM2QzZDMiIHRydWVQZWFrT3ZlckNvbG91cj0iZmZmZjAwMDAiIG1vdXNlUG9zaXRpb25JbmZvQ29sb3VyPSJmZmZmYzgwMCIgbGluZXNDb2xvdXI9ImZmMjEyODRhIiBjYXB0aW9uc0NvbG91cj0iZmY3NTdmYWQiIHBhdXNlQ29sb3VyPSJmZmQzZDNkMyIgaGVscE9uQ29sb3VyPSJmZmQzZDNkMyIgaGVscE9mZkNvbG91cj0iZmY3NTdmYWQiIGJhY2tncm91bmRDb2xvdXI9ImZmMDgwMDI4IiBzeW5jR3JvdXA9IjAiIHNob3dTeW5jSW5NYWluV2luZG93PSIxIiByZXNldFdoZW5QbGF5YmFja1N0YXJ0cz0iMCIgcmVzZXRPbmx5QXRTdGFydD0iMCIgdHVyblBhdXNlT2ZmV2hlblBsYXliYWNrU3RhcnRzPSIwIiBwYXVzZVdoZW5QbGF5YmFja1N0b3BzPSIwIiBhZGp1c3RXaGVuUGxheWJhY2tTdG9wcz0iMCIgZW5hYmxlTG91ZG5lc3NBZGp1c3RtZW50PSIxIiBwYXVzZUxvdWRuZXNzTWVhc3VyZW1lbnQ9IjAiIGFkanVzdG1lbnRHYWluPSIwLjAiIGxvY2tWaWV3VGFiPSIwIiBsb2NrQ29sb3Vyc1RhYj0iMCIgbG9ja1N5bmNUYWI9IjAiIGxvY2tNaXNjVGFiPSIwIiBzaG93RmxvYXRpbmdTZXR0aW5nc1dpbmRvdz0iMCIgZmxvYXRpbmdTZXR0aW5nc1dpbmRvd1N0YXRlPSIiIHNob3dNb3VzZVBvc2l0aW9uSW5mbz0iMSIgaW5zdGFuY2VBZ2VXaGVuU3RhdGVXYXNTYXZlZD0iNzU3MzEuMCIvPgAAAAAAAAAAAEpVQ0VQcml2YXRlRGF0YQABAUJ5cGFzcwABAQMAHQAAAAAAAABKVUNFUHJpdmF0ZURhdGE=</patch-list>
                 </param>
                 <param type="10" handle="361497581" shortName="effectptr" ignorePC="true" private="true" stateful="false" module="60066095" moduleParamId="1"/>
                 <param type="6" handle="597420403" ignorePC="true" stateful="false" module="879158475" moduleParamId="0"/>
                 <param type="6" handle="765114383" ignorePC="true" stateful="false" module="2064484758" moduleParamId="0"/>
-                <param type="6" handle="839423235" shortName="patchValue" vstParameterNumber="1" module="916249200" moduleParamId="0">
-                    <patch-list>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</patch-list>
-                </param>
                 <param type="10" handle="947053470" private="true" hostControl="49">
                     <patch-list>                                                                                                                               </patch-list>
                 </param>
+                <param type="10" handle="1101826194" shortName="chunk" ignorePC="true" vstParameterNumber="1" module="1052699548" moduleParamId="0">
+                    <patch-list>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</patch-list>
+                </param>
                 <param type="6" handle="1307659718" ignorePC="true" stateful="false" module="16445371" moduleParamId="0"/>
+                <param type="10" handle="1362674896" stateful="false" module="2089588409" moduleParamId="0"/>
+                <param type="6" handle="1374235587" shortName="Signal Logger Signal" vstParameterNumber="3" module="2103647894" moduleParamId="0">
+                    <patch-list>7.45 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</patch-list>
+                </param>
                 <param type="6" handle="1387974905" ignorePC="true" stateful="false" module="1344642265" moduleParamId="0"/>
                 <param type="6" handle="1521087519" ignorePC="true" stateful="false" module="1563120753" moduleParamId="0"/>
+                <param type="10" handle="1672208972" shortName="effectptr" ignorePC="true" private="true" stateful="false" module="1052699548" moduleParamId="1"/>
                 <param type="6" handle="1729239431" ignorePC="true" stateful="false" module="348151244" moduleParamId="0"/>
+                <param type="6" handle="1841095421" ignorePC="true" private="true" stateful="false" module="1575227250" moduleParamId="0" RangeMinimum="-20" RangeMaximum="3"/>
                 <param type="6" handle="1998005528" ignorePC="true" stateful="false" module="1015697687" moduleParamId="0"/>
             </Parameters>
         </PatchManager>
         <modules>
+            <module type="Slider" handle="2103647894">
+                <plugs>
+                    <plug parameterId="-1" idx="13"/>
+                    <plug parameterId="-1"/>
+                </plugs>
+                <structRect l="938" r="1022" t="443" b="531"/>
+                <panelRect l="338" r="338" t="233" b="233"/>
+            </module>
+            <module type="Wave Recorder" handle="1954728450">
+                <plugs>
+                    <plug default="1" idx="4"/>
+                </plugs>
+                <structRect l="1034" r="1118" t="27" b="63"/>
+            </module>
+            <module type="SE Signal Logger" handle="2089588409">
+                <plugs>
+                    <plug default="0.005" idx="1"/>
+                    <plug id="2" idx="7"/>
+                    <plug id="3"/>
+                </plugs>
+                <structRect l="864" r="1320" t="99" b="320"/>
+                <panelRect l="281" r="281" t="144" b="144"/>
+            </module>
+            <module type="VoltsToFloat" handle="1735681654">
+                <plugs>
+                    <plug default="0" idx="1"/>
+                    <plug default="60"/>
+                </plugs>
+                <structRect l="502" r="586" t="22" b="70"/>
+            </module>
+            <module type="Slider" handle="889898701">
+                <plugs>
+                    <plug parameterId="-1" idx="13"/>
+                    <plug parameterId="-1"/>
+                </plugs>
+                <structRect l="333" r="417" t="15" b="103"/>
+                <panelRect l="270" r="270" t="157" b="157"/>
+            </module>
+            <module type="Level Adj" handle="316515237">
+                <structRect l="198" r="258" t="57" b="93"/>
+            </module>
+            <module type="SE Oscillator (naive)" handle="1930121492">
+                <structRect l="66" r="150" t="29" b="101"/>
+                <panelRect l="268" r="268" t="178" b="178"/>
+            </module>
+            <module type="Container" handle="808690433" name="VU Meter" ViewOpenFlags="256" skin="default">
+                <plugs>
+                    <plug default="1" idx="1"/>
+                    <plug default="1"/>
+                    <plug default="1" idx="3"/>
+                    <plug default="0" idx="5"/>
+                    <plug default="2"/>
+                    <plug name="Signal in" idx="7"/>
+                    <plug default="" direction="1"/>
+                </plugs>
+                <structRect l="8" r="128" t="374" b="485"/>
+                <modules>
+                    <module type="SE Text Entry4" handle="517479508">
+                        <structRect l="433" r="541" t="211" b="347"/>
+                        <panelRect l="15" r="99" t="64" b="87"/>
+                    </module>
+                    <module type="SE FloatToText GUI" handle="1411413401">
+                        <structRect l="399" r="507" t="150" b="186"/>
+                        <panelRect l="183" r="183" t="177" b="177"/>
+                    </module>
+                    <module type="SE PatchMemory Float Out" handle="1575227250">
+                        <structRect l="228" r="348" t="72" b="144"/>
+                        <panelRect l="154" r="154" t="172" b="172"/>
+                    </module>
+                    <module type="SE Float Function GUI" handle="1832074112" name="Float Function (Db Reference)">
+                        <plugs>
+                            <plug default="B-18" idx="2"/>
+                            <plug default="A"/>
+                        </plugs>
+                        <structRect l="372" r="468" t="48" b="96"/>
+                        <panelRect l="156" r="156" t="191" b="191"/>
+                    </module>
+                    <module type="Image3" handle="132500245">
+                        <plugs>
+                            <plug default="VU_Meter.png" idx="1"/>
+                        </plugs>
+                        <structRect l="612" r="732" t="72" b="198"/>
+                        <panelRect l="23" r="90" t="23" b="61"/>
+                    </module>
+                    <module type="Image3" handle="2034442205">
+                        <plugs>
+                            <plug default="VU_Meter_L2.bmp" idx="1"/>
+                        </plugs>
+                        <structRect l="624" r="744" t="204" b="337"/>
+                        <panelRect l="16" r="96" t="16" b="61"/>
+                    </module>
+                    <module type="SE dBToAnimation" handle="1532935698">
+                        <structRect l="480" r="600" t="72" b="96"/>
+                        <panelRect l="0" r="0" t="0" b="0"/>
+                    </module>
+                    <module type="VoltsToFloat" handle="1611834548">
+                        <plugs>
+                            <plug default="0" idx="1"/>
+                            <plug default="60"/>
+                        </plugs>
+                        <structRect l="96" r="180" t="96" b="144"/>
+                    </module>
+                    <module type="IO Mod" handle="1558450498">
+                        <plugs>
+                            <plug name="Signal in" default="" direction="1" tiedtomod="808690433" tiedtopin="7"/>
+                            <plug default="" direction="1" idx="1"/>
+                        </plugs>
+                        <structRect l="0" r="72" t="96" b="120"/>
+                    </module>
+                </modules>
+                <lines>
+                    <line type="Line" handle="713025629" lineType="1" fMod="1532935698" tMod="132500245"/>
+                    <line type="Line" handle="1622941972" lineType="1" fMod="1832074112" tMod="1532935698" fPlg="1" tPlg="1"/>
+                    <line type="Line" handle="1485639824" lineType="1" fMod="1558450498" tMod="1611834548"/>
+                    <line type="Line" handle="53819643" lineType="1" fMod="1611834548" tMod="1575227250" fPlg="3" tPlg="11"/>
+                    <line type="Line" handle="1620258030" lineType="1" fMod="1575227250" tMod="1832074112" fPlg="6"/>
+                    <line type="Line" handle="1871032411" lineType="1" fMod="1411413401" tMod="517479508" fPlg="2"/>
+                    <line type="Line" handle="676319492" lineType="1" fMod="1575227250" tMod="1411413401" fPlg="6"/>
+                </lines>
+                <PanelWndPosition l="276" r="356" t="220" b="265"/>
+                <PanelLocation l="349" r="712" t="162" b="491"/>
+                <StructLocation l="-21" r="771" t="267" b="673"/>
+                <PanelScroll x="0" y="0"/>
+                <StructScroll x="1" y="0"/>
+                <PanelWndOffset cx="260" cy="204"/>
+                <panel_rect l="0" r="256" t="0" b="222"/>
+            </module>
+            <module type="wvVST3WRAP:565354494E5330496E73696768742032" handle="1052699548">
+                <structRect l="244" r="352" t="471" b="564"/>
+                <panelRect l="260" r="260" t="154" b="154"/>
+            </module>
             <module type="Container" handle="1055411307" name="LRA Max" skin="default2">
                 <plugs>
                     <plug default="1" idx="1"/>
@@ -123,16 +263,9 @@
                 <PanelWndOffset cx="90" cy="115"/>
                 <panel_rect l="16" r="312" t="16" b="216"/>
             </module>
-            <module type="Slider" handle="916249200">
-                <plugs>
-                    <plug parameterId="-1" idx="13"/>
-                    <plug parameterId="-1"/>
-                </plugs>
-                <structRect l="449" r="533" t="284" b="372"/>
-                <panelRect l="236" r="286" t="121" b="189"/>
-            </module>
             <module type="wvVST3WRAP:5653544C7566326C756673206D657465" handle="60066095">
-                <structRect l="232" r="328" t="329" b="401"/>
+                <structRect l="232" r="340" t="329" b="422"/>
+                <panelRect l="0" r="88" t="0" b="17"/>
             </module>
             <module type="Container" handle="1741820149" name="Readout" skin="default2">
                 <plugs>
@@ -374,7 +507,7 @@
                 <PanelWndOffset cx="-4" cy="2"/>
                 <panel_rect l="16" r="312" t="16" b="216"/>
             </module>
-            <module type="Wave Player" handle="96246235">
+            <module type="Wave Player" handle="96246235" muted="true">
                 <plugs>
                     <plug default="samples\bensound-happyrock.wav" idx="4"/>
                 </plugs>
@@ -402,10 +535,25 @@
             <line type="Line" handle="1175189762" lineType="1" fMod="96246235" tMod="60066095" fPlg="3" tPlg="12"/>
             <line type="Line" handle="513865261" lineType="1" fMod="1733656681" tMod="86771671" fPlg="9" tPlg="7"/>
             <line type="Line" handle="1444371247" lineType="1" fMod="1733656681" tMod="1055411307" fPlg="10" tPlg="7"/>
+            <line type="Line" handle="1731447623" lineType="1" fMod="96246235" tMod="1052699548" fPlg="2" tPlg="11"/>
+            <line type="Line" handle="792152240" lineType="1" fMod="96246235" tMod="1052699548" fPlg="3" tPlg="12"/>
+            <line type="Line" handle="1150935621" lineType="1" fMod="96246235" tMod="808690433" fPlg="2" tPlg="7"/>
+            <line type="Line" handle="1308340469" lineType="1" fMod="1930121492" tMod="316515237" fPlg="5" tPlg="1"/>
+            <line type="Line" handle="1703688123" lineType="1" fMod="316515237" tMod="1052699548" fPlg="2" tPlg="11"/>
+            <line type="Line" handle="843123468" lineType="1" fMod="316515237" tMod="1052699548" fPlg="2" tPlg="12"/>
+            <line type="Line" handle="1450329531" lineType="1" fMod="316515237" tMod="808690433" fPlg="2" tPlg="7"/>
+            <line type="Line" handle="76533492" lineType="1" fMod="889898701" tMod="316515237" fPlg="6"/>
+            <line type="Line" handle="1162116176" lineType="1" fMod="316515237" tMod="1735681654" fPlg="2"/>
+            <line type="Line" handle="255797206" lineType="1" fMod="316515237" tMod="2089588409" fPlg="2" tPlg="6"/>
+            <line type="Line" handle="1703444223" lineType="1" fMod="1735681654" tMod="2089588409" fPlg="3" tPlg="7"/>
+            <line type="Line" handle="560528064" lineType="1" fMod="316515237" tMod="1954728450" fPlg="2"/>
+            <line type="Line" handle="1103708791" lineType="1" fMod="1735681654" tMod="1954728450" fPlg="3" tPlg="1"/>
+            <line type="Line" handle="1423242879" lineType="1" fMod="2103647894" tMod="2089588409" fPlg="6" tPlg="7"/>
+            <line type="Line" handle="1207661032" lineType="1" fMod="2103647894" tMod="1954728450" fPlg="6" tPlg="1"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
-        <PanelLocation l="83" r="583" t="639" b="939"/>
-        <StructLocation l="0" r="952" t="0" b="730"/>
+        <PanelLocation l="83" r="583" t="615" b="915"/>
+        <StructLocation l="3" r="1490" t="-6" b="724"/>
         <PanelScroll x="0" y="0"/>
         <StructScroll x="0" y="0"/>
         <PanelWndOffset cx="-99999" cy="-99999"/>
@@ -431,6 +579,27 @@
                 <Pin name="Spare" datatype="float" rate="audio" autoRename="true" autoDuplicate="true"/>
             </Audio>
         </Plugin>
+        <Plugin id="Image3" name="Image2" flags="384" category="Sub-Controls">
+            <GUI graphicsApi="GmpiGui">
+                <Pin name="Animation Position" datatype="float"/>
+                <Pin name="Filename" datatype="string" default="knob_sm" isFilename="true" metadata="bmp"/>
+                <Pin name="Hint" datatype="string"/>
+                <Pin name="Menu Items" datatype="string"/>
+                <Pin name="Menu Selection" datatype="int"/>
+                <Pin name="Mouse Down" datatype="bool" direction="out" private="true"/>
+                <Pin name="Mouse Down" datatype="bool"/>
+                <Pin name="Frame Count" datatype="int" private="true"/>
+                <Pin name="Frame Count" datatype="int" direction="out"/>
+                <Pin name="Mouse Response" datatype="enum" default="-1" isMinimised="true" metadata="off=-2, auto=-1, vertical=0, horizontal=1, clicks=2, rotary=3, step=4"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="Level Adj" name="Level Adj" flags="4352" category="Modifiers">
+            <Audio>
+                <Pin name="Input 1" datatype="float" rate="audio" default="0.8" linearInput="true"/>
+                <Pin name="Input 2" datatype="float" rate="audio" default="0.8" linearInput="true"/>
+                <Pin name="Output" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+        </Plugin>
         <Plugin id="SE BoolToFloat" name="Bool To Float" flags="33562880" category="Conversion" helpUrl="converters.htm">
             <Audio>
                 <Pin name="Bool Val" datatype="bool"/>
@@ -454,6 +623,14 @@
                 <Pin name="In" datatype="bool"/>
                 <Pin name="Out" datatype="float" rate="audio" direction="out"/>
             </Audio>
+        </Plugin>
+        <Plugin id="SE Float Function GUI" name="Float Function" flags="8576" category="Sub-Controls/Conversion" helpUrl="synthedit.chm::/mdl_sdk3/FloatFunction.htm">
+            <GUI>
+                <Pin name="A" datatype="float"/>
+                <Pin name="B" datatype="float" direction="out"/>
+                <Pin name="Formula: A=" datatype="string" default="B*2"/>
+                <Pin name="Formula: B=" datatype="string" default="A/2"/>
+            </GUI>
         </Plugin>
         <Plugin id="SE FloatToBool" name="Float To Bool" flags="33562880" category="Conversion" helpUrl="converters.htm">
             <Audio>
@@ -525,6 +702,16 @@
                 <Pin name="LRA Max" datatype="float" direction="out"/>
             </Audio>
         </Plugin>
+        <Plugin id="SE Oscillator (naive)" name="Oscillator (naive)" flags="8448" category="Waveform">
+            <Audio>
+                <Pin name="Pitch" datatype="float" rate="audio" default="0.5" metadata="100, 0, 10, 0"/>
+                <Pin name="Pulse Width" datatype="float" rate="audio" default="0.5"/>
+                <Pin name="Waveform" datatype="enum" default="1" metadata="Sine,Saw,Pulse,Tri"/>
+                <Pin name="Sync" datatype="float" rate="audio" metadata="100, 0, 5, -5"/>
+                <Pin name="Phase Mod" datatype="float" rate="audio" metadata="100, 0, 10, 0"/>
+                <Pin name="Audio Out" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+        </Plugin>
         <Plugin id="SE PatchMemory Float Out" name="PatchMemory Float Out3" flags="8576" category="Sub-Controls" helpUrl="Patchmemory.htm">
             <Parameters>
                 <Parameter id="0" datatype="float" name="" ignorePatchChange="true" persistant="false"/>
@@ -545,6 +732,22 @@
                 <Pin name="Animation Position" datatype="float" direction="out"/>
                 <Pin name="Menu Items" datatype="string" direction="out"/>
                 <Pin name="Menu Selection" datatype="int" direction="out"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE Signal Logger" name="Signal Logger" flags="384" category="Diagnostic">
+            <Parameters>
+                <Parameter id="0" datatype="blob" name="" persistant="false"/>
+            </Parameters>
+            <Audio>
+                <Pin name="PM Value Out" datatype="blob" direction="out" private="true" parameterId="0"/>
+                <Pin name="Signal" datatype="float" rate="audio" autoDuplicate="true"/>
+            </Audio>
+            <GUI graphicsApi="GmpiGui">
+                <Pin name="PM Value In" datatype="blob" private="true" parameterId="0"/>
+                <Pin name="Zoom-X" datatype="float" default="0.1"/>
+                <Pin name="Zoom-Y" datatype="float" default="1"/>
+                <Pin name="Pan-X" datatype="float"/>
+                <Pin name="Pan-Y" datatype="float"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Text Entry4" name="Text Entry4" flags="384" category="Sub-Controls">
@@ -611,6 +814,12 @@
                 <Pin name="Out" datatype="int" direction="out"/>
             </Audio>
         </Plugin>
+        <Plugin id="SE dBToAnimation" name="dB to Animation" flags="8576" category="Sub-Controls/Conversion" helpUrl="synthedit.chm::/mdl_dB_to_Animation.htm">
+            <GUI>
+                <Pin name="Animation Position" datatype="float" direction="out"/>
+                <Pin name="Db" datatype="float"/>
+            </GUI>
+        </Plugin>
         <Plugin id="Slider" name="Slider" flags="4480" category="Controls">
             <Parameters>
                 <Parameter id="0" datatype="float" name="patchValue"/>
@@ -651,6 +860,14 @@
                 <Pin name="12" datatype="float" rate="audio" linearInput="true"/>
             </Audio>
         </Plugin>
+        <Plugin id="VoltsToFloat" name="Volts to Float" flags="256" category="Old">
+            <Audio>
+                <Pin name="Volts In" datatype="float" rate="audio" linearInput="true" metadata="None,Fast (4 samp),Smooth (30ms)"/>
+                <Pin name="Response" datatype="enum" default="4" metadata="dB VU,dB PPM,dB Peak,dB HeadRoom, Volts DC (Fast), Volts DC Average, Volts RMS, Clip Detect"/>
+                <Pin name="Update Rate" datatype="enum" default="10" metadata="1 Hz=1,5 Hz=5,10 Hz=10,20 Hz=20,40 Hz=40,60 Hz=60"/>
+                <Pin name="Float Out" datatype="float" direction="out"/>
+            </Audio>
+        </Plugin>
         <Plugin id="Wave Player" name="Wave Player" flags="4352" category="Input-Output">
             <Audio>
                 <Pin name="Gate" datatype="float" rate="audio" default="1"/>
@@ -659,6 +876,42 @@
                 <Pin name="Right Out" datatype="float" rate="audio" direction="out"/>
                 <Pin name="File Name" datatype="string" default="Wavefile" isFilename="true" metadata="wav"/>
             </Audio>
+        </Plugin>
+        <Plugin id="Wave Recorder" name="Wave Recorder" flags="4352" category="Input-Output">
+            <Audio>
+                <Pin name="Left (Mono)" datatype="float" rate="audio" linearInput="true"/>
+                <Pin name="Right" datatype="float" rate="audio" linearInput="true"/>
+                <Pin name="File Name" datatype="string" default="Wavefile" isFilename="true" metadata="wav"/>
+                <Pin name="Format" datatype="enum" isMinimised="true" metadata="16 bit, 32 bit float"/>
+                <Pin name="Time Limit" datatype="double" default="4" isMinimised="true"/>
+                <Pin name="Play Wavefile" datatype="bool" isMinimised="true"/>
+                <Pin name="Report Stats" datatype="bool" isMinimised="true"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="wvVST3WRAP:565354494E5330496E73696768742032" name="Insight 2" flags="65920" shellPlugin="true" category="VST3 (Waves)">
+            <Parameters>
+                <Parameter id="0" datatype="blob" name="chunk" ignorePatchChange="true"/>
+                <Parameter id="1" datatype="blob" name="effectptr" private="true" ignorePatchChange="true" persistant="false"/>
+            </Parameters>
+            <Audio>
+                <Pin name="Power/Bypass" datatype="bool" default="1"/>
+                <Pin name="Host BPM" datatype="float" private="true" hostConnect="Time/BPM"/>
+                <Pin name="Host SP" datatype="float" private="true" hostConnect="Time/SongPosition"/>
+                <Pin name="Host Transport" datatype="bool" private="true" hostConnect="Time/TransportPlaying"/>
+                <Pin name="Numerator" datatype="int" private="true" hostConnect="Time/Timesignature/Numerator"/>
+                <Pin name="Denominator" datatype="int" private="true" hostConnect="Time/Timesignature/Denominator"/>
+                <Pin name="Host Bar Start" datatype="float" private="true" hostConnect="Time/BarStartPosition"/>
+                <Pin name="" datatype="int" private="true" hostConnect="Processor/OfflineRenderMode"/>
+                <Pin name="effectptr" datatype="blob" private="true" parameterId="1"/>
+                <Pin name="ParamBuss" datatype="midi"/>
+                <Pin name="Signal In" datatype="float" rate="audio"/>
+                <Pin name="Signal In" datatype="float" rate="audio"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+            <GUI graphicsApi="GmpiGui">
+                <Pin name="effectptr" datatype="blob" private="true" parameterId="1"/>
+            </GUI>
         </Plugin>
         <Plugin id="wvVST3WRAP:5653544C7566326C756673206D657465" name="LUFS Meter 2" flags="65920" shellPlugin="true" category="VST3 (Waves)">
             <Parameters>
@@ -681,7 +934,7 @@
                 <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
                 <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
             </Audio>
-            <GUI>
+            <GUI graphicsApi="GmpiGui">
                 <Pin name="effectptr" datatype="blob" private="true" parameterId="1"/>
             </GUI>
         </Plugin>
