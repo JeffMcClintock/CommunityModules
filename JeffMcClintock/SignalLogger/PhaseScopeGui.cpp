@@ -144,7 +144,7 @@ public:
 			temp1.clear();
 			temp2.clear();
 
-			auto& chunk = chunks.begin();
+			auto chunk = chunks.begin();
 
 			for (int i = 0 ; i < framesPerChunk; ++i)
 			{
