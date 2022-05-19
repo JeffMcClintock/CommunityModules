@@ -157,7 +157,7 @@ class ProcessorWrapper : public MpBase2
 	int bypassBufferPos = 0;
 	int latency = 0;
 	int bufferPrimingCounter = {};
-
+	int bypassDelaysize = {};
 	ControllerWrapper* controller = {};
 
 	typedef void (ProcessorWrapper::* VstSubProcess_ptr)(int32_t count, const gmpi::MpEvent* events);
@@ -181,8 +181,6 @@ public:
 	void subProcess2(const int32_t count, const gmpi::MpEvent* events)
 	{
 		ProcessEvents(count, events);
-
-		const int bypassDelaysize = static_cast<int>(bypassDelays[0].size());
 
 		// add input to bypass latency buffers
 		if constexpr (CURRENT_STATE != ST_PROCESS)

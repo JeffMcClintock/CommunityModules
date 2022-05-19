@@ -204,11 +204,11 @@ void ProcessorWrapper::initVst()
 	// init buffers to cope with latency
 	latency = vstEffect_ ? vstEffect_->getLatencySamples() : 0;
 	const auto bs = getBlockSize();
-	const auto latencyBufferSize = ((bs + latency + bs - 1) / bs) * bs; // rounded up to nearest full block
+	bypassDelaysize = ((bs + latency + bs - 1) / bs) * bs; // rounded up to nearest full block
 	bypassDelays.resize(AudioIns.size());
 	for (auto& delay : bypassDelays)
 	{
-		delay.resize(latencyBufferSize);
+		delay.resize(bypassDelaysize);
 	}
 
 	host.SetLatency(latency);
@@ -260,9 +260,10 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 
 	if (b1 != MIDI_SystemMessage)
 	{
+/*
 		const int chan = b1 & 0x0f;
 		const bool is_system_msg = (b1 & MIDI_SystemMessage) == MIDI_SystemMessage;
-
+*/
 		switch(status)
 		{
 		case GmpiMidi::MIDI_NoteOff:
