@@ -68,7 +68,8 @@ endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
 
 # fails on CI
-if(FALSE) # CMAKE_HOST_WIN32)
+if(CMAKE_HOST_WIN32)
+if (NOT SE_BUILDING_ON_CI)
 add_custom_command(TARGET ${PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
@@ -76,4 +77,5 @@ add_custom_command(TARGET ${PROJECT_NAME}
     COMMENT "Copy to system plugin folder"
     VERBATIM
 )
+endif()
 endif()

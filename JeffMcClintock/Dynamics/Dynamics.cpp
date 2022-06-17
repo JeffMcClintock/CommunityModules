@@ -2,6 +2,10 @@
 #include "xp_simd.h"
 #include <math.h>
 
+SE_DECLARE_INIT_STATIC_FILE(HardKnee)
+SE_DECLARE_INIT_STATIC_FILE(Peak)
+SE_DECLARE_INIT_STATIC_FILE(PeakHold)
+SE_DECLARE_INIT_STATIC_FILE(SmootherG)
 SE_DECLARE_INIT_STATIC_FILE(Dynamics)
 
 using namespace gmpi;

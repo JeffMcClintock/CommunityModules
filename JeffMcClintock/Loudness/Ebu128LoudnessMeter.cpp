@@ -43,6 +43,8 @@
 #include "Ebu128LoudnessMeter.h"
 #include <cmath>
 
+SE_DECLARE_INIT_STATIC_FILE(Loudness)
+
 // static member constants
 // -----------------------
 const float Ebu128LoudnessMeter::minimalReturnValue = -300.0f;
