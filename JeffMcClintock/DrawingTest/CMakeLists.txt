@@ -22,6 +22,10 @@ if(MSVC)
 set(srcs ${srcs}
 GUI_3_0.cpp
 GUI_3_0.h
+leegame.h
+leegame.cpp
+LeastShittyText.h
+LeastShittyText.cpp
 )
 endif()
 

@@ -10,6 +10,7 @@ add_subdirectory(SignalLogger)
 add_subdirectory(PeakFollower)
 add_subdirectory(Dynamics)
 add_subdirectory(Loudness)
+add_subdirectory(WaveformScroller)
 
 if(WIN32)
 # don't build on macOS yet
