@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PluginList>
+    <Plugin id="SE Waveform Scroller" name="Waveform Scroller" flags="384" category="Diagnostic">
+        <Parameters>
+            <Parameter id="0" datatype="blob" name="" persistant="false"/>
+        </Parameters>
+        <Audio>
+            <Pin name="PM Value Out" datatype="blob" direction="out" private="true" parameterId="0"/>
+            <Pin name="Signal" datatype="float" rate="audio" autoDuplicate="true"/>
+        </Audio>
+        <GUI graphicsApi="GmpiGui">
+            <Pin name="PM Value In" datatype="blob" private="true" parameterId="0"/>
+            <Pin name="Zoom-X" datatype="float" default="0.1"/>
+            <Pin name="Zoom-Y" datatype="float" default="1"/>
+            <Pin name="Pan-X" datatype="float"/>
+            <Pin name="Pan-Y" datatype="float"/>
+        </GUI>
+    </Plugin>
+</PluginList>
