@@ -60,7 +60,7 @@ class PhaseScopeGui final : public gmpi_gui::MpGuiGfxBase
 
 	void onSetBlob()
 	{
-		if (pinValueIn.rawSize() > 4)
+		if (pinValueIn.rawSize() > sizeof(float) * 2)
 		{
 			const float* data = (const float*)pinValueIn.rawData();
 

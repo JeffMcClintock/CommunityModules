@@ -7,6 +7,8 @@
 #include "GUI_3_0.h"
 #endif
 #include "../se_sdk3/TimerManager.h"
+#include "LeastShittyText.h"
+#include "leegame.h"
 
 class DrawingTestGui : public gmpi_gui::MpGuiGfxBase, public TimerClient
 {
@@ -35,6 +37,10 @@ class DrawingTestGui : public gmpi_gui::MpGuiGfxBase, public TimerClient
 #endif
 	float linearImage[100][100] = {};
 	float linearImageBlurred[100][100] = {};
+
+	SmallText smallTextDrawer;
+
+	lees_game gameobject;
 
 public:
 	DrawingTestGui();
@@ -66,6 +72,8 @@ public:
 	void drawTextVertAlign(GmpiDrawing::Graphics& g);
 
 	void DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g);
+
+	void drawShittyText(GmpiDrawing::Graphics& g);
 
 	void drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBoundingbox);
 

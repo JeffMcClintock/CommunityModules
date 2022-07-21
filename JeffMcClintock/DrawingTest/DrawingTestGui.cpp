@@ -3,6 +3,7 @@
 #include <math.h>
 #include <algorithm>
 #include <sstream>
+
 extern "C"
 {
 #include "./colorspace.h"
@@ -83,10 +84,13 @@ void DrawingTestGui::refresh()
 		"Color Gradients,"
 //		"GUI 3.0,"				// 9
 		"Lines=10,"
-		"Test Font"
-		"Textformat2 (boxsize)=13"
+		"Test Font,"
+		"Textformat2 (boxsize)=13,"
+		"ShittyText,"
+		"LEE ARTILLRY"
 		;
 	invalidateRect();
+
 
 #if 0
 	// Get the path to this SEM.
@@ -1514,8 +1518,16 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		break;
 
 	case 13:
-//		drawVFD(g, getRect(), linearImageBlurred);
+		//		drawVFD(g, getRect(), linearImageBlurred);
 		drawTextTestFIXED(g, true);
+		break
+			;
+	case 14:
+		drawShittyText(g);
+		break;
+
+	case 15:
+		gameobject.drawFrame(g);
 		break;
 	}
 
@@ -1541,6 +1553,10 @@ bool DrawingTestGui::OnTimer()
 //		blurVFD3(linearImage, linearImageBlurred);
 		refresh();
 		*/
+		break;
+
+	case 15:
+		refresh();
 		break;
 	}
 
@@ -1678,6 +1694,24 @@ void DrawingTestGui::DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g)
 	brush.SetColor(Color::Black);
 	g.DrawLine(x1 - crossSize, y1, x1 + crossSize, y1, brush); // criss
 	g.DrawLine(x1, y1 - crossSize, x1, y1 + crossSize, brush); // cross
+}
+
+void DrawingTestGui::drawShittyText(GmpiDrawing::Graphics& g)
+{
+	g.Clear(Color::FromRgb(0x22252D));
+	auto brush = g.CreateSolidColorBrush(Color::White);
+
+	int y = 0;
+	for (int fontSize = 1; fontSize < 26; ++fontSize)
+	{
+//		std::string text = "LOUDNESS " + std::to_string(fontSize);
+		std::string text = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		Rect textRect(0, y, 100, y + fontSize);
+
+		smallTextDrawer.DrawTextShitty(g, text, textRect, brush);
+
+		y += fontSize + 3;
+	}
 }
 
 // Draw using text body height (not point size). Should result in perfect cross-platform comptibility, even with font-fallback to differnt fonts ("Segoe UI").
