@@ -67,14 +67,14 @@ endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
 
-# fails on CI
+# this should be disabled on CI
+if(SE_LOCAL_BUILD)
 if(CMAKE_HOST_WIN32)
-if (NOT SE_BUILDING_ON_CI)
 add_custom_command(TARGET ${PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
-    COMMAND copy "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules"
-    COMMENT "Copy to system plugin folder"
+    COMMAND copy "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\"
+    COMMENT "Copy to modules folder"
     VERBATIM
 )
 endif()
