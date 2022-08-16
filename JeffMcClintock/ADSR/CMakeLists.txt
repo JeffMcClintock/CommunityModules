@@ -61,6 +61,12 @@ if(APPLE)
 
 endif()
 
+target_compile_definitions(
+  ${PROJECT_NAME} PRIVATE 
+  $<$<CONFIG:Debug>:_DEBUG>
+  $<$<CONFIG:Release>:NDEBUG>
+)
+
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()

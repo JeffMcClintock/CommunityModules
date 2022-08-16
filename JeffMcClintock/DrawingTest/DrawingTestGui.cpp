@@ -299,6 +299,7 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 
 	Color forground = Color::White;
 
+	// DON'T FORGET TO PUT A HEX COLOR VALUE IN "Text" pin !!
 	if(!pinText.getValue().empty())
 	{
 		forground = Color::FromHexString(pinText.getValue());
@@ -346,7 +347,7 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 						for (int i = 0; i < 3; ++i)
 							pixel[i] = pixelVal[i];
 
-						pixel[3] = (std::max)(0, (int)(y - 50.0f));
+						pixel[3] = 0; // (std::max)(0, (int)(y - 50.0f));
 					}
 				}
 			}

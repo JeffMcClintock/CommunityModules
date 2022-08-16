@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
-set(SE_BUILDING_ON_CI FALSE CACHE BOOL "Environment is a build machine'")
+set(SE_LOCAL_BUILD FALSE CACHE BOOL "Execute extra build steps for developers machine")
 
 project(CommunityModules)
 
@@ -21,9 +21,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_definitions(-D_UNICODE)
 add_definitions(-DSE_TARGET_SEM)
-if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
-    add_definitions(-DNDEBUG)
-endif()
 
 if (MSVC)
     # Floating Point Model: Fast (/fp:fast)

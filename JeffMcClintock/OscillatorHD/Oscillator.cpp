@@ -333,7 +333,7 @@ void Oscillator::onSetPins(void)
 			}
 		}
 
-		assert(accumulator > 0.0f);
+//		assert(accumulator > 0.0f);
 	}
 
 	// Any update on pinTrigger is a trigger. Actual pin value is garbage.
