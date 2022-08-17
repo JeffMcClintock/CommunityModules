@@ -321,10 +321,10 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 			{
 				const auto distanceV = Point(x, y) - center;
 				const auto distance = sqrtf(distanceV.width * distanceV.width + distanceV.height * distanceV.height);
-				const auto brightness = distance / center.x;
-				float alpha = 1.0f - sqrtf(sqrtf((std::max)(0.f,brightness)));
+				const auto brightness = 1.0f / distance;
+				float alpha = brightness; // 1.0f - sqrtf(sqrtf((std::max)(0.f, brightness)));
 
-				int alphaVal = (std::max)(0,(std::min)(255, (int)(alpha * 255.0f + 0.5f)));
+				int alphaVal = std::clamp((int)(alpha * 255.0f + 0.5f), 0, 255);
 
 				int pixelVal[3];
 				for(int i = 0 ; i < 3; ++i)
