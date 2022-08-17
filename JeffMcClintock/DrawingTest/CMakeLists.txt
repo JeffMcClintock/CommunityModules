@@ -16,16 +16,17 @@ ${PROJECT_NAME}.rc
 DrawingTestGui.cpp
 DrawingTestLinesGui.cpp
 colorspace.c
+LeastShittyText.h
+LeastShittyText.cpp
+leegame.h
+leegame.cpp
 )
 
 if(MSVC)
 set(srcs ${srcs}
 GUI_3_0.cpp
 GUI_3_0.h
-leegame.h
-leegame.cpp
-LeastShittyText.h
-LeastShittyText.cpp
+
 )
 endif()
 
