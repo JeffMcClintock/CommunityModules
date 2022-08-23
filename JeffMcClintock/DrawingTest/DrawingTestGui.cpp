@@ -465,11 +465,95 @@ function rgb2lab(rgb){
 }
 */
 
-void DrawingTestGui::brushTransparency(GmpiDrawing::Graphics& g)
+void DrawingTestGui::AlphaBlending(GmpiDrawing::Graphics& g)
 {
 	auto textFormat = g.GetFactory().CreateTextFormat();
 	textFormat.SetImprovedVerticalBaselineSnapping();
 	auto textBrush = g.CreateSolidColorBrush(Color::Lime);
+
+	{
+		auto brush = g.CreateSolidColorBrush(Color::Black);
+
+		// horizontal background solid rectangles
+		int y = 16;
+		for (int i = 0; i < 9; ++i)
+		{
+			const int backgroundCol = (std::min)(255, i * 32);
+			brush.SetColor(Color::FromBytes(backgroundCol, backgroundCol, backgroundCol));
+
+			auto x = 7 + i * 36;
+			g.FillRectangle(x, y, x + 34, y + 40, brush);
+		}
+
+		auto bitmapMem = GetGraphicsFactory().CreateImage(8, 4);
+		const int pixelcount = 8 * 4;
+
+		// foreground alpha rectangles
+		for (int j = 0; j < 9; ++j)
+		{
+			const int alpha = (std::min)(255, j * 32);
+
+			{
+				// SRGB Premultiply
+				float brightness = 1.0f;
+				float l = brightness * alpha / 255.0;
+				int srgb = se_sdk::FastGamma::float_to_sRGB(l);
+
+				auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+				// const auto imageSize = bitmapMem.GetSize();
+				uint8_t* sourcePixels = pixelsSource.getAddress();
+				uint8_t* pixel = sourcePixels;
+
+				for (int k = 0; k < pixelcount; ++k)
+				{
+					*pixel++ = srgb;
+					*pixel++ = srgb;
+					*pixel++ = srgb;
+					*pixel++ = alpha;
+				}
+			}
+
+			brush.SetColor(Color::FromBytes(255, 255, 255, alpha)); // white transparent
+
+			int y = 16 + j * 4;
+			for (int i = 0; i < 9; ++i)
+			{
+				auto x = 8 + i * 36;
+				g.FillRectangle(x, y, x + 8, y + 4, brush);
+
+				x = 16 + i * 36;
+				g.DrawBitmap(bitmapMem, Point(x, y), Rect(0, 0, 8, 4), GmpiDrawing_API::MP1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+			}
+
+			{
+				auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+				uint8_t* sourcePixels = pixelsSource.getAddress();
+
+				uint8_t* pixel = sourcePixels;
+				for (int k = 0; k < pixelcount; ++k)
+				{
+					*pixel++ = 0;
+					*pixel++ = 0;
+					*pixel++ = 0;
+					*pixel++ = alpha;
+				}
+			}
+
+			brush.SetColor(Color::FromBytes(0, 0, 0, alpha)); // black transparent
+
+			for (int i = 0; i < 9; ++i)
+			{
+				auto x = 24 + i * 36;
+				g.FillRectangle(x, y, x + 8, y + 4, brush);
+
+				x = 32 + i * 36;
+				g.DrawBitmap(bitmapMem, Point(x, y), Rect(0, 0, 8, 4), GmpiDrawing_API::MP1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+			}
+		}
+	}
+#if 0
+	return;
+
 
 	// background checkerboard.
 	{
@@ -546,6 +630,7 @@ void DrawingTestGui::brushTransparency(GmpiDrawing::Graphics& g)
 	g.DrawTextU("Brush", textFormat, x1, y1, textBrush);
 	// outline
 	g.DrawRectangle({x1, y1, x1+count, y1+height}, textBrush);
+#endif
 }
 
 void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
@@ -1466,7 +1551,7 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		drawTextTest(g);
 		break;
 	case 1:
-		brushTransparency(g);
+		AlphaBlending(g);
 		break;
 	case 2:
 		drawGammaTest(g);

@@ -62,7 +62,7 @@ public:
 
 	// overrides.
 	virtual int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize) override;
-	void brushTransparency(GmpiDrawing::Graphics& g);
+	void AlphaBlending(GmpiDrawing::Graphics& g);
 	void drawGradient(GmpiDrawing::Graphics & g);
 	void drawLines(GmpiDrawing::Graphics& g);
 	void drawPerceptualColorPicker(GmpiDrawing::Graphics& g);
