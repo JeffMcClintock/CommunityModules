@@ -10,9 +10,13 @@ pool:
   vmImage: 'macOS-latest'
 
 steps:
+  - checkout: self
+    fetchDepth: 1
+    clean: true
+
 - task: CMake@1
   inputs:
-    cmakeArgs: '.. -D"CMAKE_OSX_ARCHITECTURES=arm64;x86_64" --clean-first'
+    cmakeArgs: '.. -D"CMAKE_OSX_ARCHITECTURES=arm64;x86_64"'
 
 - task: CMake@1
   inputs:
