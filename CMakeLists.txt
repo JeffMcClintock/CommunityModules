@@ -8,7 +8,7 @@ project(CommunityModules)
 
 enable_testing()
 
-set(sdk_folder
+set(se_sdk_folder
     ../../se_sdk3
     )
 

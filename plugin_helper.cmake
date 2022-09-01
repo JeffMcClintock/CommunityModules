@@ -8,14 +8,14 @@ macro(
 )
 
 set(sdk_srcs
-${sdk_folder}/mp_sdk_common.h
-${sdk_folder}/mp_sdk_common.cpp
+${se_sdk_folder}/mp_sdk_common.h
+${se_sdk_folder}/mp_sdk_common.cpp
 )
 
 if(${HAS_DSP})
     set(sdk_srcs ${sdk_srcs}
-    ${sdk_folder}/mp_sdk_audio.h
-    ${sdk_folder}/mp_sdk_audio.cpp
+    ${se_sdk_folder}/mp_sdk_audio.h
+    ${se_sdk_folder}/mp_sdk_audio.cpp
     )
     set(srcs ${srcs}
     ${PROJECT_NAME}.cpp
@@ -24,8 +24,8 @@ endif()
 
 if(${HAS_GUI})
     set(sdk_srcs ${sdk_srcs}
-    ${sdk_folder}/mp_sdk_gui.h
-    ${sdk_folder}/mp_sdk_gui.cpp
+    ${se_sdk_folder}/mp_sdk_gui.h
+    ${se_sdk_folder}/mp_sdk_gui.cpp
     )
     set(srcs ${srcs}
     ${PROJECT_NAME}Gui.cpp
@@ -33,9 +33,15 @@ if(${HAS_GUI})
 endif()
 
 set(resource_srcs
-module.rc
-${PROJECT_NAME}.xml
+    ${PROJECT_NAME}.xml
 )
+
+if(CMAKE_HOST_WIN32)
+set(resource_srcs
+    ${resource_srcs}
+    module.rc
+)
+endif()
 
 # organise SDK file into folders/groups in IDE
 source_group(sdk FILES ${sdk_srcs})
@@ -61,7 +67,12 @@ set_plugin_standard_srcs(
 )
 
 include (GenerateExportHeader)
-add_library(${PROJECT_NAME} MODULE  ${srcs} ${sdk_srcs} ${resource_srcs})
+add_library(${PROJECT_NAME} MODULE ${srcs} ${sdk_srcs} ${resource_srcs})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE 
+  $<$<CONFIG:Debug>:_DEBUG>
+  $<$<CONFIG:Release>:NDEBUG>
+)
 
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
@@ -80,8 +91,8 @@ endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
 
 if(CMAKE_HOST_WIN32)
-# maybe better: if(SE_COPY_TO_SEM_FOLDER)
-if (NOT SE_BUILDING_ON_CI)
+
+if (SE_COPY_TO_SEM_FOLDER)
     add_custom_command(TARGET ${PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
@@ -92,4 +103,97 @@ if (NOT SE_BUILDING_ON_CI)
 endif()
 endif()
 
+# all individual modules should be groups under "modules" solution folder
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER "modules")
+
 endmacro()
+
+#more sophistcated
+function(BUILD_GMPI_PLUGIN)
+set(options HAS_DSP HAS_GUI)
+set(oneValueArgs PROJECT_NAME)
+set(multiValueArgs SOURCE_FILES)
+cmake_parse_arguments(BUILD_GMPI_PLUGIN "${options}" "${oneValueArgs}"
+                          "${multiValueArgs}" ${ARGN} )
+
+# message(STATUS "PROJECT_NAME:" ${BUILD_GMPI_PLUGIN_PROJECT_NAME})
+
+# add SDK files
+set(sdk_srcs
+${se_sdk_folder}/mp_sdk_common.h
+${se_sdk_folder}/mp_sdk_common.cpp
+)
+
+if(${BUILD_GMPI_PLUGIN_HAS_DSP})
+    set(sdk_srcs ${sdk_srcs}
+    ${se_sdk_folder}/mp_sdk_audio.h
+    ${se_sdk_folder}/mp_sdk_audio.cpp
+    )
+    set(srcs ${srcs}
+    ${BUILD_GMPI_PLUGIN_PROJECT_NAME}.cpp
+    )
+endif()
+
+if(${BUILD_GMPI_PLUGIN_HAS_GUI})
+    set(sdk_srcs ${sdk_srcs}
+    ${se_sdk_folder}/mp_sdk_gui.h
+    ${se_sdk_folder}/mp_sdk_gui.cpp
+    )
+    set(srcs ${srcs}
+    ${BUILD_GMPI_PLUGIN_PROJECT_NAME}Gui.cpp
+    )
+endif()
+
+set(resource_srcs
+${BUILD_GMPI_PLUGIN_PROJECT_NAME}.xml
+)
+
+if(CMAKE_HOST_WIN32)
+set(resource_srcs
+    ${resource_srcs}
+    ${BUILD_GMPI_PLUGIN_PROJECT_NAME}.rc
+)
+endif()
+
+# organise SDK file into folders/groups in IDE
+source_group(sdk FILES ${sdk_srcs})
+source_group(resources FILES ${resource_srcs})
+
+include (GenerateExportHeader)
+add_library(${BUILD_GMPI_PLUGIN_PROJECT_NAME} MODULE ${BUILD_GMPI_PLUGIN_SOURCE_FILES} ${sdk_srcs} ${resource_srcs})
+
+target_compile_definitions(
+  ${BUILD_GMPI_PLUGIN_PROJECT_NAME} PRIVATE 
+  $<$<CONFIG:Debug>:_DEBUG>
+  $<$<CONFIG:Release>:NDEBUG>
+)
+
+if(APPLE)
+  set_target_properties(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PROPERTIES BUNDLE TRUE)
+  set_target_properties(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PROPERTIES BUNDLE_EXTENSION "sem")
+
+  # Place xml file in bundle 'Resources' folder.
+  set(xml_path "${BUILD_GMPI_PLUGIN_PROJECT_NAME}.xml")
+  target_sources(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PUBLIC ${xml_path})
+  set_source_files_properties(${xml_path} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+endif()
+
+set_target_properties(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PROPERTIES SUFFIX ".sem")
+
+if(CMAKE_HOST_WIN32)
+
+if (SE_COPY_TO_SEM_FOLDER)
+    add_custom_command(TARGET ${BUILD_GMPI_PLUGIN_PROJECT_NAME}
+    # Run after all other rules within the target have been executed
+    POST_BUILD
+    COMMAND xcopy /c /y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules"
+    COMMENT "Copy to system plugin folder"
+    VERBATIM
+)
+endif()
+endif()
+
+# all individual modules should be groups under "modules" solution folder
+SET_TARGET_PROPERTIES(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PROPERTIES FOLDER "modules")
+
+endfunction()
