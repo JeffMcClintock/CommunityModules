@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE) 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
 set(SE_LOCAL_BUILD FALSE CACHE BOOL "Execute extra build steps for developers machine")
