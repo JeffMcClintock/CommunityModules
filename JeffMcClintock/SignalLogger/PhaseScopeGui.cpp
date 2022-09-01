@@ -46,14 +46,8 @@ class PhaseScopeGui final : public gmpi_gui::MpGuiGfxBase
 {
 	const int maxRetainedChunks = 100;
 
-	struct TraceChunk
-	{
-		int chunkIndex;
-		int channelCount;
-		std::vector<float> data;
-	};
-
-	std::list<TraceChunk> chunks;
+	int channelCount = 2;
+	std::vector<float> chunk;
 
 	std::vector<Point> temp1; // to save reallocating every frame, we keep these around.
 	std::vector<Point> temp2;
@@ -65,20 +59,14 @@ class PhaseScopeGui final : public gmpi_gui::MpGuiGfxBase
 			const float* data = (const float*)pinValueIn.rawData();
 
 			const auto chunkIndex = static_cast<int>(data[0]);
-			const auto channelCount = static_cast<int>(data[1]);
+			channelCount = static_cast<int>(data[1]);
 
 			if (chunkIndex == 0) // restarted audio?
-				chunks.clear();
+				chunk.clear();
 
-			chunks.push_back({ chunkIndex, channelCount, {} });
 			const float* chunkData = data + 2;
 			const size_t chunkSize = (pinValueIn.rawSize() / sizeof(float)) - 2;
-			chunks.back().data.assign(chunkData, chunkData + chunkSize);
-		}
-
-		if (maxRetainedChunks < chunks.size())
-		{
-			chunks.pop_front();
+			chunk.assign(chunkData, chunkData + chunkSize);
 		}
 
 		invalidateRect();
@@ -104,7 +92,7 @@ public:
 
 		auto r = getRect();
 
-		if (chunks.empty())
+		if (chunk.empty())
 			return gmpi::MP_OK;
 
 		float height = r.bottom - r.top;
@@ -127,8 +115,8 @@ public:
 			g.DrawLine(screen_mid_left, screen_mid_right, brush);
 		}
 
-		const int traceCount = chunks.back().channelCount;
-		const int framesPerChunk = chunks.back().data.size() / traceCount;
+		const int traceCount = channelCount;
+		const int framesPerChunk = chunk.size() / traceCount;
 
 		Color traceColors[] =
 		{
@@ -144,13 +132,11 @@ public:
 			temp1.clear();
 			temp2.clear();
 
-			auto chunk = chunks.begin();
-
 			for (int i = 0 ; i < framesPerChunk; ++i)
 			{
 				Point pt(
-					chunk->data[chunk->data.size() - traceCount * (i + 1)],
-					chunk->data[chunk->data.size() - traceCount * (i + 1) + 1]
+					chunk[chunk.size() - traceCount * (i + 1)],
+					chunk[chunk.size() - traceCount * (i + 1) + 1]
 				);
 
 				// Rotate point 45 degrees (better to pre-do? rather than re-apply repeatedly)
@@ -168,8 +154,6 @@ public:
 
 				temp1.push_back(p_screen);
 			}
-
-//			SimplifyGraph(temp1, temp2);
 
 			const float penWidth = 1;
 			auto traceGeometry = DataToGraph(g, temp1);
