@@ -14,23 +14,23 @@ steps:
     fetchDepth: 1
     clean: true
 
-- task: CMake@1
-  inputs:
-    cmakeArgs: '.. -D"CMAKE_OSX_ARCHITECTURES=arm64;x86_64"'
+  - task: CMake@1
+    inputs:
+      cmakeArgs: '.. -D"CMAKE_OSX_ARCHITECTURES=arm64;x86_64"'
 
-- task: CMake@1
-  inputs:
-    cmakeArgs: '--build . --config Release'
+  - task: CMake@1
+    inputs:
+      cmakeArgs: '--build . --config Release'
 
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: '$(agent.builddirectory)/s/build'
-    Contents: '**/*.sem/**'
-    TargetFolder: '$(build.artifactstagingdirectory)'
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(agent.builddirectory)/s/build'
+      Contents: '**/*.sem/**'
+      TargetFolder: '$(build.artifactstagingdirectory)'
 
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifacts'
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)'
-    ArtifactName: 'modules_mac'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifacts'
+    inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)'
+      ArtifactName: 'modules_mac'
