@@ -25,6 +25,11 @@ source_group("Resource Files" FILES module.rc ${PROJECT_NAME}.xml)
 include (GenerateExportHeader)
 add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE 
+  $<$<CONFIG:Debug>:_DEBUG>
+  $<$<CONFIG:Release>:NDEBUG>
+)
+
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)

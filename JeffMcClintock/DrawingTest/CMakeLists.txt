@@ -46,6 +46,11 @@ add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
 TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${COREFOUNDATION_LIBRARY} )
 target_compile_definitions (${PROJECT_NAME} PRIVATE -D_UNICODE -DUNICODE)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE 
+  $<$<CONFIG:Debug>:_DEBUG>
+  $<$<CONFIG:Release>:NDEBUG>
+)
+
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)

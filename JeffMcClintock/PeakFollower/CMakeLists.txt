@@ -50,6 +50,11 @@ source_group(resources FILES ${resource_srcs})
 include (GenerateExportHeader)
 add_library(${PROJECT_NAME} MODULE  ${srcs} ${sdk_srcs} ${resource_srcs})
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE 
+  $<$<CONFIG:Debug>:_DEBUG>
+  $<$<CONFIG:Release>:NDEBUG>
+)
+
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
