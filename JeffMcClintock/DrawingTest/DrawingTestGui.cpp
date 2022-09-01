@@ -1544,6 +1544,7 @@ int test()
 int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext)
 {
 	GmpiDrawing::Graphics g(drawingContext);
+	ClipDrawingToBounds x(g, getRect());
 
 	switch(pinTestType.getValue())
 	{
@@ -1613,7 +1614,11 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		break;
 
 	case 15:
+	{
+		auto brush = g.CreateSolidColorBrush(Color::Aqua);
+		g.FillRectangle(getRect(), brush);
 		gameobject.drawFrame(g);
+	}
 		break;
 	}
 

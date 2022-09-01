@@ -63,10 +63,14 @@ class lees_game
 {
 public:
 	static const int MAX_WIDTH2 = 32;
-	canvas2 grid;
-	canvas2 prev;
-	GmpiDrawing::Point canonball = { 115, 105 };
-	GmpiDrawing::Point tank_sprite = { 200, 200 };
+//	canvas2 grid;
+//	canvas2 prev;
+	lees_game();
+
+	bool terrain[300][300] = {};
+
+	GmpiDrawing::Point canonball = { 30, 485 };
+	GmpiDrawing::Point tank_sprite = { 100, 100 };
 	int frame_num = 0;
 	GmpiDrawing::Bitmap bitmapMem;
 	float dy = 2;//how fast a canonball gos up
