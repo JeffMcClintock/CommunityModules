@@ -166,6 +166,7 @@ target_compile_definitions(
   ${BUILD_GMPI_PLUGIN_PROJECT_NAME} PRIVATE 
   $<$<CONFIG:Debug>:_DEBUG>
   $<$<CONFIG:Release>:NDEBUG>
+  $<$<CONFIG:Release>:NDEBUG_TEST_FORWIN>
 )
 
 if(APPLE)
