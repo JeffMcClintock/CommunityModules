@@ -18,7 +18,7 @@
     </GUI>
 	</Plugin>
 
-  <Plugin id="SE Phase Scope" name="Phase Scope" category="Diagnostic">
+  <Plugin id="SE Phase Scope" name="Phase Scope" category="Controls">
     <Parameters>
       <Parameter id="0" datatype="blob" persistant="false" />
     </Parameters>
