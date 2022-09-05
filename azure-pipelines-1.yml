@@ -20,7 +20,7 @@ steps:
 
   - task: CMake@1
     inputs:
-      cmakeArgs: '--build . --config Release'
+      cmakeArgs: '--build .. --config Release'
 
   - task: CopyFiles@2
     inputs:
