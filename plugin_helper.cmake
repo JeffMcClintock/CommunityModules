@@ -90,6 +90,10 @@ endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
 
+if(WIN32)
+target_link_options(${PROJECT_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
+endif()
+
 if(CMAKE_HOST_WIN32)
 
 if (SE_COPY_TO_SEM_FOLDER)
@@ -166,7 +170,6 @@ target_compile_definitions(
   ${BUILD_GMPI_PLUGIN_PROJECT_NAME} PRIVATE 
   $<$<CONFIG:Debug>:_DEBUG>
   $<$<CONFIG:Release>:NDEBUG>
-  $<$<CONFIG:Release>:NDEBUG_TEST_FORWIN>
 )
 
 if(APPLE)
@@ -180,6 +183,10 @@ if(APPLE)
 endif()
 
 set_target_properties(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PROPERTIES SUFFIX ".sem")
+
+if(WIN32)
+target_link_options(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
+endif()
 
 if(CMAKE_HOST_WIN32)
 
