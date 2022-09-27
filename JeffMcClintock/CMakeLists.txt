@@ -13,7 +13,8 @@ add_subdirectory(Loudness)
 add_subdirectory(WaveformScroller)
 
 if(WIN32)
-# don't build on macOS yet
 	add_subdirectory(Wrapper_VST2)
+#	add_subdirectory(sfizz)
+# don't build on macOS yet
 #	add_subdirectory(Wrapper_VST3)
 endif(WIN32)
