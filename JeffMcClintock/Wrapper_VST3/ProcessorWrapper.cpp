@@ -24,6 +24,13 @@ using namespace Steinberg::Vst;
 
 ProcessorWrapper::ProcessorWrapper() :
 	currentVstSubProcess(&ProcessorWrapper::subProcessNotLoaded)
+	,midiConverter(
+		// provide a lambda to accept converted MIDI 2.0 messages
+		[this](const midi::message_view& msg, int offset)
+		{
+			onMidi2Message(msg, offset);
+		}
+	) 
 {
 	memset(&vstTime_, 0, sizeof(vstTime_));
 	vstTime_.state =
@@ -248,56 +255,63 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 		return;
 	}
 
-	// pass to plug. !! NEED TO CHECK IT SUPPORTS EVENTS!!
-	const int b1 = midiData[0];
-	const int status = midiData[0] & 0xf0;
-	const int channel = midiData[0] & 0x0f;
+	midiConverter.processMidi({ midiData, size }, timeDelta);
+}
 
+void ProcessorWrapper::onMidi2Message(const midi::message_view msg, int timeDelta)
+{
 	const int unusedType = 666;
+
+	const auto header = gmpi::midi_2_0::decodeHeader(msg);
+
+	// only 8-byte messages supported.
+	if (header.messageType != gmpi::midi_2_0::ChannelVoice64)
+		return;
 
 	Steinberg::Vst::Event m = {};
 	m.type = unusedType;
 
-	if (b1 != MIDI_SystemMessage)
+	switch (header.status)
 	{
-/*
-		const int chan = b1 & 0x0f;
-		const bool is_system_msg = (b1 & MIDI_SystemMessage) == MIDI_SystemMessage;
-*/
-		switch(status)
-		{
-		case GmpiMidi::MIDI_NoteOff:
-			m.type = Event::kNoteOffEvent;
-			m.noteOff.channel = channel;
-			m.noteOff.noteId = -1;
-			m.noteOff.pitch = midiData[1];
-			m.noteOff.velocity = midiData[2] / 127.0f;
-			break;
 
-		case GmpiMidi::MIDI_NoteOn:
-			m.type = Event::kNoteOnEvent;
-			m.noteOn.channel = channel;
-			m.noteOn.noteId = -1;
-			m.noteOn.pitch = midiData[1];
-			m.noteOn.velocity = midiData[2] / 127.0f;
-			break;
-
-		case GmpiMidi::MIDI_PolyAfterTouch:
-            m.type = Event::kPolyPressureEvent;
-            m.polyPressure.channel = channel;
-            m.polyPressure.noteId = -1;
-            m.polyPressure.pitch = midiData[1];
-            m.polyPressure.pressure = midiData[2] / 127.0f;
-            break;
-		};
-	}
-	else // SYSEX
+	case gmpi::midi_2_0::NoteOn:
 	{
-		m.type = Event::kDataEvent;
-		m.data.type = DataEvent::kMidiSysEx;
-		m.data.bytes = (uint8*)midiData;
-		m.data.size = size;
+		const auto note = gmpi::midi_2_0::decodeNote(msg);
+
+		m.type = Event::kNoteOnEvent;
+		m.noteOn.channel = header.channel;
+		m.noteOn.noteId = -1;
+		m.noteOn.pitch = note.noteNumber;
+		m.noteOn.velocity = note.velocity;
 	}
+	break;
+
+	case gmpi::midi_2_0::NoteOff:
+	{
+		const auto note = gmpi::midi_2_0::decodeNote(msg);
+
+		m.type = Event::kNoteOffEvent;
+		m.noteOff.channel = header.channel;
+		m.noteOff.noteId = -1;
+		m.noteOff.pitch = note.noteNumber;
+		m.noteOff.velocity = note.velocity;
+	}
+	break;
+
+	case gmpi::midi_2_0::PolyAfterTouch:
+	{
+		const auto aftertouch = gmpi::midi_2_0::decodePolyController(msg);
+		m.type = Event::kPolyPressureEvent;
+		m.polyPressure.channel = header.channel;
+		m.polyPressure.noteId = -1;
+		m.polyPressure.pitch = aftertouch.noteNumber;
+		m.polyPressure.pressure = aftertouch.value;
+	}
+	break;
+
+	default:
+		break;
+	};
 
 	if(m.type != unusedType)
 	{

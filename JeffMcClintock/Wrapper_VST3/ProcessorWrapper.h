@@ -168,12 +168,14 @@ class ProcessorWrapper : public MpBase2
 	void debugDumpPresetToFile();
 #endif
 	enum { ST_PROCESS, ST_PRIME_BUFFERS, ST_FADING, ST_BYPASS };
+	gmpi::midi_2_0::MidiConverter2 midiConverter;
 
 public:
 	ProcessorWrapper();
 	~ProcessorWrapper();
 
 	void onMidiMessage(int pin, int timeDelta, const unsigned char* midiMessage, int size);
+	void onMidi2Message(const gmpi::midi::message_view msg, int timestamp);
 	void ProcessEvents(int32_t count, const gmpi::MpEvent* events);
 	void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events) override;
 
