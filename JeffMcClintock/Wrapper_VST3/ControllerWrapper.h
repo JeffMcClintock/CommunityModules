@@ -63,6 +63,14 @@ public:
 	ControllerWrapper(const wchar_t* filename, const std::string& uuid);
 	~ControllerWrapper();
 
+	Steinberg::Vst::IAudioProcessor* getProcessor() const
+	{
+		if (processor_vstEffect__ptr)
+			return *processor_vstEffect__ptr;
+
+		return {};
+	}
+
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 	virtual int32_t MP_STDCALL setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size) override;
 	virtual int32_t MP_STDCALL preSaveState() override;

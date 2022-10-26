@@ -53,6 +53,11 @@ ProcessorWrapper::~ProcessorWrapper()
 	{
         component_->setActive(false);
 	}
+
+	if (vstEffect_)
+	{
+		vstEffect_->release();
+	}
 }
 
 void ProcessorWrapper::process(int32_t count, const gmpi::MpEvent* events)
@@ -218,6 +223,7 @@ void ProcessorWrapper::initVst()
 		delay.resize(bypassDelaysize);
 	}
 
+	_RPT1(0, "LATENCY INITAL: %d\n", latency);
 	host.SetLatency(latency);
 
 	currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PROCESS>;

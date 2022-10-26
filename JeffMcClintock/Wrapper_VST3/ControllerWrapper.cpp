@@ -406,6 +406,16 @@ tresult VstComponentHandler::endEdit (ParamID paramId)
 
 tresult VstComponentHandler::restartComponent (int32 flags)
 {
+	if (flags & Steinberg::Vst::kLatencyChanged && controller_->getProcessor())
+	{
+		const auto latency = controller_->getProcessor()->getLatencySamples();
+		_RPT1(0, "LATENCY CHANGED: %d\n", latency);
+
+		controller_->host_->setLatency(latency);
+
+		return kResultOk;
+	}
+
 	if ((kIoChanged | kLatencyChanged | kReloadComponent) & flags)
 	{
 		controller_->host_->setLatency(-1);
@@ -423,13 +433,6 @@ int32_t ControllerWrapper::registerProcessor(Steinberg::Vst::IComponent** compon
     {
         *component = plugin->component.get();
         (*component)->queryInterface(IAudioProcessor::iid, (void**)vstEffect);
-/*
-        // unusual. processor don't hold references on the plugin. This is because it's lifetime must be controlled exclusivly from the ALG.
-        if (*vstEffect)
-        {
-            (*vstEffect)->release();
-        }
-*/
     }
 
 	return gmpi::MP_OK;

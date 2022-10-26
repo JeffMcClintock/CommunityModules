@@ -161,6 +161,7 @@
       <Filter>VST3_SDK</Filter>
     </ClInclude>
     <ClInclude Include="WindowManager.h" />
+    <ClInclude Include="myPluginProvider.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Wrapper_vst3.xml" />
