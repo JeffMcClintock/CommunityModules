@@ -30,6 +30,7 @@ Sasha Radojevic
 
    TODO
    * Draw bitmap with blending modes (e.g. additive)
+   * Consider supporting text underline (would require support for DrawGlyphRun)
 */
 
 /*
@@ -41,7 +42,10 @@ using namespace GmpiDrawing;
 #ifndef GMPI_GRAPHICS2_H_INCLUDED
 #define GMPI_GRAPHICS2_H_INCLUDED
 
-#pragma warning(disable : 4100)
+#ifdef _MSC_VER
+#pragma warning(disable : 4100) // "unreferenced formal parameter"
+#pragma warning(disable : 4996) // "codecvt deprecated in C++17"
+#endif
 
 #include "Drawing_API.h"
 #include <vector>
@@ -1984,6 +1988,17 @@ namespace GmpiDrawing
 		inline void AddArc(ArcSegment arc)
 		{
 			Get()->AddArc(&arc);
+		}
+
+		void SetFillMode(FillMode fillMode)
+		{
+			GmpiDrawing_API::IMpGeometrySink2* ext{};
+			Get()->queryInterface(GmpiDrawing_API::SE_IID_GEOMETRYSINK2_MPGUI, (void**) &ext);
+			if (ext)
+			{
+				ext->SetFillMode((GmpiDrawing_API::MP1_FILL_MODE) fillMode);
+				ext->release();
+			}
 		}
 	};
 

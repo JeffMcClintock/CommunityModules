@@ -67,6 +67,8 @@ public:
 //	canvas2 prev;
 	lees_game();
 
+	void onClick(GmpiDrawing_API::MP1_POINT point);
+
 	bool terrain[300][300] = {};
 
 	GmpiDrawing::Point canonball = { 30, 485 };
@@ -76,4 +78,5 @@ public:
 	float dy = 2;//how fast a canonball gos up
 	float dx = 4;
 	void drawFrame(GmpiDrawing::Graphics& g);
+
 };

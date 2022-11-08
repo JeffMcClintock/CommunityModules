@@ -32,14 +32,14 @@ lees_game::lees_game()
 			{
 //				if (terrain[x][y + 1])
 				{
-					if (x > 100 && x < 150)
+					if (x > 75 && x < 140 )
 
 
 					{
 						int r = rand() % 4;
 						if (r == 0)
 						{
-							y = y - 2;
+							y = y - 3;
 						}
 						if (r == 2)
 						{
@@ -55,6 +55,29 @@ lees_game::lees_game()
 						}
 					}
 					else
+						if (x > 160 && x < 225)
+
+
+						{
+							int r = rand() % 4;
+							if (r == 0)
+							{
+								y = y + 3;
+							}
+							if (r == 2)
+							{
+								y = y + 2;
+							}
+							if (r == 3)
+							{
+								y = y - 1;
+							}
+							if (r == 1)
+							{
+								y = y + 2;
+							}
+						}
+						else
 					{
 						int r = rand() % 2;
 						if (r == 0)
@@ -78,6 +101,25 @@ lees_game::lees_game()
 			}
 		}
 	}
+}
+
+void lees_game::onClick(GmpiDrawing_API::MP1_POINT point)
+{ 
+	if (point.y > 1 && point.y < 20)
+	{
+		canonball.x = 105;
+		canonball.y = 574;
+		dy = 9.5;
+		dx = 2;
+	}
+	
+	else
+	{
+		canonball.y = point.y;
+		canonball.x = point.x;
+		dy = 2;
+	}
+	
 }
 
 void lees_game::drawFrame(Graphics& g)

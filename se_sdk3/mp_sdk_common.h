@@ -171,19 +171,19 @@ namespace gmpi
 	return gmpi::MP_NOSUPPORT; \
 }
 
-#define GMPI_REFCOUNT gmpi_sdk::selfInitializingInt refCount2_; \
+#define GMPI_REFCOUNT int32_t refCount2_ = 1; \
 	int32_t MP_STDCALL addRef() override \
 { \
-	return ++refCount2_.value_; \
+	return ++refCount2_; \
 } \
 	int32_t MP_STDCALL release() override \
 { \
-	if (--refCount2_.value_ == 0) \
+	if (--refCount2_ == 0) \
 	{ \
 	delete this; \
 	return 0; \
 	} \
-	return refCount2_.value_; \
+	return refCount2_; \
 } \
 
 #define GMPI_REFCOUNT_NO_DELETE	\
@@ -373,7 +373,8 @@ class IProtectedFile
 public:
 	virtual int32_t MP_STDCALL close() = 0;
 
-	virtual int32_t MP_STDCALL getSize( int32_t& returnValue ) = 0;
+//	virtual int32_t MP_STDCALL getSize( int32_t& returnValue ) = 0;
+	virtual int32_t MP_STDCALL getSize32( int32_t& returnValue ) = 0;
 
 	virtual int32_t MP_STDCALL read( char* buffer, int32_t size ) = 0;
 };
@@ -466,7 +467,7 @@ public:
 	// SynthEdit-specific.  Determine file's location depending on host application's conventions. // e.g. "bell.wav" -> "C:/My Documents/bell.wav"
 	virtual int32_t MP_STDCALL resolveFilename( const wchar_t* shortFilename, int32_t maxChars, wchar_t* returnFullFilename ) = 0;
 
-	// SynthEdit-specific.  Determine file's location depending on host application's conventions. // e.g. "bell.wav" -> "C:/My Documents/bell.wav"
+	// DEPRECATED ref IEmbeddedFileSupport
 	virtual int32_t MP_STDCALL openProtectedFile( const wchar_t* shortFilename, IProtectedFile **file ) = 0;
 };
 
@@ -504,6 +505,26 @@ public:
 // {87CCD426-71D7-414E-A9A6-5ADCA81C7420}
 static const MpGuid MP_IID_PROCESSOR_HOST =
 { 0x87ccd426, 0x71d7, 0x414e, { 0xa9, 0xa6, 0x5a, 0xdc, 0xa8, 0x1c, 0x74, 0x20 } };
+
+
+// SynthEdit-specific.
+// extension to GMPI to provide support for loading files from the plugins resources (be they embedded or file-based).
+// Corrects error in IMpHost that there is a memory leak, due to having no way to free the file object, and no way to query file object for updated interfaces.
+class IEmbeddedFileSupport : public IMpUnknown
+{
+public:
+	// Determine file's location depending on host application's conventions. // e.g. "bell.wav" -> "C:/My Documents/bell.wav"
+	virtual int32_t MP_STDCALL resolveFilename(const char* fileName, gmpi::IString* returnFullUri) = 0;
+
+	// open a file, usually returns a IProtectedFile2 interface.
+	virtual int32_t MP_STDCALL openUri(const char* fullUri, gmpi::IMpUnknown** returnStream) = 0;
+};
+
+// GUID for IEmbeddedFileSupport.
+// {B486F4DE-9010-4AA0-9D0C-DCD9F8879257}
+static const MpGuid MP_IID_HOST_EMBEDDED_FILE_SUPPORT =
+{ 0xb486f4de, 0x9010, 0x4aa0, { 0x9d, 0xc, 0xdc, 0xd9, 0xf8, 0x87, 0x92, 0x57 } };
+
 
 // GUI PLUGIN
 
@@ -996,8 +1017,9 @@ int32_t RegisterPluginXml( const char* xmlFile );
 #define GMPI_REGISTER( plugintype, className, pluginId ) namespace{ gmpi::IMpUnknown* PASTE_FUNC(create,className)(){ return static_cast<gmpi::IMpUnknown*> (new className()); }; int32_t PASTE_FUNC(r,className) = RegisterPlugin( plugintype, pluginId, &PASTE_FUNC(create,className) );}
 
 // Ensure linker includes file in static-library. See also INIT_STATIC_FILE in UgDatabase.cpp
+#ifndef SE_DECLARE_INIT_STATIC_FILE
 #define SE_DECLARE_INIT_STATIC_FILE(filename) void se_static_library_init_##filename(){}
-
+#endif
 
 // Helper class to make registering concise.
 /* e.g.
@@ -1310,7 +1332,7 @@ struct MpRect
 	int32_t right;
 };
 
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(_INC_WINDOWS)
 
 class IMpGraphicsWinGdi : public gmpi::IMpUnknown
 {
@@ -1355,7 +1377,7 @@ static const gmpi::MpGuid MP_IID_GRAPHICS_HOST_WIN_GDI =
 // MPI supports multiple graphics APIs through optional interfaces.
 
 
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(_INC_WINDOWS)
 
 // SynthEdit Graphics API, plugin-side. Based on Windows GDI.
 struct MpFontInfo
@@ -1367,20 +1389,6 @@ struct MpFontInfo
 	int fontHeight;
 	char future [100];
 };
-
-/*
-// new, Native Window type.
-class ISeGraphics : public IMpGraphicsWinGdi
-{
-public:
-};
-
-// GUID for IMpGraphicsSynthEdit
-// {0157347B-3FD3-4cee-947E-88F694349254}
-static const gmpi::MpGuid SE_IID_GRAPHICS =
-{ 0x157347b, 0x3fd3, 0x4cee, { 0x94, 0x7e, 0x88, 0xf6, 0x94, 0x34, 0x92, 0x54 } };
-*/
-
 
 // Old-style composited (draw-on-window) graphics.
 class ISeGraphicsComposited : public gmpi::IMpUnknown

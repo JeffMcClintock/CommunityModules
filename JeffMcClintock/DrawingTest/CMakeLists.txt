@@ -10,6 +10,7 @@ set(sdk_srcs
 ${sdk_folder}/mp_sdk_common.cpp
 ${sdk_folder}/mp_sdk_gui.cpp
 ${sdk_folder}/TimerManager.cpp
+${sdk_folder}/Drawing.h
 )
 set(srcs
 ${PROJECT_NAME}.rc
@@ -81,7 +82,7 @@ if(CMAKE_HOST_WIN32)
 add_custom_command(TARGET ${PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
-    COMMAND copy "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\"
+    COMMAND copy "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\$(TargetName)$(TargetExt)"
     COMMENT "Copy to modules folder"
     VERBATIM
 )

@@ -6,8 +6,32 @@ using namespace gmpi;
 
 const std::string& StringGuiPin::operator=(const std::string& valueUtf8)
 {
+#if defined(_WIN32)
+	// std::wstring_convert does not handle emojis on Windows at least.
+	std::wstring value;
+	const size_t size = MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		valueUtf8.data(),
+		static_cast<int>(valueUtf8.size()),
+		0,
+		0
+	);
+
+	value.resize(size);
+
+	MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		valueUtf8.data(),
+		static_cast<int>(valueUtf8.size()),
+		const_cast<LPWSTR>(value.data()),
+		static_cast<int>(size)
+	);
+#else
 	static std::wstring_convert<std::codecvt_utf8<wchar_t> > convert;
 	auto value = convert.from_bytes(valueUtf8);
+#endif
 
 	if (!variablesAreEqual<std::wstring>(value, value_))
 	{
@@ -34,7 +58,6 @@ const std::wstring& StringGuiPin::operator=(const std::wstring& value)
 }
 
 #ifdef _WIN32
-#if (!defined(WINAPI_FAMILY) || WINAPI_FAMILY != WINAPI_FAMILY_APP )
 
 // copied from MP_GetDllHandle
 HMODULE local_GetDllHandle()
@@ -44,7 +67,6 @@ HMODULE local_GetDllHandle()
 	return (HMODULE)hmodule;
 }
 
-#endif
 #endif
 
 /**********************************************************************************
@@ -243,8 +265,7 @@ int32_t MpGuiBase2::initialize()
 }
 
 
-#if defined(_WIN32) && ( !defined(WINAPI_FAMILY) || WINAPI_FAMILY != WINAPI_FAMILY_APP ) && !defined(SE_TARGET_VST3)
-
+#if defined(_WIN32) && !defined(_WIN64)
 /**********************************************************************************
 SeGuiCompositedGfxBase
 This uses the SynthEdit graphics API which supports transparancy.

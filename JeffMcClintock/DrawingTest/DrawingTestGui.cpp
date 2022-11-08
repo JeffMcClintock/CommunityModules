@@ -24,6 +24,18 @@ using namespace GmpiDrawing;
 
 GMPI_REGISTER_GUI(MP_SUB_TYPE_GUI2, DrawingTestGui, L"SE Drawing Test" );
 
+float tsin(float turn)
+{
+	constexpr float conv = static_cast<float>(M_PI * 2.0);
+	return sinf(turn * conv);
+}
+
+float tcos(float turn)
+{
+	constexpr float conv = static_cast<float>(M_PI * 2.0);
+	return cosf(turn * conv);
+}
+
 DrawingTestGui::DrawingTestGui()
 {
 	initializePin(pinTestType, static_cast<MpGuiBaseMemberPtr2>(&DrawingTestGui::onSetTestType));
@@ -1143,6 +1155,78 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 			g.SetTransform(originalTransform);
 		}
 	}
+
+	// Fill mode, one sub-path
+	{
+		auto orangeBrush = g.CreateSolidColorBrush(Color::Orange);
+
+		Point centerPoint{150.0f, 150.0f};
+		for(int32_t fillMode = 0 ; fillMode < 2 ; ++fillMode)
+		{
+			auto geometry = g.GetFactory().CreatePathGeometry();
+			auto sink = geometry.Open();
+
+			const float radius = 50.f;
+			bool first = true;
+			for (float i = 0.0f; i < 6.0f; i += 1.0f)
+			{
+				const float turn = i * 2.0f / 5.0f;
+				Point p(centerPoint.x + radius * tsin(turn), centerPoint.y - radius * tcos(turn));
+
+				if (first)
+				{
+					first = false;
+					sink.BeginFigure(p, FigureBegin::Filled);
+				}
+				else
+				{
+					sink.AddLine(p);
+				}
+			}
+
+			sink.EndFigure();
+			sink.SetFillMode((FillMode)fillMode);
+			sink.Close();
+
+			g.FillGeometry(geometry, orangeBrush);
+			g.DrawGeometry(geometry, blackBrush, 2);
+
+			centerPoint.x += 100.f;
+		}
+
+	}
+
+	// Fill mode, two sub-paths
+	{
+		auto orangeBrush = g.CreateSolidColorBrush(Color::Orange);
+
+		Point centerPoint{ 200.0f, 250.0f };
+		for (int32_t fillMode = 0; fillMode < 2; ++fillMode)
+		{
+			auto geometry = g.GetFactory().CreatePathGeometry();
+			auto sink = geometry.Open();
+
+			Point p(centerPoint); // (centerPoint.x + radius * tsin(turn), centerPoint.y - radius * tcos(turn));
+
+			sink.BeginFigure(p, FigureBegin::Filled);
+			sink.AddLine(centerPoint + Size(-20.f, 40.f));
+			sink.AddLine(centerPoint + Size(+20.f, 40.f));
+			sink.EndFigure();
+
+			sink.BeginFigure(p + Size(0.f, 10.f), FigureBegin::Filled);
+			sink.AddLine(centerPoint + Size(-10.f, 30.f));
+			sink.AddLine(centerPoint + Size(+10.f, 30.f));
+			sink.EndFigure();
+
+			sink.SetFillMode((FillMode)fillMode);
+			sink.Close();
+
+			g.FillGeometry(geometry, orangeBrush);
+			g.DrawGeometry(geometry, blackBrush, 2);
+
+			centerPoint.x += 100.f;
+		}
+	}
 }
 
 void DrawingTestGui::drawPerceptualColorPicker(GmpiDrawing::Graphics& g)
@@ -1677,6 +1761,9 @@ int32_t MP_STDCALL DrawingTestGui::onPointerUp(int32_t flags, GmpiDrawing_API::M
 	functionalUI.mouseDown = 0.0f;
 
 #endif
+
+	gameobject.onClick(point);
+
     releaseCapture();
 	return MP_OK;
 }

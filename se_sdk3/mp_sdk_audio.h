@@ -525,6 +525,13 @@ public:
 	}
 
 	virtual void send(const unsigned char* data, int size, int blockPosition = -1);
+
+	// convenience method (pass uint8_t array, deduce size). can't pass block position, else compiler chooses other overload.
+	template <int N>
+	void send(const uint8_t(&data)[N]) //, int blockPosition = -1)
+	{
+		send((const unsigned char*)&data, static_cast<int>(N));// , blockPosition);
+	}
 };
 
 /*

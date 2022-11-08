@@ -90,6 +90,10 @@ void TimerManager::SetInterval( int intervalMs )
 
 namespace se_sdk_timers
 {
+    bool Timer::isRunning()
+    {
+        return idleTimer_ != 0;
+    }
 	void Timer::Start()
 	{
 		Stop();
@@ -100,9 +104,6 @@ namespace se_sdk_timers
 
 #ifdef _WIN32
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP) // Windows store apps.
-			// !!! TODO !!!
-#else
 			idleTimer_ = SetTimer(
 				0,	// HWND. NULL = host main window
 				0,	// timer ID. must be 0 if HWND is null
@@ -110,10 +111,9 @@ namespace se_sdk_timers
 				SynthEditVstTimerProc);
 
 //			_RPT1(_CRT_WARN, "StartTimer %d\n", idleTimer_);
-#endif
 
 #else
-			CFRunLoopTimerContext timerContext = { periodMilliSeconds }; //untested
+            CFRunLoopTimerContext timerContext = CFRunLoopTimerContext();
 			timerContext.info = this;
 			idleTimer_ = CFRunLoopTimerCreate(kCFAllocatorDefault, CFAbsoluteTimeGetCurrent() + periodMilliSeconds * 0.001f, periodMilliSeconds * 0.001f, 0, 0, timerCallback, &timerContext);
 			if (idleTimer_)
@@ -128,12 +128,8 @@ namespace se_sdk_timers
 		{
 #ifdef _WIN32
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP) // Windows store apps.
-			// !!! TODO !!!
-#else
 			KillTimer(0, idleTimer_);
 //			_RPT1(_CRT_WARN, "KillTimer %d\n", idleTimer_);
-#endif
 
 #else
 			CFRunLoopRemoveTimer(CFRunLoopGetCurrent(), (CFRunLoopTimerRef)idleTimer_, kCFRunLoopCommonModes);
@@ -213,7 +209,7 @@ void TimerManager::RegisterClient(TimerClient* client, int periodMilliSeconds)
 			if (std::find(timer.clients_.begin(), timer.clients_.end(), client) == timer.clients_.end())
 			{
 				timer.clients_.push_back(client);
-				if (timer.clients_.size() == 1)
+				if (!timer.isRunning())
 				{
 					timer.Start();
 				}

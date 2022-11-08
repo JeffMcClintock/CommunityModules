@@ -213,11 +213,13 @@ namespace GmpiGui
 		{
 			Get()->setInitialDirectory(text.c_str());
 		}
+
 		// set filename and folder. e.g. C:\samples\moose.wav
 		inline void SetInitialFullPath(std::string fullPath)
 		{
-			SetInitialFilename(StripPath(fullPath));
-			setInitialDirectory(StripFilename(fullPath));
+			const auto nativePath = ToNativeSlashes(fullPath);
+			SetInitialFilename(StripPath(nativePath));
+			setInitialDirectory(StripFilename(nativePath));
 		}
 
 		inline std::string GetSelectedFilename()

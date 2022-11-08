@@ -231,7 +231,7 @@ public:
 		{
 			id = pins_.rbegin()->first + 1;
 		}
-		initializePin(id, pin, static_cast<MpGuiBaseMemberPtr2>(handler));
+		initializePin(id, pin, static_cast<MpGuiBaseMemberPtr2>(handler)); // Arrays pins need initilize with pin index first.
 	}
 
 	// IMpUserInterface2 methods
@@ -299,7 +299,7 @@ class SeGuiInvisibleBase :
 	GMPI_REFCOUNT
 };
 
-#if defined(_WIN32) && ( !defined(WINAPI_FAMILY) || WINAPI_FAMILY != WINAPI_FAMILY_APP )
+#if defined(_WIN32) && defined(_INC_WINDOWS) && ( !defined(WINAPI_FAMILY) || WINAPI_FAMILY != WINAPI_FAMILY_APP )
 
 // SynthEdit double-buffered drawing with transparency support.
 // graphicsApi="composited"
@@ -620,6 +620,11 @@ public:
 		}
 	}
 
+	int size() const
+	{
+		return ARRAY_SIZE;
+	}
+
 	// Array-style access.
 	class Helper
 	{
@@ -739,5 +744,6 @@ public:
 typedef MpGuiArrayPin<float, MP_VOICE_COUNT> FloatArrayGuiPin;
 typedef MpGuiArrayPin<int, MP_VOICE_COUNT> IntArrayGuiPin;
 typedef MpGuiArrayPin<MpBlob, MP_VOICE_COUNT> BlobArrayGuiPin;
+typedef MpGuiArrayPin<std::wstring, MP_VOICE_COUNT> StringArrayGuiPin;
 
 #endif // .H INCLUDED

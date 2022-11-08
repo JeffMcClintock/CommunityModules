@@ -47,6 +47,7 @@ public:
 	void Start();
 	void Stop();
 	void OnTimer();
+    bool isRunning();
 };
 
 }

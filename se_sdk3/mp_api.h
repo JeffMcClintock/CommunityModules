@@ -78,19 +78,19 @@
 	return gmpi::MP_NOSUPPORT; \
 }
 
-#define GMPI_REFCOUNT gmpi_sdk::selfInitializingInt refCount2_; \
+#define GMPI_REFCOUNT int32_t refCount2_ = 1; \
 	virtual int32_t MP_STDCALL addRef() override \
 { \
-	return ++refCount2_.value_; \
+	return ++refCount2_; \
 } \
 	virtual int32_t MP_STDCALL release() override \
 { \
-	if (--refCount2_.value_ == 0) \
+	if (--refCount2_ == 0) \
 	{ \
 	delete this; \
 	return 0; \
 	} \
-	return refCount2_.value_; \
+	return refCount2_; \
 } \
 
 #define GMPI_REFCOUNT_NO_DELETE	\
@@ -325,6 +325,7 @@ struct IMpHost
 	int32_t(MP_STDCALL *resolveFilename)(struct IMpHost**, const wchar_t* shortFilename, int32_t maxChars, wchar_t* returnFullFilename);
 
 	// SynthEdit-specific.  Open file depending on host application's conventions. // e.g. "bell.wav" -> "C:/My Documents/bell.wav"
+	// DEPRECATED: see IMpUserInterfaceHost2
 	int32_t(MP_STDCALL *openProtectedFile)(struct IMpHost**, const wchar_t* shortFilename, struct IProtectedFile **file);
 };
 
@@ -448,7 +449,8 @@ class IProtectedFile
 public:
 	virtual int32_t MP_STDCALL close() = 0;
 
-	virtual int32_t MP_STDCALL getSize( int32_t& returnValue ) = 0;
+//	virtual int32_t MP_STDCALL getSize( int32_t& returnValue ) = 0;
+	virtual int32_t MP_STDCALL getSize32( int32_t& returnValue ) = 0;
 
 	virtual int32_t MP_STDCALL read( char* buffer, int32_t size ) = 0;
 };
@@ -537,6 +539,7 @@ public:
 	virtual int32_t MP_STDCALL resolveFilename( const wchar_t* shortFilename, int32_t maxChars, wchar_t* returnFullFilename ) = 0;
 
 	// SynthEdit-specific.  Determine file's location depending on host application's conventions. // e.g. "bell.wav" -> "C:/My Documents/bell.wav"
+	// DEPRECATED: see IEmbeddedFileSupport
 	virtual int32_t MP_STDCALL openProtectedFile( const wchar_t* shortFilename, IProtectedFile **file ) = 0;
 };
 
@@ -569,6 +572,26 @@ public:
 // {87CCD426-71D7-414E-A9A6-5ADCA81C7420}
 static const MpGuid MP_IID_PROCESSOR_HOST =
 { 0x87ccd426, 0x71d7, 0x414e, { 0xa9, 0xa6, 0x5a, 0xdc, 0xa8, 0x1c, 0x74, 0x20 } };
+
+
+// SynthEdit-specific.
+// extension to GMPI to provide support for loading files from the plugins resources (be they embedded or file-based).
+// Corrects error in IMpHost that there is a memory leak, due to having no way to free the file object, and no way to query file object for updated interfaces.
+class IEmbeddedFileSupport : public IMpUnknown
+{
+public:
+	// Determine file's location depending on host application's conventions. // e.g. "bell.wav" -> "C:/My Documents/bell.wav"
+	virtual int32_t MP_STDCALL resolveFilename(const char* fileName, gmpi::IString* returnFullUri) = 0;
+
+	// open a file, usually returns a IProtectedFile2 interface.
+	virtual int32_t MP_STDCALL openUri(const char* fullUri, gmpi::IMpUnknown** returnStream ) = 0;
+};
+
+// GUID for IEmbeddedFileSupport.
+// {B486F4DE-9010-4AA0-9D0C-DCD9F8879257}
+static const MpGuid MP_IID_HOST_EMBEDDED_FILE_SUPPORT =
+{ 0xb486f4de, 0x9010, 0x4aa0, { 0x9d, 0xc, 0xdc, 0xd9, 0xf8, 0x87, 0x92, 0x57 } };
+
 
 // GUI PLUGIN
 
@@ -706,6 +729,7 @@ public:
 	virtual int32_t MP_STDCALL getPinCount( int32_t& returnCount ) = 0;
 
 	// SynthEdit-specific.  Determine file's location depending on host application's conventions. // e.g. "bell.wav" -> "C:/My Documents/bell.wav"
+	// DEPRECATED: see IMpUserInterfaceHost2
 	virtual int32_t MP_STDCALL openProtectedFile( const wchar_t* shortFilename, IProtectedFile **file ) = 0;
 };
 
