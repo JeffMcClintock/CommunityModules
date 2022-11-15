@@ -12,7 +12,7 @@ ${sdk_folder}/mp_sdk_audio.cpp
 )
 set(srcs
 Adsr.rc
-Adsr.cpp
+Adsr4.cpp
 )
 include_directories(
 ${sdk_folder}
