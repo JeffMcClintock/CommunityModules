@@ -182,6 +182,9 @@ public:
 	template<int CURRENT_STATE>
 	void subProcess2(const int32_t count, const gmpi::MpEvent* events)
 	{
+		// 'ProcessEvents' can add parameter changes from MIDI
+		parameterEvents.clear();
+
 		ProcessEvents(count, events);
 
 		// add input to bypass latency buffers
@@ -244,7 +247,7 @@ public:
 
 			// parameter from Editor
 			{
-				parameterEvents.clear();
+//				parameterEvents.clear();
 
 				if (controller && controller->parameters_dirty)
 				{
