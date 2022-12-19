@@ -271,36 +271,36 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 			// Could not create Module for file
 			return;
 		}
+
+		const char* category = "VST3 Plugins";
+		const bool isWavesShell = path.find("WaveShell") != std::string::npos;
+		if(isWavesShell)
+		{
+			auto lastSlash = path.find_last_of('/');
+			if(lastSlash == std::string::npos)
+			{
+				lastSlash = path.find_last_of('\\');
+			}
+			if(lastSlash == std::string::npos)
+			{
+				lastSlash = 0;
+			}
+
+			category = path.c_str() + lastSlash + 1;
+		}
+
+		auto factory = module->getFactory ();
+		for (auto& classInfo : factory.classInfos ())
+		{
+			if (classInfo.category () == kVstAudioEffectClass)
+			{
+				AddPluginName(category, classInfo.ID().toString(), classInfo.name(), full_path); // a quick scan of name-only.
+			}
+		}
 	}
 	catch (...) // PACE protected plugins will throw if dongle not present.
 	{
 		return;
-	}
-
-	const char* category = "VST3 Plugins";
-	const bool isWavesShell = path.find("WaveShell") != std::string::npos;
-	if(isWavesShell)
-	{
-		auto lastSlash = path.find_last_of('/');
-		if(lastSlash == std::string::npos)
-		{
-			lastSlash = path.find_last_of('\\');
-		}
-		if(lastSlash == std::string::npos)
-		{
-			lastSlash = 0;
-		}
-
-		category = path.c_str() + lastSlash + 1;
-	}
-
-	auto factory = module->getFactory ();
-	for (auto& classInfo : factory.classInfos ())
-	{
-		if (classInfo.category () == kVstAudioEffectClass)
-		{
-			AddPluginName(category, classInfo.ID().toString(), classInfo.name(), full_path); // a quick scan of name-only.
-		}
 	}
 }
 #endif
