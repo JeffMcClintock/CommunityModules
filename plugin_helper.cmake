@@ -96,11 +96,11 @@ endif()
 
 if(CMAKE_HOST_WIN32)
 
-if (SE_COPY_TO_SEM_FOLDER)
+if (SE_LOCAL_BUILD)
     add_custom_command(TARGET ${PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
-    COMMAND xcopy /c /y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules"
+    COMMAND xcopy /c /y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules"
     COMMENT "Copy to system plugin folder"
     VERBATIM
 )
@@ -190,11 +190,11 @@ endif()
 
 if(CMAKE_HOST_WIN32)
 
-if (SE_COPY_TO_SEM_FOLDER)
+if (SE_LOCAL_BUILD)
     add_custom_command(TARGET ${BUILD_GMPI_PLUGIN_PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
-    COMMAND xcopy /c /y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules"
+    COMMAND xcopy /c /y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules"
     COMMENT "Copy to system plugin folder"
     VERBATIM
 )

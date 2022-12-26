@@ -34,13 +34,15 @@ public:
 		PinIterator it(this);
 
 		it.first();
+		int pinIndex = 1;
 		for (it.first(); !it.isDone(); ++it)
 		{
 			if ((*it)->getDatatype() == MP_BLOB)
 				continue;
 
 			pinSignal.push_back(std::make_unique<AudioInPin>());
-			initializePin((*it)->getUniqueId(), *(pinSignal.back()));
+//			initializePin((*it)->getUniqueId(), *(pinSignal.back()));
+			initializePin(pinIndex++, *(pinSignal.back()));
 		}
 
 		signalBuffer.reserve(recordingBufferSize_ * it.size() + 2);
