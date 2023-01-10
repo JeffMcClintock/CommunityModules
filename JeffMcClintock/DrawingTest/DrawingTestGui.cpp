@@ -1893,12 +1893,23 @@ void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 
 		auto sourcePixels = (uint32_t*) pixelsSource.getAddress();
 
+		uint32_t colors[] = {
+			0xffff0000,
+			0xff00ff00,
+			0xff0000ff,
+			0xffffff00,
+			0xffff00ff,
+			0xff00ffff,
+			0xff000000,
+		};
+		
 		for (int y = 0; y < 64; ++y)
 		{
 			for (int x = 0; x < 64; ++x)
 			{
 				const bool onGrid = (x % 8 == 0) || (y % 8 == 0);
-				*sourcePixels = onGrid ? 0xff0000ff : 0xffffff00;
+				const int cellIndex = (x / 8) + (y / 8) * 8;
+				*sourcePixels = onGrid ? 0xff0000ff : colors[cellIndex % std::size(colors)];
 				++sourcePixels;
 			}
 		}
