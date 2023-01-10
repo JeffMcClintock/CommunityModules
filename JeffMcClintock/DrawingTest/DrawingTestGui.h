@@ -70,11 +70,10 @@ public:
 	virtual int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override;
 
 	void drawTextVertAlign(GmpiDrawing::Graphics& g);
-
 	void DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g);
-
 	void drawShittyText(GmpiDrawing::Graphics& g);
-
+	void drawBitmapBrush(GmpiDrawing::Graphics& g);
+	
 	void drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBoundingbox);
 
 	void drawTextTest(GmpiDrawing::Graphics& g);

@@ -2328,11 +2328,18 @@ namespace GmpiDrawing
 		}
 */
 
-		inline BitmapBrush CreateBitmapBrush(Bitmap& bitmap) // N/A on macOS: BitmapBrushProperties& bitmapBrushProperties, BrushProperties& brushProperties)
+		inline BitmapBrush CreateBitmapBrush(Bitmap& bitmap)
 		{
 			const BitmapBrushProperties bitmapBrushProperties;
 			const BrushProperties brushProperties;
 
+			BitmapBrush temp;
+			Get()->CreateBitmapBrush(bitmap.Get(), &bitmapBrushProperties, &brushProperties, temp.GetAddressOf());
+			return temp;
+		}
+
+		inline BitmapBrush CreateBitmapBrush(Bitmap& bitmap, const BitmapBrushProperties& bitmapBrushProperties, const BrushProperties& brushProperties)
+		{
 			BitmapBrush temp;
 			Get()->CreateBitmapBrush(bitmap.Get(), &bitmapBrushProperties, &brushProperties, temp.GetAddressOf());
 			return temp;

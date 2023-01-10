@@ -99,7 +99,8 @@ void DrawingTestGui::refresh()
 		"Test Font,"
 		"Textformat2 (boxsize)=13,"
 		"ShittyText,"
-		"LEE ARTILLRY"
+		"LEE ARTILLRY,"
+		"Bitmap Brush"
 		;
 	invalidateRect();
 
@@ -1698,12 +1699,17 @@ int32_t DrawingTestGui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingConte
 		break;
 
 	case 15:
-	{
-		auto brush = g.CreateSolidColorBrush(Color::Aqua);
-		g.FillRectangle(getRect(), brush);
-		gameobject.drawFrame(g);
-	}
+		{
+			auto brush = g.CreateSolidColorBrush(Color::Aqua);
+			g.FillRectangle(getRect(), brush);
+			gameobject.drawFrame(g);
+		}
 		break;
+		
+	case 16:
+		drawBitmapBrush(g);
+		break;
+
 	}
 
 	return MP_OK;
@@ -1872,6 +1878,63 @@ void DrawingTestGui::DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g)
 	brush.SetColor(Color::Black);
 	g.DrawLine(x1 - crossSize, y1, x1 + crossSize, y1, brush); // criss
 	g.DrawLine(x1, y1 - crossSize, x1, y1 + crossSize, brush); // cross
+}
+
+void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
+{
+//	g.Clear(Color::FromRgb(0x22252D));
+
+	// create bitmap with every intensity vs every alpha.
+	auto bitmapMem = GetGraphicsFactory().CreateImage(64, 64);
+	{
+		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+		auto imageSize = bitmapMem.GetSize();
+		int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+
+		auto sourcePixels = (uint32_t*) pixelsSource.getAddress();
+
+		for (int y = 0; y < 64; ++y)
+		{
+			for (int x = 0; x < 64; ++x)
+			{
+				const bool onGrid = (x % 8 == 0) || (y % 8 == 0);
+				*sourcePixels = onGrid ? 0xff0000ff : 0xffffff00;
+				++sourcePixels;
+			}
+		}
+	}
+	
+	auto outlineBrush = g.CreateSolidColorBrush(Color::White);
+	auto bitmapBrush = g.CreateBitmapBrush(bitmapMem);
+
+	float x = 0;
+	float y = -3;
+	for (int i = 0; i < 16; ++i)
+	{
+		Rect r{ x, y, x + 16.f, y + 16.f };
+		Rect r2{ x - 0.5f, y - 0.5f, x + 16.5f, y + 16.5f };
+		g.DrawRectangle(r2, outlineBrush, 1.0f);
+		g.FillRectangle(r, bitmapBrush);
+		x += 22;
+		y += 3;
+	}
+
+	x = 0;
+	y = 20;
+	for (int i = 0; i < 16; ++i)
+	{
+		const BitmapBrushProperties bitmapBrushProperties;
+		BrushProperties brushProperties;
+		brushProperties.transform = Matrix3x2::Translation(x, y);
+		auto bitmapBrushAligned = g.CreateBitmapBrush(bitmapMem, bitmapBrushProperties, brushProperties);
+
+		Rect r{ x, y, x + 16.f, y + 16.f };
+		Rect r2{ x - 0.5f, y - 0.5f, x + 16.5f, y + 16.5f };
+		g.DrawRectangle(r2, outlineBrush, 1.0f);
+		g.FillRectangle(r, bitmapBrushAligned);
+		x += 22;
+		y += 3;
+	}
 }
 
 void DrawingTestGui::drawShittyText(GmpiDrawing::Graphics& g)
