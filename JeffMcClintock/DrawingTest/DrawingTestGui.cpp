@@ -1882,16 +1882,16 @@ void DrawingTestGui::DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g)
 
 void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 {
-//	g.Clear(Color::FromRgb(0x22252D));
+	//	g.Clear(Color::FromRgb(0x22252D));
 
-	// create bitmap with every intensity vs every alpha.
+		// create bitmap with every intensity vs every alpha.
 	auto bitmapMem = GetGraphicsFactory().CreateImage(64, 64);
 	{
 		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		auto imageSize = bitmapMem.GetSize();
 		int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
 
-		auto sourcePixels = (uint32_t*) pixelsSource.getAddress();
+		auto sourcePixels = (uint32_t*)pixelsSource.getAddress();
 
 		uint32_t colors[] = {
 			0xffff0000,
@@ -1902,7 +1902,7 @@ void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 			0xff00ffff,
 			0xff000000,
 		};
-		
+
 		for (int y = 0; y < 64; ++y)
 		{
 			for (int x = 0; x < 64; ++x)
@@ -1914,6 +1914,8 @@ void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 			}
 		}
 	}
+
+	g.DrawBitmap(bitmapMem, GmpiDrawing_API::MP1_POINT_L{ 6, 42 }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
 	
 	auto outlineBrush = g.CreateSolidColorBrush(Color::White);
 	auto bitmapBrush = g.CreateBitmapBrush(bitmapMem);
@@ -1926,7 +1928,7 @@ void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 		Rect r2{ x - 0.5f, y - 0.5f, x + 16.5f, y + 16.5f };
 		g.DrawRectangle(r2, outlineBrush, 1.0f);
 		g.FillRectangle(r, bitmapBrush);
-		x += 22;
+		x += 19;
 		y += 3;
 	}
 
@@ -1943,7 +1945,7 @@ void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 		Rect r2{ x - 0.5f, y - 0.5f, x + 16.5f, y + 16.5f };
 		g.DrawRectangle(r2, outlineBrush, 1.0f);
 		g.FillRectangle(r, bitmapBrushAligned);
-		x += 22;
+		x += 19;
 		y += 3;
 	}
 }
