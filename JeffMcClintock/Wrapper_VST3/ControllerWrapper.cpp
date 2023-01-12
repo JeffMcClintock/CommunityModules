@@ -406,6 +406,7 @@ tresult VstComponentHandler::endEdit (ParamID paramId)
 
 tresult VstComponentHandler::restartComponent (int32 flags)
 {
+	/*
 	if (flags & Steinberg::Vst::kLatencyChanged && controller_->getProcessor())
 	{
 		const auto latency = controller_->getProcessor()->getLatencySamples();
@@ -415,9 +416,11 @@ tresult VstComponentHandler::restartComponent (int32 flags)
 
 		return kResultOk;
 	}
+	*/
 
 	if ((kIoChanged | kLatencyChanged | kReloadComponent) & flags)
 	{
+		_RPT0(0, "restartComponent\n");
 		controller_->host_->setLatency(-1);
 	}
 
@@ -427,9 +430,9 @@ tresult VstComponentHandler::restartComponent (int32 flags)
 int32_t ControllerWrapper::registerProcessor(Steinberg::Vst::IComponent** component, Steinberg::Vst::IAudioProcessor** vstEffect)
 {
 	processor_component_ptr = component;
-	processor_vstEffect__ptr = vstEffect;
+//	processor_vstEffect__ptr = vstEffect;
 
-	if (processor_component_ptr && processor_vstEffect__ptr)
+	if (processor_component_ptr) // && processor_vstEffect__ptr)
     {
         *component = plugin->component.get();
         (*component)->queryInterface(IAudioProcessor::iid, (void**)vstEffect);

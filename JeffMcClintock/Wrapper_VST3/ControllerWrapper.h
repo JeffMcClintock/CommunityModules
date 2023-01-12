@@ -42,7 +42,7 @@ protected:
 	// we need a way of informing SE processor when plugin is unloaded.
 	// we do so by nulling it's pointers to the VST3s processor.
 	Steinberg::Vst::IComponent** processor_component_ptr = {};
-	Steinberg::Vst::IAudioProcessor** processor_vstEffect__ptr = {};
+//	Steinberg::Vst::IAudioProcessor** processor_vstEffect__ptr = {};
 
 public:
 	std::atomic<bool> parameters_dirty;
@@ -62,7 +62,7 @@ public:
 
 	ControllerWrapper(const wchar_t* filename, const std::string& uuid);
 	~ControllerWrapper();
-
+/*
 	Steinberg::Vst::IAudioProcessor* getProcessor() const
 	{
 		if (processor_vstEffect__ptr)
@@ -70,7 +70,7 @@ public:
 
 		return {};
 	}
-
+*/
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 	virtual int32_t MP_STDCALL setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size) override;
 	virtual int32_t MP_STDCALL preSaveState() override;
