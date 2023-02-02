@@ -279,6 +279,12 @@ int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 	auto factory = dll->getFactory();
 	plugin->setup(factory, *classID);
 
+	if (!plugin->controller)
+	{
+		// failed to load waves plugin
+		return gmpi::MP_FAIL;
+	}
+
 	const auto parameterCount = plugin->controller->getParameterCount();
 	parametersToProcessor.reserve(parameterCount);
 	for (int i = 0; i < parameterCount; ++i)
