@@ -10,7 +10,7 @@ add_subdirectory(SignalLogger)
 add_subdirectory(PeakFollower)
 add_subdirectory(Dynamics)
 add_subdirectory(Loudness)
-add_subdirectory(WaveformScroller)
+# add_subdirectory(WaveformScroller)
 
 if(WIN32)
 	add_subdirectory(Wrapper_VST2)
