@@ -79,8 +79,12 @@ public:
 				readIndex -= sourceBuffers[currentPlayBuffer][0].size() - overlap;
 			}
 
-			*leftOut = sourceBuffers[currentPlayBuffer][0][readIndex];
-			*rightOut = sourceBuffers[currentPlayBuffer][1][readIndex];
+			const float* src_l = sourceBuffers[currentPlayBuffer][0].data() + readIndex;
+			const float* src_r = sourceBuffers[currentPlayBuffer][1].data() + readIndex;
+
+			// linear interpolation
+			*leftOut = src_l[0] + frac * (src_l[1] - src_l[0]);
+			*rightOut = src_r[0] + frac * (src_r[1] - src_r[0]);
 
 			// Increment buffer pointers.
 			++leftOut;
