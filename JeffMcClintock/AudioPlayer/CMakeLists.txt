@@ -7,8 +7,8 @@ include(ExternalProject)
 
 project(AudioPlayer)
 
-# Add chock library, for MP3 playback
-# Since it's a header-only libray, we don't run cmake on it. hence the empty CONFIGURE_COMMAND and BUILD_COMMAND
+# Add choc library, for MP3 playback
+# Since it's a header-only library, we don't run cmake on it. hence the empty CONFIGURE_COMMAND and BUILD_COMMAND
 ExternalProject_Add(
   choc
   GIT_REPOSITORY https://github.com/Tracktion/choc
@@ -19,13 +19,11 @@ ExternalProject_Add(
   INSTALL_COMMAND ""
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/choc/src/choc)
-# add_dependencies(${PROJECT_NAME} choc)
-
-
 build_gmpi_plugin(
     PROJECT_NAME ${PROJECT_NAME}
     HAS_DSP
     SOURCE_FILES 
         ${PROJECT_NAME}.cpp
 )
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/choc/src/choc)
