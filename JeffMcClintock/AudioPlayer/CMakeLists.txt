@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
+# fix warning on macOS about importing choc library
+cmake_policy(SET CMP0114 NEW)
+
 include(ExternalProject)
 
 project(AudioPlayer)
