@@ -22,7 +22,7 @@
                     <plug name="Right Out" idx="1"/>
                     <plug/>
                 </plugs>
-                <structRect l="228" r="300" t="120" b="156"/>
+                <structRect l="312" r="384" t="120" b="156"/>
             </module>
             <module type="SE Audio Player" handle="144385526">
                 <plugs>

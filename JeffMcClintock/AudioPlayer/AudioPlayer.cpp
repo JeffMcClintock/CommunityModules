@@ -25,6 +25,7 @@
 */
 #include "mp_sdk_audio.h"
 #include "../shared/xp_simd.h"
+#include "../shared/interpolation.h"
 
 #include "audio/choc_AudioFileFormat.h"
 #include "audio/choc_AudioFileFormat_MP3.h"
@@ -49,10 +50,11 @@ class AudioPlayer final : public MpBase2
 	// buffered lookahead. Stereo. One reading, one writting
 	std::vector<float> sourceBuffers[2][2];
 	int currentPlayBuffer = 0;
-	static constexpr int overlap = 16;
+	static constexpr int overlap = 6;
 
 	double readPosition = 0.0;
 	double readIncrement = 1.0;
+	std::vector<float> coefs;
 
 public:
 	AudioPlayer()
@@ -73,19 +75,22 @@ public:
 			int readIndex = FastRealToIntTruncateTowardZero(readPosition);
 			const double frac = readPosition - readIndex;
 
-			if (readPosition >= sourceBuffers[currentPlayBuffer][0].size())
+			if (readPosition >= sourceBuffers[currentPlayBuffer][0].size() - overlap)
 			{
 				SwitchBuffers();
-				readIndex -= sourceBuffers[currentPlayBuffer][0].size() - overlap;
+				readIndex -= sourceBuffers[currentPlayBuffer][0].size() - overlap * 2;
 			}
 
 			const float* src_l = sourceBuffers[currentPlayBuffer][0].data() + readIndex;
 			const float* src_r = sourceBuffers[currentPlayBuffer][1].data() + readIndex;
 
-			// linear interpolation
-			*leftOut = src_l[0] + frac * (src_l[1] - src_l[0]);
-			*rightOut = src_r[0] + frac * (src_r[1] - src_r[0]);
-
+#if 0
+			*leftOut = interpolate_linear(src_l, frac);
+			*rightOut = interpolate_linear(src_r, frac);
+#else
+			*leftOut = interpolate_sinc(src_l, frac, coefs);
+			*rightOut = interpolate_sinc(src_r, frac, coefs);
+#endif
 			// Increment buffer pointers.
 			++leftOut;
 			++rightOut;
@@ -99,20 +104,22 @@ public:
 		auto currentWriteBuffer = currentPlayBuffer;
 		currentPlayBuffer = (currentPlayBuffer + 1) & 1; // alternates 0,1,0,1 ...
 
-		// copy last few samples from previous buffer to start of new buffer.
-		for (auto& buf : sourceBuffers[currentWriteBuffer])
+		// copy unused tail of previous buffer to start of next buffer
+		for (int chan = 0; chan < 2; ++chan)
 		{
-			std::copy(buf.end() - overlap, buf.end(), buf.begin());
+			auto& src = sourceBuffers[currentPlayBuffer][chan];
+			auto& dst = sourceBuffers[currentWriteBuffer][chan];
+			std::copy(src.end() - overlap * 2, src.end(), dst.begin());
 		}
 
 		float* chans[2] =
 		{
-			sourceBuffers[currentWriteBuffer][0].data() + overlap,
-			sourceBuffers[currentWriteBuffer][1].data() + overlap
+			sourceBuffers[currentWriteBuffer][0].data() + overlap * 2,
+			sourceBuffers[currentWriteBuffer][1].data() + overlap * 2
 		};
 
 		// read fresh samples into buffers
-		auto sampleFrames = sourceBuffers[0][0].size() - overlap;
+		auto sampleFrames = sourceBuffers[0][0].size() - overlap * 2;
 		auto lbufferview = choc::buffer::createChannelArrayView<float>(chans, 2, sampleFrames);
 		audioFileReader->readFrames(frameIndex, lbufferview);
 
@@ -122,6 +129,8 @@ public:
 
 	int32_t open() override
 	{
+		coefs = calcSincInterpolatorCoefs();
+
 		return MpBase2::open();
 	}
 
