@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document file_format="150000" vst_latencyCompensation="1" vst_preset_count="64">
+    <master_container type="Container" handle="17071860" name="Main" ViewOpenFlags="256" skin="default2">
+        <plugs>
+            <plug idx="7"/>
+        </plugs>
+        <structRect l="0" r="0" t="0" b="0"/>
+        <PatchManager>
+            <ProgramNames/>
+            <Parameters>
+                <param type="10" handle="1589517259" private="true" hostControl="49">
+                    <patch-list>
+                        <s repeat="128"></s>
+                    </patch-list>
+                </param>
+            </Parameters>
+        </PatchManager>
+        <modules>
+            <module type="Sound Out" handle="162705467">
+                <plugs>
+                    <plug name="Left Out"/>
+                    <plug name="Right Out" idx="1"/>
+                    <plug/>
+                </plugs>
+                <structRect l="228" r="300" t="120" b="156"/>
+            </module>
+            <module type="SE Audio Player" handle="144385526">
+                <plugs>
+                    <plug default="C:\Users\jef\Downloads\Led_Zeppelin_Immigrant_Song.mp3"/>
+                    <plug default="10" idx="1"/>
+                </plugs>
+                <structRect l="120" r="192" t="96" b="144"/>
+                <panelRect l="260" r="260" t="154" b="154"/>
+            </module>
+        </modules>
+        <lines>
+            <line type="Line" handle="397640424" lineType="1" fMod="144385526" tMod="162705467" fPlg="2"/>
+            <line type="Line" handle="292070018" lineType="1" fMod="144385526" tMod="162705467" fPlg="3" tPlg="1"/>
+        </lines>
+        <PanelWndPosition l="0" r="0" t="0" b="0"/>
+        <PanelLocation l="30" r="530" t="30" b="330"/>
+        <StructLocation l="0" r="500" t="0" b="400"/>
+        <PanelScroll x="0" y="0"/>
+        <StructScroll x="0" y="0"/>
+        <PanelWndOffset cx="-99999" cy="-99999"/>
+        <panel_rect l="16" r="312" t="16" b="216"/>
+    </master_container>
+    <PluginList>
+        <Plugin id="Container" class="1" name="Container" flags="384" category="">
+            <Audio>
+                <Pin name="Spare" datatype="float" rate="audio" autoRename="true" autoDuplicate="true" isContainerIoPlug="true"/>
+                <Pin name="Polyphony" datatype="enum" default="6" private="true" isMinimised="true" metadata="range 1,128"/>
+                <Pin name="MIDI Automation" datatype="bool" private="true" isMinimised="true"/>
+                <Pin name="Show Controls" datatype="enum" private="true" isMinimised="true" metadata="Off,On Panel,On Module"/>
+            </Audio>
+            <GUI>
+                <Pin name="Controls on Parent" datatype="bool" direction="out" isMinimised="true"/>
+                <Pin name="Controls on Module" datatype="bool" noAutomation="true"/>
+                <Pin name="Visible" datatype="bool"/>
+                <Pin name="Ignore Program Change" datatype="bool" noAutomation="true"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE Audio Player" name="Audio Player" flags="256" category="Input-Output">
+            <Audio>
+                <Pin name="File Name" datatype="string" default="Wavefile" isFilename="true" metadata="wav"/>
+                <Pin name="Gate" datatype="bool" default="1"/>
+                <Pin name="Left Out" datatype="float" rate="audio" direction="out"/>
+                <Pin name="Right Out" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE BoolToFloat" name="Bool To Float" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Bool Val" datatype="bool"/>
+                <Pin name="Float Val" datatype="float" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE BoolToInt" name="Bool To Int" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Bool Val" datatype="bool"/>
+                <Pin name="Int Val" datatype="int" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE BoolToText" name="Bool To Text" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Bool Val" datatype="bool"/>
+                <Pin name="Text Val" datatype="string" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE BoolToVolts" name="Bool to Volts" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="In" datatype="bool"/>
+                <Pin name="Out" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Float64ToFloat" name="Double To Float" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Double Val" datatype="double"/>
+                <Pin name="Float Val" datatype="float" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Float64ToFloatGui" name="Double To Float" flags="33554816" category="Sub-Controls/Conversion" helpUrl="converters.htm">
+            <GUI>
+                <Pin name="Double Val" datatype="double"/>
+                <Pin name="Float Val" datatype="float" direction="out"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE FloatToBool" name="Float To Bool" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Float Val" datatype="float"/>
+                <Pin name="Bool Val" datatype="bool" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE FloatToFloat64" name="Float To Double" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Float Val" datatype="float"/>
+                <Pin name="Double Val" datatype="double" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE FloatToFloat64Gui" name="Float To Double" flags="33554816" category="Sub-Controls/Conversion" helpUrl="converters.htm">
+            <GUI>
+                <Pin name="Float Val" datatype="float"/>
+                <Pin name="Double Val" datatype="double" direction="out"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE FloatToInt" name="Float To Int" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Float Val" datatype="float"/>
+                <Pin name="Int Val" datatype="int" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE FloatToText" name="Float To Text" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Float Val" datatype="float"/>
+                <Pin name="Text Val" datatype="string" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Int64ToInt" name="Int64 To Int" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Int64 Val" datatype="int64"/>
+                <Pin name="Int Val" datatype="int" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Int64ToIntGui" name="Int64 To Int" flags="33554816" category="Sub-Controls/Conversion" helpUrl="converters.htm">
+            <GUI>
+                <Pin name="Int64 Val" datatype="int64"/>
+                <Pin name="Int Val" datatype="int" direction="out"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE IntToBool" name="Int to Bool" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Int Val" datatype="int"/>
+                <Pin name="Bool Val" datatype="bool" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE IntToFloat" name="Int To Float" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Int Val" datatype="int"/>
+                <Pin name="Float Val" datatype="float" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE IntToInt64" name="Int To Int64" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Int Val" datatype="int"/>
+                <Pin name="Int64 Val" datatype="int64" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE IntToInt64Gui" name="Int To Int64" flags="33554816" category="Sub-Controls/Conversion" helpUrl="converters.htm">
+            <GUI>
+                <Pin name="Int Val" datatype="int"/>
+                <Pin name="Int64 Val" datatype="int64" direction="out"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE IntToText" name="Int To Text" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Int Val" datatype="int"/>
+                <Pin name="Text Val" datatype="string" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE IntToVolts" name="Int to Volts" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="In" datatype="int"/>
+                <Pin name="Out" datatype="float" rate="audio" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE ListToInt" name="List To Int" flags="33554688" category="Obsolete" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="List Val" datatype="enum"/>
+                <Pin name="Int Val" datatype="int" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Text8ToText" name="Text8 To Text" flags="33554688" category="Debug" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Text Val" datatype="string_utf8"/>
+                <Pin name="Text Val" datatype="string" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE TextToBool" name="Text To Bool" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Text Val" datatype="string"/>
+                <Pin name="Bool Val" datatype="bool" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE TextToFloat" name="Text To Float" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Text Val" datatype="string"/>
+                <Pin name="Float Val" datatype="float" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE TextToInt" name="Text To Int" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Text Val" datatype="string"/>
+                <Pin name="Int Val" datatype="int" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE TextToText8" name="Text To Text8" flags="33554688" category="Debug" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="Text Val" datatype="string"/>
+                <Pin name="Text Val" datatype="string_utf8" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Voice Mute" class="2" name="Voice Mute" flags="33554688" category="Debug" simdOverwritesBufferEnd="true">
+            <Audio>
+                <Pin name="Input1" datatype="float" rate="audio"/>
+                <Pin name="VoiceActive" datatype="float" private="true" isPolyphonic="true" hostConnect="Voice/Active"/>
+                <Pin name="Output" datatype="float" rate="audio" direction="out"/>
+                <Pin name="legacyMode" datatype="bool"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE VoltsToBool" name="Volts to Bool" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="In" datatype="float" rate="audio"/>
+                <Pin name="Out" datatype="bool" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE VoltsToInt" name="Volts to Int" flags="33554688" category="Conversion" helpUrl="converters.htm">
+            <Audio>
+                <Pin name="In" datatype="float" rate="audio"/>
+                <Pin name="Out" datatype="int" direction="out"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="Sound Out" class="1" name="Sound Out" flags="4352" category="Input-Output">
+            <Audio>
+                <Pin name="Out" datatype="float" rate="audio" autoRename="true" linearInput="true" autoDuplicate="true"/>
+            </Audio>
+        </Plugin>
+    </PluginList>
+</Document>
