@@ -212,7 +212,7 @@ public:
 		auto rightOut = getBuffer(pinRightOut);
 
 		std::fill(leftOut, leftOut + sampleFrames, 0.0f);
-		std::fill(rightOut, leftOut + sampleFrames, 0.0f);
+		std::fill(rightOut, rightOut + sampleFrames, 0.0f);
 	}
 };
 
