@@ -24,7 +24,6 @@ FetchContent_Declare(
   SOURCE_SUBDIR  Core
 )
 
-# no. don't want to build the gmpi samples, only have the SDK files available.
 FetchContent_MakeAvailable(gmpi)
 
 project(CommunityModules)
@@ -56,7 +55,7 @@ if (MSVC)
 endif()
 
 include(plugin_helper.cmake)
-include(gmpi_plugin.cmake)
+include(${CMAKE_BINARY_DIR}/_deps/gmpi-src/gmpi_plugin.cmake)
 
 add_subdirectory(Bruno_Bordi)
 add_subdirectory(JeffMcClintock)
