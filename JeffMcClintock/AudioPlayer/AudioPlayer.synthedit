@@ -30,7 +30,7 @@
             </module>
             <module type="SE Audio Player" handle="144385526">
                 <plugs>
-                    <plug default="C:\Users\jef\Downloads\guitar-single-note-d_120bpm_C_minor.wav"/>
+                    <plug default="Ableton\Krisis\Anymore-10-3 Project\Samples\Imported\Goldfrapp - Anymore.mp3"/>
                     <plug default="10" idx="1"/>
                 </plugs>
                 <structRect l="120" r="192" t="96" b="144"/>
@@ -80,7 +80,7 @@
         </Plugin>
         <Plugin id="SE Audio Player" name="Audio Player" flags="256" category="Input-Output">
             <Audio>
-                <Pin name="File Name" datatype="string" isFilename="true" metadata="wav"/>
+                <Pin name="File Name" datatype="string_utf8" isFilename="true" metadata="wav"/>
                 <Pin name="Gate" datatype="bool" default="1"/>
                 <Pin name="Left Out" datatype="float" rate="audio" direction="out"/>
                 <Pin name="Right Out" datatype="float" rate="audio" direction="out"/>

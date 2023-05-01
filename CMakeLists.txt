@@ -13,6 +13,17 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 endif()
 
+include(FetchContent)
+
+FetchContent_Declare(
+  gmpi
+  GIT_REPOSITORY https://github.com/JeffMcClintock/GMPI
+  GIT_TAG origin/main
+)
+
+# no. don't want to build the gmpi samples, only have the SDK files avaialble.
+#FetchContent_MakeAvailable(gmpi)
+
 project(CommunityModules)
 
 enable_testing()
@@ -21,6 +32,10 @@ set(se_sdk_folder
     ../../se_sdk3
     )
 
+set(gmpi_sdk_folder
+    ${CMAKE_BINARY_DIR}/_deps/gmpi-src/Core
+    )
+	
 include_directories(
     se_sdk3
     shared
@@ -38,6 +53,7 @@ if (MSVC)
 endif()
 
 include(plugin_helper.cmake)
+include(gmpi_plugin.cmake)
 
 add_subdirectory(Bruno_Bordi)
 add_subdirectory(JeffMcClintock)

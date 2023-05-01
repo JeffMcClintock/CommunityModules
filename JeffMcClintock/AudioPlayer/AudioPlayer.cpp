@@ -1,29 +1,21 @@
-/* Copyright (c) 2007-2022 SynthEdit Ltd
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*     * Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*     * Neither the name SEM, nor SynthEdit, nor 'Music Plugin Interface' nor the
-*       names of its contributors may be used to endorse or promote products
-*       derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY SynthEdit Ltd ``AS IS'' AND ANY
-* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL SynthEdit Ltd BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/* Copyright (c) 2007-2023 SynthEdit Ltd
+
+Permission to use, copy, modify, and /or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS.IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
-#include "mp_sdk_audio.h"
+
+#include "AudioPlugin.h"
+#include "../Extensions/EmbeddedFile.h"
+#include "../Extensions/EmbeddedFileHelper.h"
 #include "../shared/xp_simd.h"
 #include "../shared/interpolation.h"
 
@@ -35,7 +27,7 @@
 
 using namespace gmpi;
 
-class AudioPlayer final : public MpBase2
+class AudioPlayer final : public AudioPlugin
 {
 	BoolInPin pinGate;
 	AudioOutPin pinLeftOut;
@@ -84,14 +76,9 @@ public:
 			const float* src_l = sourceBuffers[currentPlayBuffer][0].data() + readIndex;
 			const float* src_r = sourceBuffers[currentPlayBuffer][1].data() + readIndex;
 
-#if 0
-			*leftOut = interpolate_linear(src_l, frac);
-			*rightOut = interpolate_linear(src_r, frac);
-#else
 			*leftOut = interpolate_sinc(src_l, frac, coefs);
 			*rightOut = interpolate_sinc(src_r, frac, coefs);
-#endif
-			// Increment buffer pointers.
+
 			++leftOut;
 			++rightOut;
 
@@ -127,18 +114,23 @@ public:
 		readPosition -= sampleFrames;
 	}
 
-	int32_t open() override
+	ReturnCode open(IUnknown* phost) override
 	{
 		coefs = calcSincInterpolatorCoefs();
-
-		return MpBase2::open();
+		return AudioPlugin::open(phost);
 	}
 
 	void onSetPins() override
 	{
 		if (pinFileName.isUpdated())
 		{
-			const auto fullFilename = host.resolveFilename(pinFileName);
+			audioFileReader = {};
+			audioFile = {};
+
+			synthedit::EmbeddedFileHostWrapper fileHost;
+			fileHost.Init(host.get());
+
+			const auto fullFilename = fileHost.resolveFilename(pinFileName);
 
 			// determine file type
 			std::string fileextension("wav");
@@ -167,43 +159,40 @@ public:
 				audioFile = std::make_unique<choc::audio::OggAudioFileFormat<doesNotSupportWritting>>();
 			}
 
-			audioFileReader = audioFile->createReader(fullFilename);
-
-			if (!audioFileReader)
+			if (audioFile)
 			{
-				pinLeftOut.setStreaming(false);
-				pinRightOut.setStreaming(false);
+				audioFileReader = audioFile->createReader(fullFilename);
 
-				// Set processing method.
-				setSubProcess(&AudioPlayer::subProcessSilence);
-				return;
-			}
-
-			frameIndex = 0;
-			auto& props = audioFileReader->getProperties();
-
-			const int lookaheadMs = 100;
-			const int lookaheadSamples = lookaheadMs * props.sampleRate / 1000;
-
-			for (auto& a : sourceBuffers)
-			{
-				for (auto& b : a)
+				if (audioFileReader)
 				{
-					b.assign(lookaheadSamples, 0.0f);
+					frameIndex = 0;
+					auto& props = audioFileReader->getProperties();
+
+					const int lookaheadMs = 100;
+					const int lookaheadSamples = lookaheadMs * props.sampleRate / 1000;
+
+					for (auto& a : sourceBuffers)
+					{
+						for (auto& b : a)
+						{
+							b.assign(lookaheadSamples, 0.0f);
+						}
+					}
+
+					readPosition = sourceBuffers[currentPlayBuffer][0].size(); // trigger a buffer refill.
+					readIncrement = (double)props.sampleRate / (double)host.getSampleRate();
+					SwitchBuffers();
 				}
 			}
-
-			readPosition = sourceBuffers[currentPlayBuffer][0].size(); // trigger a buffer refill.
-			readIncrement = (double)props.sampleRate / (double)getSampleRate();
-			SwitchBuffers();
 		}
 
 		// Set state of output audio pins.
-		pinLeftOut.setStreaming(true);
-		pinRightOut.setStreaming(true);
+		const auto isPlaying = (bool) audioFileReader;
+		pinLeftOut.setStreaming(isPlaying);
+		pinRightOut.setStreaming(isPlaying);
 
 		// Set processing method.
-		setSubProcess(&AudioPlayer::subProcess);
+		setSubProcess(isPlaying ? &AudioPlayer::subProcess : &AudioPlayer::subProcessSilence);
 	}
 
 	void subProcessSilence(int sampleFrames)
@@ -218,5 +207,18 @@ public:
 
 namespace
 {
-	auto r = Register<AudioPlayer>::withId(L"SE Audio Player");
+	auto r = Register<AudioPlayer>::withXml(
+R"XML(
+<?xml version="1.0" encoding="UTF-8"?>
+<PluginList>
+    <Plugin id="SE Audio Player" name="Audio Player" category="Input-Output">
+        <Audio>
+            <Pin name="File Name" datatype="string" isFilename="true" metadata="wav"/>
+            <Pin name="Gate" datatype="bool" default="1"/>
+            <Pin name="Left Out" datatype="float" rate="audio" direction="out"/>
+            <Pin name="Right Out" datatype="float" rate="audio" direction="out"/>
+        </Audio>
+    </Plugin>
+</PluginList>
+)XML");
 }
