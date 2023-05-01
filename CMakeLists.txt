@@ -15,14 +15,17 @@ endif()
 
 include(FetchContent)
 
+#note: SOURCE_SUBDIR is a subfolder with NO cmake file (so we don't needlessly include the GMPI examples)
+
 FetchContent_Declare(
   gmpi
   GIT_REPOSITORY https://github.com/JeffMcClintock/GMPI
   GIT_TAG origin/main
+  SOURCE_SUBDIR  Core
 )
 
-# no. don't want to build the gmpi samples, only have the SDK files avaialble.
-#FetchContent_MakeAvailable(gmpi)
+# no. don't want to build the gmpi samples, only have the SDK files available.
+FetchContent_MakeAvailable(gmpi)
 
 project(CommunityModules)
 
