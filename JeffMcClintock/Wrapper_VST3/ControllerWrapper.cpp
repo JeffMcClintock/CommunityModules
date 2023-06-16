@@ -305,15 +305,15 @@ void ControllerWrapper::OpenGui()
 		return;
 	}
 
-	auto view = owned (plugin->controller->createView(Steinberg::Vst::ViewType::kEditor));
+	auto view = owned(plugin->controller->createView(Steinberg::Vst::ViewType::kEditor));
 	if (!view)
 	{
 		// EditController does not provide its own editor
 		return;
 	}
 
-	ViewRect plugViewSize {};
-	auto result = view->getSize (&plugViewSize);
+	ViewRect plugViewSize{};
+	auto result = view->getSize(&plugViewSize);
 	if (result != kResultTrue)
 	{
 		// Could not get editor view size
@@ -330,11 +330,11 @@ void ControllerWrapper::OpenGui()
 		plugViewSize.bottom = (plugViewSize.bottom * ly) / 96;
 	}
 
-	const auto viewRect = ViewRectToRect (plugViewSize);
+	const auto viewRect = ViewRectToRect(plugViewSize);
 
-	windowController = std::make_shared<WindowController> (view);
-	auto window = IPlatform::instance ().createWindow (
-	    "Editor", viewRect.size, view->canResize () == kResultTrue, windowController);
+	windowController = std::make_shared<WindowController>(view);
+	auto window = IPlatform::instance().createWindow(
+		"Editor", viewRect.size, view->canResize() == kResultTrue, windowController);
 
 	if (!window)
 	{
@@ -342,7 +342,8 @@ void ControllerWrapper::OpenGui()
 		return;
 	}
 
-	window->show ();
+	window->show();
+// no help	window->resize({ plugViewSize.getWidth(), plugViewSize.getHeight() });
 }
 
 bool ControllerWrapper::OnTimer()

@@ -214,7 +214,7 @@ void ProcessorWrapper::initVst()
 	component_->setActive(true);
 
 	// init buffers to cope with latency
-	latency = vstEffect_ ? vstEffect_->getLatencySamples() : 0;
+	latency = vstEffect_->getLatencySamples();
 	const auto bs = getBlockSize();
 	bypassDelaysize = ((bs + latency + bs - 1) / bs) * bs; // rounded up to nearest full block
 	bypassDelays.resize(AudioIns.size());
