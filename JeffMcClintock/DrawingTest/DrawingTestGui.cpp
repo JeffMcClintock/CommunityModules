@@ -327,19 +327,15 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 		const auto imageSize = bitmapMem.GetSize();
 		uint8_t* sourcePixels = pixelsSource.getAddress();
 
-		// macOS typically uses BGRA, Windows uses RGBA.
-#ifdef _WIN32
-		const auto isBGRA = GmpiDrawing_API::IMpBitmapPixels::kBGRA == pixelsSource.getPixelFormat();
-#else
-		// temp, until SDK is updated.
-		const auto isBGRA = true;
-#endif
+		// macOS typically uses RGBA, Windows uses BGRA (kBGRA_SRGB or kBGRA).
+		const auto isRGBA = GmpiDrawing_API::IMpBitmapPixels::kRGBA == pixelsSource.getPixelFormat();
+
 		// arange color components to suit the pixel format.
 		const float foregroundColor[3] =
 		{
-			isBGRA ? forground.r : forground.b,
+			isRGBA ? forground.r : forground.b,
 			forground.g,
-			isBGRA ? forground.b : forground.r
+			isRGBA ? forground.b : forground.r
 		};
 
 		for (float x = 0 ; x <= 100 ; x += resolution)
