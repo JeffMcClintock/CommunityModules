@@ -317,7 +317,6 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 	{
 		forground = Color::FromHexString(pinText.getValue());
 	}
-	const float foregroundColor[3] = { forground.b, forground.g, forground.r }; // BGR
 
 	// create bitmap with every intensity vs every alpha.
 	auto bitmapMem = GetGraphicsFactory().CreateImage(100 + resolution, 100 + resolution);
@@ -327,6 +326,21 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		const auto imageSize = bitmapMem.GetSize();
 		uint8_t* sourcePixels = pixelsSource.getAddress();
+
+		// macOS typically uses BGRA, Windows uses RGBA.
+#ifdef _WIN32
+		const auto isBGRA = GmpiDrawing_API::IMpBitmapPixels::kBGRA == pixelsSource.getPixelFormat();
+#else
+		// temp, until SDK is updated.
+		const auto isBGRA = true;
+#endif
+		// arange color components to suit the pixel format.
+		const float foregroundColor[3] =
+		{
+			isBGRA ? forground.r : forground.b,
+			forground.g,
+			isBGRA ? forground.b : forground.r
+		};
 
 		for (float x = 0 ; x <= 100 ; x += resolution)
 		{
