@@ -375,6 +375,19 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 				}
 			}
 		}
+
+		// draw a small square at top left to check orientation on mac
+		for (int x = 0; x < 4; ++x)
+		{
+			for (int y = 0; y < 4; ++y)
+			{
+				uint8_t* pixel = sourcePixels + ((int)sizeof(uint32_t) * (x + y * (int)(imageSize.width)));
+				pixel[0] = se_sdk::FastGamma::float_to_sRGB(isRGBA ? forground.r : forground.b);
+				pixel[1] = se_sdk::FastGamma::float_to_sRGB(forground.g);
+				pixel[2] = se_sdk::FastGamma::float_to_sRGB(isRGBA ? forground.b : forground.r);
+				pixel[3] = 255;
+			}
+		}
 	}
 
 	g.DrawBitmap(bitmapMem, Point(0.f, 0.f), Rect(0.f, 0.f, bitmapMem.GetSizeF().width, bitmapMem.GetSizeF().height));
