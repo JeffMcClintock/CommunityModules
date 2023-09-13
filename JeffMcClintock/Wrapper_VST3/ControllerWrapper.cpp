@@ -13,7 +13,7 @@ using namespace gmpi;
 using namespace Steinberg;
 using namespace Steinberg::Vst;
 
-class VstComponentHandler : public Steinberg::FObject, public Steinberg::Vst::IComponentHandler
+class VstComponentHandler : public Steinberg::FObject, public IComponentHandler, public IComponentHandler2
 {
 public:
 	class ControllerWrapper* controller_;
@@ -24,10 +24,17 @@ public:
 	Steinberg::tresult PLUGIN_API endEdit(Steinberg::Vst::ParamID id) override;
 	Steinberg::tresult PLUGIN_API restartComponent(Steinberg::int32 flags) override;
 
+	// IComponentHandler2
+	Steinberg::tresult PLUGIN_API setDirty(Steinberg::TBool state) override;
+	Steinberg::tresult PLUGIN_API requestOpenEditor(Steinberg::FIDString name) override { return kNotImplemented; }
+	Steinberg::tresult PLUGIN_API startGroupEdit() override { return kNotImplemented; }
+	Steinberg::tresult PLUGIN_API finishGroupEdit() override { return kNotImplemented; }
+
 	//---Interface---------
 	OBJ_METHODS(VstComponentHandler, Steinberg::FObject)
 		DEFINE_INTERFACES
 		DEF_INTERFACE(Steinberg::Vst::IComponentHandler)
+		DEF_INTERFACE(Steinberg::Vst::IComponentHandler2)
 		END_DEFINE_INTERFACES(Steinberg::FObject)
 		REFCOUNT_METHODS(Steinberg::FObject)
 };
@@ -377,37 +384,12 @@ tresult VstComponentHandler::beginEdit(ParamID paramId)
 tresult VstComponentHandler::performEdit (ParamID paramId, ParamValue valueNormalized)
 {
 	controller_->setParameterFromEditor(paramId, valueNormalized);
-
 	controller_->stateDirty = true;
-/*
-	// Sync VST param -> SE Param
-	const float valueNormalizedF = static_cast<float>(valueNormalized);
-	const int voiceId = 0;
-	controller_->host_->setParameter(
-		controller_->host_->getParameterHandle(controller_->handle_, paramId),
-		MP_FT_NORMALIZED,
-		voiceId,
-		(const void*)&valueNormalizedF,
-		(int32_t) sizeof(valueNormalizedF)
-	);
-*/
 	return kResultOk;
 }
 
 tresult VstComponentHandler::endEdit (ParamID paramId)
 {
-	/*
-	const bool value = true;
-	const int voiceId = 0;
-
-	controller_->host_->setParameter(
-		controller_->host_->getParameterHandle(controller_->handle_, paramId),
-		MP_FT_GRAB,
-		voiceId,
-		(const void*)&value,
-		(int32_t) sizeof(value)
-	);
-	*/
 	return kResultOk;
 }
 
@@ -431,6 +413,17 @@ tresult VstComponentHandler::restartComponent (int32 flags)
 		controller_->host_->setLatency(-1);
 	}
 
+	if (kParamValuesChanged & flags)
+	{
+		controller_->stateDirty = true;
+	}
+
+	return kResultOk;
+}
+
+tresult VstComponentHandler::setDirty(Steinberg::TBool state)
+{
+	controller_->stateDirty = true;
 	return kResultOk;
 }
 

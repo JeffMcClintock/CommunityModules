@@ -30,9 +30,17 @@ class SamplePlayerSfz : public MpBase2
     std::condition_variable backgroundSignal;
     bool closeBackgroundThread = false;
 
+    gmpi::midi_2_0::MidiConverter2 midiConverter;
+
 public:
 	SamplePlayerSfz()
-	{
+        , midiConverter(
+            // provide a lambda to accept converted MIDI 2.0 messages
+            [this](const midi::message_view& msg, int offset)
+    {
+        onMidi2Message(msg, offset);
+    }
+    {
 		initializePin( pinMIDIIn );
 //		initializePin( pinChannel );
 		initializePin( pinFilename );
@@ -156,19 +164,11 @@ public:
                 {
                     if (e->extraData == 0) // short msg
                     {
-                        forwardMidiMessage(
-                            e->timeDelta,
-                            (const unsigned char*)&(e->parm3),
-                            e->parm2
-                        ); // midi bytes (short msg)
+                        midiConverter.processMidi({ (const unsigned char*)&(e->parm3), e->parm2 }, e->timeDelta);
                     }
                     else
                     {
-                        forwardMidiMessage(
-                            e->timeDelta,
-                            (const unsigned char*)e->extraData,
-                            e->parm2
-                        ); // midi bytes (sysex)
+                        midiConverter.processMidi({ (const unsigned char*)(e->extraData), e->parm2 }, e->timeDelta);
                     }
                 }
                 else
@@ -230,46 +230,52 @@ public:
         synth.renderBlock(outputs, sampleFrames, numChannels);
 	}
 */
-    void forwardMidiMessage(int delta, const unsigned char* midiMessage, int size)
+
+    void onMidi2Message(const midi::message_view msg, int timeDelta)
     {
-        const int midiChannel = midiMessage[0] & 0x0f;
-        int stat = midiMessage[0] & 0xf0;
+        const int unusedType = 666;
 
-        // Note offs can be note_on vel=0
-        if (midiMessage[2] == 0 && stat == GmpiMidi::MIDI_NoteOn) {
-            stat = GmpiMidi::MIDI_NoteOff;
-        }
+        const auto header = gmpi::midi_2_0::decodeHeader(msg);
 
-        switch (stat) {
-        case GmpiMidi::MIDI_NoteOn: {
+        // only 8-byte messages supported.
+        if (header.messageType != gmpi::midi_2_0::ChannelVoice64)
+            return;
+
+        switch (header.status)
+        case gmpi::midi_2_0::NoteOn:
+        {
+            const auto note = gmpi::midi_2_0::decodeNote(msg);
             const auto midiKeyNumber = midiMessage[1];
             const auto velocity = midiMessage[2];
             _synth->noteOn(delta, midiKeyNumber, velocity);
         } break;
 
-        case GmpiMidi::MIDI_NoteOff: {
+        case gmpi::midi_2_0::NoteOff:
+        {
+            const auto note = gmpi::midi_2_0::decodeNote(msg);
             const auto midiKeyNumber = midiMessage[1];
             const auto velocity = midiMessage[2];
             _synth->noteOff(delta, midiKeyNumber, velocity);
         } break;
 
-        case GmpiMidi::MIDI_PolyAfterTouch: {
+        case gmpi::midi_2_0::PolyAfterTouch: {
+            const auto aftertouch = gmpi::midi_2_0::decodePolyController(msg);
         } break;
 
-        case GmpiMidi::MIDI_ControlChange: {
+        case gmpi::midi_2_0::ControlChange: {
             _synth->cc(delta, midiMessage[1], midiMessage[2]);
         } break;
 
-        case GmpiMidi::MIDI_ChannelPressue: {
+        case gmpi::midi_2_0::ChannelPressue: {
             _synth->aftertouch(delta, midiMessage[1]);
         } break;
 
-        case GmpiMidi::MIDI_PitchBend: {
+        case gmpi::midi_2_0::PitchBend: {
             const int val = (midiMessage[2] << 7) + midiMessage[1] - 8192;
             _synth->pitchWheel(delta, val);
         } break;
 
-        case GmpiMidi::MIDI_SystemMessage: {
+        case gmpi::midi_2_0::SystemMessage: {
         } break;
 
         default:

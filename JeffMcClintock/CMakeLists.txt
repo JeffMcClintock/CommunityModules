@@ -12,10 +12,10 @@ add_subdirectory(Dynamics)
 add_subdirectory(Loudness)
 add_subdirectory(AudioPlayer)
 # add_subdirectory(WaveformScroller)
+# sample player 3 has it's own independant cmake: 'add_subdirectory(SamplePlayer3)
 
 if(WIN32)
 	add_subdirectory(Wrapper_VST2)
-#	add_subdirectory(sfizz)
 # don't build on macOS yet
 #	add_subdirectory(Wrapper_VST3)
 endif(WIN32)

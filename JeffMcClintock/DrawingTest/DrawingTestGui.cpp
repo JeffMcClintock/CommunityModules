@@ -385,7 +385,7 @@ void DrawingTestGui::drawAdditiveTest(GmpiDrawing::Graphics& g)
 				pixel[0] = se_sdk::FastGamma::float_to_sRGB(isRGBA ? forground.r : forground.b);
 				pixel[1] = se_sdk::FastGamma::float_to_sRGB(forground.g);
 				pixel[2] = se_sdk::FastGamma::float_to_sRGB(isRGBA ? forground.b : forground.r);
-				pixel[3] = 255;
+				pixel[3] = (x & 1) == (y & 1) ? 0 : 255;
 			}
 		}
 	}

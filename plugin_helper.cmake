@@ -84,10 +84,7 @@ if(APPLE)
   set_source_files_properties(${xml_path} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
-
+set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
 
 if(WIN32)

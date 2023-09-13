@@ -1,0 +1,16 @@
+cd \temp
+
+git clone --recursive https://github.com/sfztools/sfizz-ui.git
+
+cd sfizz-ui
+
+"C:\Program Files\CMake\bin\cmake.exe" -B build -S . -D PLUGIN_VST3=ON
+
+open Visual Studio Solution in build folder
+
+copy Community MOdules/JeffMcClintock/sfizz to C:\temp\sfizz-ui/plugins/gmpi
+
+add to cmake
+add_subdirectory(gmpi)
+
+added module.rc mp_sdk_common mp_sdk_audio files

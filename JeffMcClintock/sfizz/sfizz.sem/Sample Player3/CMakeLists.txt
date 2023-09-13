@@ -20,13 +20,17 @@ include (GenerateExportHeader)
 
 add_library(${PROJECT_NAME} MODULE ${sdk_srcs} ${srcs})
 
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE sfizz::sfizz
+)
+
 if(APPLE)
   set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
   set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE_EXTENSION "sem")
 
   # Place ADSR.xml in bundle 'Resources' folder.
-  set(xml_path "ADSR.xml")
+  set(xml_path "SamplePlayerSfz.xml")
   target_sources(${PROJECT_NAME} PUBLIC ${xml_path})
   set_source_files_properties(${xml_path} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
