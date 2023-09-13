@@ -29,7 +29,7 @@ steps:
 
 - task: CMake@1
   inputs:
-    cmakeArgs: '../JeffMcClintock/SamplePlayer3'  # nope: (use vmImage)   -G "Visual Studio 15 2017 Win64" $(build.repository.localPath)'
+    cmakeArgs: '../JeffMcClintock/SamplePlayer3'
 
 #TODO : some kind of variable for build type: Debug/Release
 
