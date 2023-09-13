@@ -1,0 +1,36 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'macOS-latest'
+
+steps:
+  - checkout: self
+    fetchDepth: 1
+    clean: true
+
+  - task: CMake@1
+    inputs:
+      cmakeArgs: '../JeffMcClintock/SamplePlayer3 -D"CMAKE_OSX_ARCHITECTURES=arm64;x86_64"'
+
+  - task: CMake@1
+    inputs:
+      cmakeArgs: '--build . --config Release'
+
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(agent.builddirectory)/s/build'
+      Contents: '**/*.sem/**'
+      TargetFolder: '$(build.artifactstagingdirectory)'
+
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifacts'
+    inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)'
+      ArtifactName: 'sampleplayer3_mac'
