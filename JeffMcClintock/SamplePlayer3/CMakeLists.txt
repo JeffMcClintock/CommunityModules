@@ -29,7 +29,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(gmpi)
 
-project(CommunityModules)
+#project(CommunityModules)
 
 enable_testing()
 
