@@ -1,0 +1,88 @@
+trigger: none
+
+resources:
+  pipelines:
+  - pipeline: pipelineresource
+    project: CommunityModules
+    source: SamplePlayer3_macos
+    trigger:
+      branches:
+      - master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'x64'
+  buildConfiguration: 'Release'
+
+steps:
+- task: NuGetToolInstaller@1
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+
+# CMake
+# Build with the CMake cross-platform build system
+
+- task: CMake@1
+  inputs:
+    cmakeArgs: '../JeffMcClintock/SamplePlayer3'  # nope: (use vmImage)   -G "Visual Studio 15 2017 Win64" $(build.repository.localPath)'
+
+#TODO : some kind of variable for build type: Debug/Release
+
+- task: CMake@1
+  inputs:
+    cmakeArgs: '--build . --config Release'
+
+- task: CmdLine@2
+  displayName: 'Run Unit Tests'
+  inputs:
+    script: 'ctest --verbose -C Release -T test'
+    workingDirectory: 'build'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(agent.builddirectory)'
+    Contents: '**\build\**\*.sem'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+    flattenFolders: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
+    ArtifactName: 'Windows Modules'
+
+- task: DownloadBuildArtifacts@0
+  inputs:
+    buildType: 'specific'
+    project: 'c5461b5f-8816-4d6b-842e-7e4e5aee0627'
+    pipeline: '14'
+    specificBuildWithTriggering: true
+    buildVersionToDownload: 'latest'
+    downloadType: 'single'
+    artifactName: 'sampleplayer3_mac'
+    downloadPath: '$(build.artifactstagingdirectory)'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/sampleplayer3_mac.zip'
+    replaceExistingArchive: true
+
+- task: FtpUpload@1
+  displayName: 'FTP Upload: Modules'
+  inputs:
+    credentialsOption: inputs
+    serverUrl: 'ftp://ftp.synthedit.com'
+    username: synth
+    password: $(ftp_password)
+    rootDirectory: '$(build.artifactstagingdirectory)'
+    filePatterns: '*.zip'
+    remoteDirectory: 'domains/synthedit.com/public_html/modules'
+    trustSSL: true
