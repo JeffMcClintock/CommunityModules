@@ -1,13 +1,13 @@
 trigger: none
 
-resources:
-  pipelines:
-  - pipeline: pipelineresource
-    project: CommunityModules
-    source: SamplePlayer3_macos
-    trigger:
-      branches:
-      - master
+#resources:
+#  pipelines:
+#  - pipeline: pipelineresource
+#    project: CommunityModules
+#    source: SamplePlayer3_macos
+#    trigger:
+#      branches:
+#      - master
 
 pool:
   vmImage: 'windows-latest'
