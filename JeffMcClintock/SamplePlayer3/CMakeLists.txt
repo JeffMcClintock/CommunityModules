@@ -57,10 +57,11 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast /GS-")
 endif()
 
-include(plugin_helper.cmake)
+#include(plugin_helper.cmake)
 include(${CMAKE_BINARY_DIR}/_deps/gmpi-src/gmpi_plugin.cmake)
 
 #######################################################################
+include(plugin_helper_local.cmake)
 
 # fetch the SFIZZ library
 FetchContent_Declare(
