@@ -56,17 +56,15 @@ steps:
     PathtoPublish: '$(build.artifactstagingdirectory)'
     ArtifactName: 'Windows Modules'
 
-- task: DownloadBuildArtifacts@0
+- task: DownloadBuildArtifacts@1
   inputs:
     buildType: 'specific'
     project: 'c5461b5f-8816-4d6b-842e-7e4e5aee0627'
-    pipeline: '14'
-    specificBuildWithTriggering: true
+    pipeline: '21'
     buildVersionToDownload: 'latest'
     downloadType: 'single'
     artifactName: 'sampleplayer3_mac'
-    downloadPath: '$(build.artifactstagingdirectory)'
-
+    downloadPath: '$(System.ArtifactsDirectory)'
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
