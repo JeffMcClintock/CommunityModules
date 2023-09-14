@@ -584,7 +584,7 @@ namespace GmpiSdk
 		virtual int32_t MP_STDCALL notifyPin(int32_t pinId, int32_t voice) override { return gmpi::MP_OK; }
 		virtual int32_t MP_STDCALL onDelete() override { return gmpi::MP_OK; }
 		virtual int32_t MP_STDCALL preSaveState() override { return gmpi::MP_OK; }
-		virtual int32_t MP_STDCALL open() override { return gmpi::MP_OK; }
+		int32_t MP_STDCALL open() override { return gmpi::MP_OK; }
 
 
 		gmpi::IMpControllerHost* getHost()

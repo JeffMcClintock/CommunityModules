@@ -791,6 +791,14 @@ void MpPluginBase::resetSleepCounter()
 	getHost()->getBlockSize( sleepCount_ );
 }
 
+// when updating a non-audio output pin, subProcess is not resumed.
+// however, we may want to resume subProcess to support pulsing the output pin. (e.g. BPM Tempo)
+void MpBase::wakeSubProcessAtLeastOnce()
+{
+	sleepCount_ = (std::max)(1, sleepCount_);
+	curSubProcess_ = saveSubProcess_;
+}
+
 #ifdef _DEBUG
 	/* Seems not to work when host splits blocks?
 // Ensure it's safe to sleep and all output buffers are 'flat lined' (silent).
@@ -838,7 +846,7 @@ void AudioInPin::preProcessEvent( const gmpi::MpEvent* e )
 
 namespace GmpiSdk
 {
-
+	
 std::string ProcessorHost::resolveFilename(std::wstring filenameW)
 {
 	gmpi_sdk::mp_shared_ptr<gmpi::IEmbeddedFileSupport> dspHost;
