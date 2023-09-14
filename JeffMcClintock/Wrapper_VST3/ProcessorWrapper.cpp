@@ -266,8 +266,6 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 
 void ProcessorWrapper::onMidi2Message(const midi::message_view msg, int timeDelta)
 {
-	const int unusedType = 666;
-
 	const auto header = gmpi::midi_2_0::decodeHeader(msg);
 
 	// only 8-byte messages supported.
@@ -275,6 +273,7 @@ void ProcessorWrapper::onMidi2Message(const midi::message_view msg, int timeDelt
 		return;
 
 	Steinberg::Vst::Event m = {};
+	const int unusedType = 666;
 	m.type = unusedType;
 
 	switch (header.status)

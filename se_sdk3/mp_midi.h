@@ -943,7 +943,8 @@ namespace gmpi
 
 					const auto msgout = gmpi::midi_2_0::makePolyPressure(
 						controller.controllerNumber, // actually key-number
-						controller.value
+						controller.value,
+						header.channel
 					);
 
 					sink({ msgout.m }, timestamp);
