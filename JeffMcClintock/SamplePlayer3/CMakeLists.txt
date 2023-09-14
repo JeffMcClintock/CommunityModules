@@ -87,6 +87,7 @@ SamplePlayerSfz.cpp
 
 include_directories(
 ${sdk_folder}
+../../shared
 )
 
 include (GenerateExportHeader)
