@@ -26,7 +26,18 @@ steps:
 
 # CMake
 # Build with the CMake cross-platform build system
-
+- task: FtpUpload@1
+  displayName: 'FTP Upload: Modules'
+  inputs:
+    credentialsOption: inputs
+    serverUrl: 'ftp://ftp.synthedit.com'
+    username: '$(ftp_username)'
+    password: '$(ftp_password)'
+    rootDirectory: '$(build.artifactstagingdirectory)'
+    filePatterns: '*.zip'
+    remoteDirectory: 'domains/synthedit.com/public_html/modules'
+    trustSSL: true
+    
 - task: CMake@1
   inputs:
     cmakeArgs: '../JeffMcClintock/SamplePlayer3'
