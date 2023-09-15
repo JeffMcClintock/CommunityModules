@@ -26,18 +26,7 @@ steps:
 
 # CMake
 # Build with the CMake cross-platform build system
-- task: FtpUpload@1
-  displayName: 'FTP Upload: Modules'
-  inputs:
-    credentialsOption: inputs
-    serverUrl: 'ftp://ftp.synthedit.com'
-    username: '$(ftp_username)'
-    password: '$(ftp_password)'
-    rootDirectory: '$(build.artifactstagingdirectory)'
-    filePatterns: '*.zip'
-    remoteDirectory: 'domains/synthedit.com/public_html/modules'
-    trustSSL: true
-    
+
 - task: CMake@1
   inputs:
     cmakeArgs: '../JeffMcClintock/SamplePlayer3'
@@ -54,13 +43,6 @@ steps:
     script: 'ctest --verbose -C Release -T test'
     workingDirectory: 'build'
 
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: '$(agent.builddirectory)'
-    Contents: '**\build\**\*.sem'
-    TargetFolder: '$(build.artifactstagingdirectory)'
-    flattenFolders: true
-
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact'
   inputs:
@@ -76,12 +58,18 @@ steps:
     downloadType: 'single'
     artifactName: 'sampleplayer3_mac'
     downloadPath: '$(System.ArtifactsDirectory)'
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(agent.builddirectory)'
+    Contents: '**\build\**\*.sem'
+    TargetFolder: '$(build.artifactstagingdirectory)/sampleplayer3_mac/SamplePlayerSfz.sem/Contents/x86_64-win/'
+    flattenFolders: true
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/sampleplayer3_mac.zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/sampleplayer3.zip'
     replaceExistingArchive: true
 
 - task: FtpUpload@1
