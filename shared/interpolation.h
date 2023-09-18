@@ -40,7 +40,7 @@ inline float interpolate_sinc(const float* y, float fraction, const std::vector<
 	}
 
 	// Linear interpolation between sinc tables.
-	return a + fraction * (a2 - a);
+	return a + sincFraction * (a2 - a);
 #else
 	__m128 t1 = _mm_mul_ps(_mm_loadu_ps(y - 3), _mm_load_ps(interpolation_table_ptr));
 	__m128 t2 = _mm_mul_ps(_mm_loadu_ps(y + 1), _mm_load_ps(interpolation_table_ptr + 4));
