@@ -26,8 +26,6 @@ class SamplePlayerSfz : public MpBase2
     std::mutex _processMutex;
 
     std::thread _worker;
-    std::mutex backgroundMutex;
-    std::condition_variable backgroundSignal;
     bool closeBackgroundThread = false;
 
     gmpi::midi_2_0::MidiConverter2 midiConverter;
@@ -80,7 +78,7 @@ public:
             }
 
             // wait until signaled.
-            backgroundSignal.wait(lk);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 

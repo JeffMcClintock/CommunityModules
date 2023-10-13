@@ -25,9 +25,8 @@ class SamplePlayerSfz : public MpBase2
     std::mutex _processMutex;
 
     std::thread _worker;
-    std::mutex backgroundMutex;
-    std::condition_variable backgroundSignal;
-    bool closeBackgroundThread = false;
+    std::atomic<bool> closeBackgroundThread = false;
+    bool firstTime = true;
 
     gmpi::midi_2_0::MidiConverter2 midiConverter;
 
@@ -54,7 +53,6 @@ public:
     {
         // ask thread to stop
         {
-            std::lock_guard<std::mutex> lk(backgroundMutex);
             closeBackgroundThread = true;
         }
         signalBackgroundThread();
@@ -64,14 +62,14 @@ public:
 
     void signalBackgroundThread()
     {
-        backgroundSignal.notify_one();
     }
 
     void doBackgroundWork()
     {
-        std::unique_lock<std::mutex> lk(backgroundMutex);
         while (!closeBackgroundThread)
         {
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
             // Perform time-consuming operations.
             if (pinVoiceCount.getValue() > 0) // skip this until pins are init to proper values.
             {
@@ -79,12 +77,15 @@ public:
                 _synth->setOversamplingFactor(pinOversampling);
             }
 
-            // wait until signaled.
-            backgroundSignal.wait(lk);
+            if (_synth->shouldReloadFile())
+            {
+                std::unique_lock<std::mutex> lock(_processMutex);
+                loadFile();
+            }
         }
     }
 
-    virtual int32_t MP_STDCALL open() override
+    int32_t MP_STDCALL open() override
     {
         _synth.reset(new sfz::Sfizz);
 
@@ -258,23 +259,37 @@ public:
             break;
         };
     }
+    
+    void loadFile()
+    {
+        wchar_t fullFilename[500];
+        getHost()->resolveFilename(pinFilename.getValue().c_str(), std::size(fullFilename), fullFilename);
+        std::wstring temp(fullFilename);
+
+        const auto filename = FastUnicode::WStringToUtf8(temp);
+
+        _synth->loadSfzFile(filename);
+    }
 
 	void onSetPins(void) override
 	{
 		// Check which pins are updated.
 		if( pinVoiceCount.isUpdated() || pinOversampling.isUpdated())
 		{
-            signalBackgroundThread();
+            if (!firstTime)
+            {
+                _synth->setNumVoices((std::max)(1, pinVoiceCount.getValue()));
+                _synth->setOversamplingFactor(pinOversampling);
+            }
+            else
+            {
+                signalBackgroundThread();
+            }
 		}
+
 		if( pinFilename.isUpdated() )
 		{
-            wchar_t fullFilename[500];
-		    getHost()->resolveFilename( pinFilename.getValue().c_str(), sizeof(fullFilename)/sizeof(fullFilename[0]), fullFilename );
-            std::wstring temp(fullFilename);
-
-           const auto filename = FastUnicode::WStringToUtf8(temp);
-
-            _synth->loadSfzFile(filename);
+            loadFile();
 		}
 
 		// Set state of output audio pins.
@@ -283,6 +298,8 @@ public:
 
 		// Set sleep mode (optional).
 		setSleep(false);
+
+        firstTime = false;
 	}
 };
 
