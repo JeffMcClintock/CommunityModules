@@ -77,12 +77,12 @@ steps:
   inputs:
     SourceFolder: '$(agent.builddirectory)'
     Contents: '**\build\**\Loudness.sem'
-    TargetFolder: '$(build.artifactstagingdirectory)/modules_mac/Loudness.sem/Contents/x86_64-win/'
+    TargetFolder: '$(build.artifactstagingdirectory)/modules_mac/JeffMcClintock/Loudness/Loudness.sem/Contents/x86_64-win/'
     flattenFolders: true
 - task: DeleteFiles@1
   inputs:
-    SourceFolder: '$(agent.builddirectory)'
-    Contents: '**\build\**\Loudness.sem'
+    SourceFolder: '$(build.artifactstagingdirectory)'
+    Contents: 'Loudness.sem'
 
 - task: ArchiveFiles@2
   inputs:
