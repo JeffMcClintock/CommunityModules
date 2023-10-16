@@ -1962,7 +1962,7 @@ void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 		const BitmapBrushProperties bitmapBrushProperties;
 		BrushProperties brushProperties;
 		brushProperties.transform = Matrix3x2::Translation(x, y);
-		auto bitmapBrushAligned = g.CreateBitmapBrush(bitmapMem, bitmapBrushProperties, brushProperties);
+		auto bitmapBrushAligned = g.CreateBitmapBrush(bitmapMem);
 
 		Rect r{ x, y, x + 16.f, y + 16.f };
 		Rect r2{ x - 0.5f, y - 0.5f, x + 16.5f, y + 16.5f };
