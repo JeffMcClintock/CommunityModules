@@ -818,7 +818,7 @@ int32_t VstFactory::createInstance(
 	{
 		string err("Error");
 		{
-			err = "Can't find Waves Plugin:" + vstUniqueId;
+			err = "Can't find VST3 Plugin:" + vstUniqueId;
 			err += "\n";
 		}
 
