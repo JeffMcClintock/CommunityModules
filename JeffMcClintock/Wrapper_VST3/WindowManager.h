@@ -28,6 +28,8 @@ public:
 
 	void destroyView();
 
+	static void createPlatformWindow(std::shared_ptr<WindowController> windowController);
+
 private:
 	tresult PLUGIN_API queryInterface (const TUID _iid, void** obj) override
 	{
@@ -48,5 +50,6 @@ private:
 	IPtr<IPlugView> plugView;
 	IWindow* window {nullptr};
 	bool resizeViewRecursionGard {false};
+	bool isInitialShow{ false };
 };
 

@@ -1,3 +1,5 @@
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include "WindowManager.h"
 #include "base/source/fdebug.h"
 
@@ -20,6 +22,35 @@ WindowController::WindowController (const IPtr<IPlugView>& plugView) : plugView 
 WindowController::~WindowController () noexcept
 {
 }
+
+void WindowController::createPlatformWindow(std::shared_ptr<WindowController> windowController)
+{
+	auto& view = windowController->plugView;
+
+	ViewRect plugViewSize{};
+	auto result = view->getSize(&plugViewSize);
+	if (result != kResultTrue)
+	{
+		// Could not get editor view size
+		return;
+	}
+
+	const auto viewRect = ViewRectToRect(plugViewSize);
+
+	auto window = IPlatform::instance().createWindow(
+		"Editor", viewRect.size, view->canResize() == kResultTrue, windowController);
+
+	if (!window)
+	{
+		// Could not create window
+		return;
+	}
+
+	windowController->isInitialShow = true; // work arround resizing bug in JUCE plugins
+	window->show();
+	windowController->isInitialShow = false;
+}
+
 
 //------------------------------------------------------------------------
 void WindowController::onShow (IWindow& w)
@@ -141,7 +172,7 @@ tresult PLUGIN_API WindowController::resizeView (IPlugView* view, ViewRect* newS
 	ViewRect r;
 	if (plugView->getSize (&r) != kResultTrue)
 		return kInternalError;
-	if (r == *newSize)
+	if (r == *newSize && !isInitialShow)
 		return kResultTrue;
 
 	resizeViewRecursionGard = true;
@@ -150,7 +181,7 @@ tresult PLUGIN_API WindowController::resizeView (IPlugView* view, ViewRect* newS
 	resizeViewRecursionGard = false;
 	if (plugView->getSize (&r) != kResultTrue)
 		return kInternalError;
-	if (r != *newSize)
+	if (r != *newSize || isInitialShow)
 		plugView->onSize (newSize);
 	return kResultTrue;
 }

@@ -319,38 +319,9 @@ void ControllerWrapper::OpenGui()
 		return;
 	}
 
-	ViewRect plugViewSize{};
-	auto result = view->getSize(&plugViewSize);
-	if (result != kResultTrue)
-	{
-		// Could not get editor view size
-		return;
-	}
-
-	{
-		HDC hdc = ::GetDC(0);
-		int lx = GetDeviceCaps(hdc, LOGPIXELSX);
-		int ly = GetDeviceCaps(hdc, LOGPIXELSY);
-		::ReleaseDC(0, hdc);
-
-		plugViewSize.right = (plugViewSize.right * lx) / 96;
-		plugViewSize.bottom = (plugViewSize.bottom * ly) / 96;
-	}
-
-	const auto viewRect = ViewRectToRect(plugViewSize);
-
 	windowController = std::make_shared<WindowController>(view);
-	auto window = IPlatform::instance().createWindow(
-		"Editor", viewRect.size, view->canResize() == kResultTrue, windowController);
 
-	if (!window)
-	{
-		// Could not create window
-		return;
-	}
-
-	window->show();
-// no help	window->resize({ plugViewSize.getWidth(), plugViewSize.getHeight() });
+	WindowController::createPlatformWindow(windowController);
 }
 
 bool ControllerWrapper::OnTimer()
