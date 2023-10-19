@@ -513,6 +513,16 @@ AEffectWrapper::~AEffectWrapper()
     host_->onAEffectWrapperDestroyed();
 #endif
 	dispatcher(effClose);
+
+	try
+	{
+		MP_DllUnload(hinstLib);
+	}
+	catch (...)
+	{
+		_RPT0(_CRT_WARN, "VST2: Exception in MP_DllUnload()\n");
+	}
+
 #if defined(_WIN32)
     if( comWasInit_ )
 	{
@@ -619,7 +629,11 @@ void AEffectWrapper::LoadDll(const std::wstring& load_filename, VstIntPtr shellP
 		}
 	}
 #endif
-    
+	if (load_filename.find(L"Padshop.dll") != string::npos) // Padshop.dll crashes on unload.
+	{
+		return;
+	}
+
     VST_PLUGIN_MAIN* Plugin_Entrypoint = 0;
 
     if (hinstLib == 0)
