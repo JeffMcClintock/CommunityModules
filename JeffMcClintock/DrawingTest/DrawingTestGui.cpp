@@ -586,6 +586,24 @@ void DrawingTestGui::AlphaBlending(GmpiDrawing::Graphics& g)
 				g.DrawBitmap(bitmapMem, Point(x, y), Rect(0, 0, 8, 4), GmpiDrawing_API::MP1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
 			}
 		}
+
+		// alpha composting
+		{
+			const auto radius = 40.0f;
+			Point p{ 130.f, 130.f };
+
+			auto blackBrush = g.CreateSolidColorBrush(Color::Black);
+			g.FillCircle(Point{ p.x, p.y }, radius * 1.8f, blackBrush);
+
+			auto fillBrushRed   = g.CreateSolidColorBrush(Color{ 1.0f, 0.0f, 0.0f, 0.5f });
+			auto fillBrushGreen = g.CreateSolidColorBrush(Color{ 0.0f, 1.0f, 0.0f, 0.5f });
+			auto fillBrushBlue  = g.CreateSolidColorBrush(Color{ 0.0f, 0.0f, 1.0f, 0.5f });
+
+			g.FillCircle(Point{ p.x - radius * 0.433f, p.y + radius * 0.25f }, radius, fillBrushRed);
+			g.FillCircle(Point{ p.x                , p.y - radius * 0.5f }, radius, fillBrushGreen);
+			g.FillCircle(Point{ p.x + radius * 0.433f, p.y + radius * 0.25f }, radius, fillBrushBlue);
+		}
+
 	}
 #if 0
 	return;
