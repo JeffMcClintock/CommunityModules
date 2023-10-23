@@ -1248,6 +1248,15 @@ namespace GmpiDrawing
 		}
 	};
 
+	inline constexpr uint32_t rgBytesToPixel(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xff)
+	{
+#ifdef _WIN32
+		return (a << 24) | (r << 16) | (g << 8) | b; // ARGB
+#else
+		return (a << 24) | (b << 16) | (g << 8) | r; // ABGR
+#endif
+	}
+
 	inline Color interpolateColor(Color a, Color b, float fraction)
 	{
 		return Color(

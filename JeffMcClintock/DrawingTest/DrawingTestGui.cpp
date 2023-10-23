@@ -1923,9 +1923,6 @@ void DrawingTestGui::DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g)
 
 void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 {
-	//	g.Clear(Color::FromRgb(0x22252D));
-
-		// create bitmap with every intensity vs every alpha.
 	auto bitmapMem = GetGraphicsFactory().CreateImage(64, 64);
 	{
 		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
@@ -1935,13 +1932,13 @@ void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 		auto sourcePixels = (uint32_t*)pixelsSource.getAddress();
 
 		uint32_t colors[] = {
-			0xffff0000,
-			0xff00ff00,
-			0xff0000ff,
-			0xffffff00,
-			0xffff00ff,
-			0xff00ffff,
-			0xff000000,
+			GmpiDrawing::rgBytesToPixel(0xff,0x00,0x00),
+			GmpiDrawing::rgBytesToPixel(0x00,0xff,0x00),
+			GmpiDrawing::rgBytesToPixel(0x00,0x00,0xff),
+			GmpiDrawing::rgBytesToPixel(0xff,0xff,0x00),
+			GmpiDrawing::rgBytesToPixel(0xff,0x00,0xff),
+			GmpiDrawing::rgBytesToPixel(0x00,0xff,0xff),
+			GmpiDrawing::rgBytesToPixel(0x00,0x00,0x00),
 		};
 
 		for (int y = 0; y < 64; ++y)
