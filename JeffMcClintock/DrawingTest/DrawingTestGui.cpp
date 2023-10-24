@@ -1923,6 +1923,7 @@ void DrawingTestGui::DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g)
 
 void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 {
+	// create a multi-color bitmap.
 	auto bitmapMem = GetGraphicsFactory().CreateImage(64, 64);
 	{
 		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
@@ -1953,37 +1954,41 @@ void DrawingTestGui::drawBitmapBrush(GmpiDrawing::Graphics& g)
 		}
 	}
 
-	g.DrawBitmap(bitmapMem, GmpiDrawing_API::MP1_POINT_L{ 6, 42 }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
+	g.DrawBitmap(bitmapMem, GmpiDrawing_API::MP1_POINT_L{ 0, 0 }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
 	
-	auto outlineBrush = g.CreateSolidColorBrush(Color::White);
+	// apply the texture to a bitmap brush
 	auto bitmapBrush = g.CreateBitmapBrush(bitmapMem);
+	auto outlineBrush = g.CreateSolidColorBrush(Color::White);
 
-	float x = 0;
+	// draw a series of rectangles with the same bitmap alignment
+	const float sz = 30.0f;
+	float x = 70;
 	float y = -3;
 	for (int i = 0; i < 16; ++i)
 	{
-		Rect r{ x, y, x + 16.f, y + 16.f };
-		Rect r2{ x - 0.5f, y - 0.5f, x + 16.5f, y + 16.5f };
+		Rect r{ x, y, x + sz, y + sz };
+		Rect r2{ x - 0.5f, y - 0.5f, x + sz + 0.5f, y + sz + 0.5f };
 		g.DrawRectangle(r2, outlineBrush, 1.0f);
 		g.FillRectangle(r, bitmapBrush);
-		x += 19;
+		x += sz + 3;
 		y += 3;
 	}
 
 	x = 0;
-	y = 20;
+	y = 100;
+	// draw a series of rectangles each with the bitmap aligned to the outline
 	for (int i = 0; i < 16; ++i)
 	{
-		const BitmapBrushProperties bitmapBrushProperties;
+		BitmapBrushProperties bitmapBrushProperties;
 		BrushProperties brushProperties;
 		brushProperties.transform = Matrix3x2::Translation(x, y);
-		auto bitmapBrushAligned = g.CreateBitmapBrush(bitmapMem);
+		auto bitmapBrushAligned = g.CreateBitmapBrush(bitmapMem, bitmapBrushProperties, brushProperties);
 
-		Rect r{ x, y, x + 16.f, y + 16.f };
-		Rect r2{ x - 0.5f, y - 0.5f, x + 16.5f, y + 16.5f };
+		Rect r{ x, y, x + sz, y + sz };
+		Rect r2{ x - 0.5f, y - 0.5f, x + sz + 0.5f, y + sz + 0.5f };
 		g.DrawRectangle(r2, outlineBrush, 1.0f);
 		g.FillRectangle(r, bitmapBrushAligned);
-		x += 19;
+		x += sz + 3;
 		y += 3;
 	}
 }
@@ -2115,6 +2120,11 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBo
 		TextFormat dtextFormat = useFixedBoundingbox ?
 			g.GetFactory().CreateTextFormat2()
 			: g.GetFactory().CreateTextFormat();
+
+		if (!useFixedBoundingbox)
+		{
+			dtextFormat.SetImprovedVerticalBaselineSnapping();
+		}
 
 		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Near); // Top
 		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left

@@ -2391,6 +2391,13 @@ namespace GmpiDrawing
 			return temp;
 		}
 
+		inline BitmapBrush CreateBitmapBrush(Bitmap& bitmap, BitmapBrushProperties& bitmapBrushProperties, BrushProperties& brushProperties)
+		{
+			BitmapBrush temp;
+			Get()->CreateBitmapBrush(bitmap.Get(), &bitmapBrushProperties, &brushProperties, temp.GetAddressOf());
+			return temp;
+		}
+
 		inline SolidColorBrush CreateSolidColorBrush(Color color /*, BrushProperties& brushProperties*/)
 		{
 			SolidColorBrush temp;
