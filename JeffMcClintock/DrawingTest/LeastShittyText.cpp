@@ -61,8 +61,8 @@ void SmallText::DrawTextShitty(Graphics& g, const std::string& text, GmpiDrawing
 
 	gridPen pen(grid);
 
-	const int32_t ON = 0xFFFFFFF;
-	const int32_t OFF = 0;
+	constexpr uint32_t ON = rgBytesToPixel(0xff,0xff,0xff);
+	constexpr uint32_t OFF = 0;
 
 	int x = rect.left;
 	const int y = rect.top;
@@ -433,7 +433,7 @@ void SmallText::DrawTextShitty(Graphics& g, const std::string& text, GmpiDrawing
 				}
 			}
 		}
-		g.DrawBitmap(bitmapMem, Point(x, y), Rect(0.f, 0.f, (float)width, (float)height));
+		g.DrawBitmap(bitmapMem, Point(x, y), Rect(0.f, 0.f, (float)width, (float)height), GmpiDrawing_API::MP1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
 
 		x += maxX + 1 + ptSize;
 	}

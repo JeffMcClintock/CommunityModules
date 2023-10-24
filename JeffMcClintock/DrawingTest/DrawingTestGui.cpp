@@ -2013,119 +2013,9 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBo
 
 	// Background Fill.
 	auto fallbackBrush = g.CreateSolidColorBrush(Color::White);
-/*
-	RadialGradientBrushProperties props{
-		{200.0, 200.0}, // center
-		{0.0, 0.0},		// gradientOriginOffset
-		200.0f,			// radiusX
-		200.0f			// radiusY
-	};
 
-	GradientStop gradientStops[] = {
-		{0.0f, Color::White   },
-		{1.0f, Color::Black }
-	};
+	g.FillRectangle(r, fallbackBrush); // falback to plain solid color brush.
 
-	auto gradientStopCollection = g.CreateGradientStopCollection(gradientStops);
-
-	auto brushFill = g.CreateRadialGradientBrush({ props }, {}, gradientStopCollection);
-	if(!brushFill.isNull())
-	{
-		g.FillRectangle(r, brushFill);
-	}
-	else
-	{
-		g.FillRectangle(r, fallbackBrush); // falback to plain solid color brush.
-	}
-	*/
-		g.FillRectangle(r, fallbackBrush); // falback to plain solid color brush.
-
-#if 0
-//	if (pinTestType == 0)
-	{
-		const char* typefaces[] = { "Segoe UI", "Arial", "Courier New", "Times New Roman" , "MS Sans Serif" };
-
-		float x = 10.5;
-		Rect textRect;
-		textRect.left = x;
-
-		textRect.top = 200.5;
-
-		const char* fontFace = typefaces[pinFontface];
-
-		TextFormat dtextFormat = g.GetFactory().CreateTextFormat2((float)pinFontsize.getValue(), fontFace);
-
-		dtextFormat.SetTextAlignment(TextAlignment::Leading); // Left
-		dtextFormat.SetParagraphAlignment(ParagraphAlignment::Far);
-		dtextFormat.SetWordWrapping(WordWrapping::NoWrap); // prevent word wrapping into two lines that don't fit box.
-
-		string text = fontFace;
-		if (!pinText.getValue().empty())
-		{
-			text = pinText;
-		}
-
-		GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
-		dtextFormat.GetFontMetrics(&fontMetrics);
-//		_RPT1(_CRT_WARN, "fontMetrics.ascent    %f\n", fontMetrics.ascent);
-//		_RPT1(_CRT_WARN, "fontMetrics.descent   %f\n", fontMetrics.descent);
-//		_RPT1(_CRT_WARN, "fontMetrics.capHeight %f\n", fontMetrics.capHeight);
-//		_RPT1(_CRT_WARN, "fontMetrics.xHeight   %f\n", fontMetrics.xHeight);
-//		_RPT1(_CRT_WARN, "fontMetrics.lineGap   %f\n", fontMetrics.lineGap);
-
-		auto textSize = dtextFormat.GetTextExtentU(text);
-		textRect.bottom = textRect.top + textSize.height;
-		textRect.right = textRect.left + textSize.width;
-
-		// Textbox verical size is ascent + descent.
-//		textRect.bottom = textRect.top + fontMetrics.descent + fontMetrics.ascent;
-
-		brush.SetColor(Color(0.8f, 0.8f, 0.8f));
-		g.FillRectangle(textRect, brush);
-
-		auto baseline = textRect.bottom - fontMetrics.descent; // for bottom-aligned text.
-		const float lineWidth = 0.5f;
-		const float lineLeft = textRect.left - 2;
-		const float lineRight = textRect.right + 2;
-
-		// Ascent (light-blue)
-		// Ascent is the distance from the top of font character alignment box to the English baseline.
-		brush.SetColor(Color::LightBlue);
-		float y = baseline - fontMetrics.ascent;
-		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
-
-		// cap-height. (green)
-		brush.SetColor(Color::Green);
-		y = baseline - fontMetrics.capHeight;
-		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
-
-		// x-height. (blue)
-		brush.SetColor(Color::MediumBlue);
-		y = baseline - fontMetrics.xHeight;
-		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
-
-		// Base-line. (orange)
-		brush.SetColor(Color::Coral);
-		y = baseline;
-		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
-
-		// Descent/Bottom (light-blue)
-		brush.SetColor(Color::AliceBlue);
-		y = textRect.bottom;
-		g.DrawLine(Point(lineLeft, y), Point(lineRight, y), brush, lineWidth);
-
-		// Line-gap
-		brush.SetColor(Color::Yellow);
-		y = textRect.bottom + fontMetrics.lineGap;
-		g.DrawLine(Point((textRect.left + textRect.right) * 0.5f, y), Point(textRect.right + 3, y), brush);
-
-		// Text
-		brush.SetColor(Color::Black);
-		g.DrawTextU(text, dtextFormat, textRect, brush);
-
-		return;
-	}
-#endif
 	{
 		// Create font.
 		int font_size_ = 12;
@@ -2302,7 +2192,7 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBo
 			headingRect.Offset(xstep, 0);
 		}
 	}
-	// Fonts.
+	// Various Fonts, with text metrics and bounding boxes.
 	{
 		auto factory = g.GetFactory();
 		// Note: Segoe UI is not available on Mac and gets substituted.
@@ -2316,26 +2206,20 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBo
 		const float lineWidth = 0.5f;
 		const bool snapBaseline = false;
 
-		for (auto fontFace : typefaces)
+		for (auto fontName : typefaces)
 		{
 			textRect.top = 200.0f;
 
 			for (auto dipFontSize : fontSizes)
 			{
-				//auto textFormat = factory.CreateTextFormat2(dipFontSize, fontFace);
 				TextFormat textFormat = useFixedBoundingbox ?
-					g.GetFactory().CreateTextFormat2(dipFontSize, fontFace)
-					: g.GetFactory().CreateTextFormat(dipFontSize, fontFace);
+					g.GetFactory().CreateTextFormat2(dipFontSize, fontName)
+					: g.GetFactory().CreateTextFormat(dipFontSize, fontName);
 
 				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
 				textFormat.GetFontMetrics(&fontMetrics);
 
-				Size textSize = textFormat.GetTextExtentU(fontFace);
-
-				//if(dipFontSize == 72.0f)
-				//{
-				//	_RPT3(_CRT_WARN, "%s, BODYHEIGHT %f, BOUNDHEIGHT %f\n", fontFace, fontMetrics.bodyHeight(), textSize.height);
-				//}
+				Size textSize = textFormat.GetTextExtentU(fontName);
 
 				textRect.bottom = textRect.top + textSize.height;
 				textRect.right = ceilf(textRect.left + textSize.width);
@@ -2388,19 +2272,17 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBo
 				g.DrawLine(Point(textRect.left, textRect.top), Point(textRect.left + 20, textRect.top), fallbackBrush, lineWidth);
 				g.DrawLine(Point(textRect.left, textRect.bottom), Point(textRect.left + 20, textRect.bottom), fallbackBrush, lineWidth);
 
-				g.DrawTextU(fontFace, textFormat, textRect, fallbackBrush);
+				g.DrawTextU(fontName, textFormat, textRect, fallbackBrush);
 
-				textRect.top += ceilf(dipFontSize * 1.4f);
-
-				if ((fontFace[0] == 'T' || fontFace[0] == 'C') && dipFontSize == 9 )
+				// for Times and Courier, print out the text metrics at top.
+				if ((fontName[0] == 'T' || fontName[0] == 'C') && dipFontSize == 9 )
 				{
-					//auto textFormatSmall = g.GetFactory().CreateTextFormat2(8);
 					TextFormat textFormatSmall = useFixedBoundingbox ?
 						g.GetFactory().CreateTextFormat2(8)
 						: g.GetFactory().CreateTextFormat(8);
 
 					Rect textRect2 (0,0,1000,20);
-					if (fontFace[0] == 'C')
+					if (fontName[0] == 'C')
 					{
 						textRect2.Offset(0, 9);
 					}
@@ -2419,18 +2301,20 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBo
 					float* metric = (float*)&fontMetrics;
 
 					std::stringstream s;
-					s << std::string(fontFace) << " " << dipFontSize << "px: ";
+					s << std::string(fontName) << " " << dipFontSize << "px: ";
 
 					for (int i = 0; i < 6; ++i)
 					{
 						s << metricNames[i] << " "  << *metric++ << ", ";
 					}
 			
-//					s << "topgap: " << textSize.height - (fontMetrics.ascent + fontMetrics.descent);
 					s << "box: (" << textRect.getWidth() << ", " << textRect.getHeight() <<")";
 
 					g.DrawTextU(s.str(), textFormatSmall, textRect2, fallbackBrush);
 				}
+
+				// advance to next line.
+				textRect.top += ceilf(dipFontSize * 1.4f);
 			}
 
 			textRect.left += 120;
