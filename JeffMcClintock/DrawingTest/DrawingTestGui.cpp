@@ -2006,7 +2006,7 @@ void DrawingTestGui::drawShittyText(GmpiDrawing::Graphics& g)
 	}
 }
 
-// Draw using text body height (not point size). Should result in perfect cross-platform comptibility, even with font-fallback to differnt fonts ("Segoe UI").
+// Draw using text body height (not point size). Should result in perfect cross-platform compatibility, even with font-fallback to differnt fonts ("Segoe UI").
 void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBoundingbox)
 {
 	auto r = getRect();
@@ -2215,6 +2215,11 @@ void DrawingTestGui::drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBo
 				TextFormat textFormat = useFixedBoundingbox ?
 					g.GetFactory().CreateTextFormat2(dipFontSize, fontName)
 					: g.GetFactory().CreateTextFormat(dipFontSize, fontName);
+
+				if(!useFixedBoundingbox)
+				{
+					textFormat.SetImprovedVerticalBaselineSnapping();
+				}
 
 				GmpiDrawing_API::MP1_FONT_METRICS fontMetrics;
 				textFormat.GetFontMetrics(&fontMetrics);
