@@ -11,6 +11,8 @@ add_subdirectory(PeakFollower)
 add_subdirectory(Dynamics)
 add_subdirectory(Loudness)
 add_subdirectory(AudioPlayer)
+add_subdirectory(RepaintDiag)
+
 # add_subdirectory(WaveformScroller)
 # sample player 3 has it's own independant cmake: 'add_subdirectory(SamplePlayer3)
 
