@@ -2602,9 +2602,9 @@ namespace GmpiDrawing
 			Get()->FillRectangle(&rect, brush.Get());
 		}
 
-		inline void FillRectangle(float top, float left, float right, float bottom, Brush& brush) // TODO!!! using references hinders the caller creating the brush in the function call.
+		inline void FillRectangle(float left, float top, float right, float bottom, Brush& brush) // TODO!!! using references hinders the caller creating the brush in the function call.
 		{
-			Rect rect(top, left, right, bottom);
+			Rect rect(left, top, right, bottom);
 			Get()->FillRectangle(&rect, brush.Get());
 		}
 		inline void DrawRoundedRectangle(RoundedRect roundedRect, Brush brush, float strokeWidth, StrokeStyle& strokeStyle)

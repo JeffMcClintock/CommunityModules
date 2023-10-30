@@ -1269,6 +1269,15 @@ void DrawingTestGui::drawLines(GmpiDrawing::Graphics& g)
 			centerPoint.x += 100.f;
 		}
 	}
+
+	// Wide gamut color
+	{
+		auto brush = g.CreateSolidColorBrush(Color(0.0f, 1.0f, 0.0f, 1.0f));
+		g.FillRectangle(20, 300, 120, 400, brush);
+
+		brush.SetColor(Color(0.0f, 12.5f, 0.0f, 1.0f));
+		g.FillRectangle(50, 330, 90, 370, brush);
+	}
 }
 
 void DrawingTestGui::drawPerceptualColorPicker(GmpiDrawing::Graphics& g)
