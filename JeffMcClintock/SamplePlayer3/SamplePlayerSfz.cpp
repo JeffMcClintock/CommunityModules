@@ -163,13 +163,17 @@ public:
             do {
                 if (e->eventType == EVENT_MIDI)
                 {
-                    if (e->extraData == 0) // short msg
+                    // avoid sending MIDI messages to the synth while it is being reloaded. (crash)
+                    if (lock.owns_lock())
                     {
-                        midiConverter.processMidi({ (const unsigned char*)&(e->parm3), e->parm2 }, e->timeDelta);
-                    }
-                    else
-                    {
-                        midiConverter.processMidi({ (const unsigned char*)(e->extraData), e->parm2 }, e->timeDelta);
+                        if (e->extraData == 0) // short msg
+                        {
+                            midiConverter.processMidi({ (const unsigned char*)&(e->parm3), e->parm2 }, e->timeDelta);
+                        }
+                        else
+                        {
+                            midiConverter.processMidi({ (const unsigned char*)(e->extraData), e->parm2 }, e->timeDelta);
+                        }
                     }
                 }
                 else
