@@ -206,6 +206,7 @@ public:
 			// _RPT1(_CRT_WARN, "Envelope:: Hard Reset. %d\n", (int) pinVoiceReset  );
 			cur_segment = 3;
 			next_segment();
+			level_ = target_;
 		}
 
 		// Check which pins are updated.
