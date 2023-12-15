@@ -31,8 +31,13 @@ project(CommunityModules)
 enable_testing()
 
 set(se_sdk_folder
-    ../../se_sdk3
+    ${CMAKE_SOURCE_DIR}/se_sdk3
     )
+set(se_shared_folder
+    ${CMAKE_SOURCE_DIR}/shared
+    )
+
+set(sdk_folder ${se_sdk_folder})
 
 set(gmpi_sdk_folder
     ${CMAKE_BINARY_DIR}/_deps/gmpi-src/Core

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PluginList>
+	<Plugin id="SE Mouse Target" name="Mouse Target" category="Experimental/Sub-Controls">
+		<GUI graphicsApi="GmpiGui">
+			<Pin name="Show" datatype="bool" isMinimised="true"/>
+			<Pin name="Hover" datatype="bool" direction="out"/>
+			<Pin name="Left Click" datatype="bool" direction="out"/>
+		</GUI>
+	</Plugin>
+	<Plugin id="SE MT2PMB" name="Mouse Target to PatchMem Bool" category="Experimental/Sub-Controls">
+		<GUI graphicsApi="GmpiGui">
+			<Pin name="Toggle" datatype="bool" isMinimised="true"/>
+			<Pin name="Click" datatype="bool" direction="in"/>
+			<Pin name="Patch Mem" datatype="bool" direction="in"/>
+		</GUI>
+	</Plugin>
+	<Plugin id="SE MathGui Multiply" name="Multiply (int)" category="Experimental/Sub-Controls">
+		<GUI>
+			<Pin name="A" datatype="int"/>
+			<Pin name="B" datatype="int"/>
+			<Pin name="Result" datatype="int" direction="out"/>
+		</GUI>
+	</Plugin>
+	<Plugin id="SE MathGui Add" name="Add (int)" category="Experimental/Sub-Controls">
+		<GUI>
+			<Pin name="A" datatype="int"/>
+			<Pin name="B" datatype="int"/>
+			<Pin name="Result" datatype="int" direction="out"/>
+		</GUI>
+	</Plugin>
+	<Plugin id="Image4" name="Image4" category="Experimental/Sub-Controls" >
+		<GUI graphicsApi="GmpiGui">
+			<Pin name="Filename" datatype="string" default="knob_sm" isFilename="true" metadata="bmp" />
+			<Pin name="Animation Position" datatype="float" />
+			<Pin name="Frame Count" datatype="int" direction="out" />
+			<Pin name="HD" datatype="bool" isMinimised="true"/>
+		</GUI>
+	</Plugin>
+</PluginList>

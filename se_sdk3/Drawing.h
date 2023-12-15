@@ -2349,7 +2349,7 @@ namespace GmpiDrawing
 		}
 
 		// Simplified version just for setting end-caps.
-		inline StrokeStyle CreateStrokeStyle(GmpiDrawing::CapStyle allCapsStyle ) //GmpiDrawing_API::MP1_CAP_STYLE allCapsStyle)
+		inline StrokeStyle CreateStrokeStyle(GmpiDrawing::CapStyle allCapsStyle) //GmpiDrawing_API::MP1_CAP_STYLE allCapsStyle)
 		{
 			GmpiDrawing::StrokeStyleProperties strokeStyleProperties;
 			strokeStyleProperties.startCap = strokeStyleProperties.endCap = static_cast<GmpiDrawing_API::MP1_CAP_STYLE>(allCapsStyle);
