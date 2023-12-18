@@ -22,52 +22,61 @@
             </Parameters>
         </PatchManager>
         <modules>
+            <module type="SE Int64ToIntGui" handle="215806463">
+                <plugs>
+                    <plug default="2"/>
+                </plugs>
+                <structRect l="192" r="264" t="204" b="228"/>
+                <panelRect l="288" r="288" t="216" b="216"/>
+            </module>
             <module type="SE Mouse Target" handle="997549525">
                 <plugs>
                     <plug default="0"/>
                 </plugs>
-                <structRect l="60" r="168" t="60" b="160"/>
+                <structRect l="36" r="144" t="60" b="160"/>
                 <panelRect l="160" r="288" t="48" b="176"/>
             </module>
             <module type="SE MT2PMB" handle="265024608">
                 <plugs>
                     <plug default="1"/>
                 </plugs>
-                <structRect l="240" r="324" t="288" b="312"/>
+                <structRect l="180" r="264" t="252" b="276"/>
                 <panelRect l="312" r="313" t="184" b="185"/>
             </module>
             <module type="Image4" handle="1685381400">
                 <plugs>
                     <plug default="C:\Users\Public\Documents\SynthEdit Projects\skins\AIMP\Redo.png"/>
                 </plugs>
-                <structRect l="648" r="792" t="192" b="360"/>
+                <structRect l="636" r="780" t="72" b="240"/>
                 <panelRect l="160" r="288" t="48" b="176"/>
             </module>
             <module type="SE MathGui Add" handle="427045972">
-                <structRect l="372" r="432" t="84" b="120"/>
+                <plugs>
+                    <plug id="2" idx="2"/>
+                    <plug id="3"/>
+                    <plug id="4"/>
+                </plugs>
+                <structRect l="372" r="432" t="84" b="144"/>
                 <panelRect l="360" r="361" t="264" b="265"/>
             </module>
             <module type="SE BoolToInt GUI" handle="323314987">
-                <structRect l="264" r="336" t="72" b="96"/>
+                <structRect l="240" r="312" t="96" b="120"/>
                 <panelRect l="352" r="353" t="264" b="265"/>
             </module>
             <module type="SE IntToText GUI" handle="395634574">
-                <structRect l="456" r="528" t="108" b="132"/>
+                <structRect l="504" r="576" t="360" b="384"/>
                 <panelRect l="312" r="313" t="184" b="185"/>
-            </module>
-            <module type="SE MathGui Add" handle="1309716604">
-                <structRect l="396" r="456" t="180" b="216"/>
-                <panelRect l="288" r="289" t="216" b="217"/>
             </module>
             <module type="SE MathGui Multiply" handle="1640271786">
                 <plugs>
-                    <plug default="2"/>
+                    <plug id="2" idx="2"/>
+                    <plug id="3"/>
                 </plugs>
-                <structRect l="288" r="348" t="216" b="252"/>
+                <structRect l="288" r="348" t="156" b="204"/>
                 <panelRect l="288" r="289" t="216" b="217"/>
             </module>
             <module type="SE BoolToInt GUI" handle="966398023">
-                <structRect l="168" r="240" t="216" b="240"/>
+                <structRect l="192" r="264" t="156" b="180"/>
                 <panelRect l="272" r="273" t="224" b="225"/>
             </module>
             <module type="SE PatchMemory Bool" handle="780844668">
@@ -78,11 +87,11 @@
                 <plugs>
                     <plug default="4" idx="1"/>
                 </plugs>
-                <structRect l="492" r="612" t="180" b="216"/>
+                <structRect l="480" r="600" t="60" b="96"/>
                 <panelRect l="312" r="313" t="184" b="185"/>
             </module>
             <module type="SE BoolToInt GUI" handle="2003959737">
-                <structRect l="276" r="348" t="156" b="180"/>
+                <structRect l="240" r="312" t="48" b="72"/>
                 <panelRect l="288" r="289" t="216" b="217"/>
             </module>
             <module type="SE Text Entry4" handle="1295943398">
@@ -90,25 +99,25 @@
                     <plug default="&lt;"/>
                     <plug default="0" idx="3"/>
                 </plugs>
-                <structRect l="636" r="744" t="24" b="168"/>
+                <structRect l="612" r="720" t="372" b="516"/>
                 <panelRect l="112" r="136" t="56" b="80"/>
             </module>
         </modules>
         <lines>
             <line type="Line" handle="906346390" lineType="1" fMod="997549525" tMod="2003959737" fPlg="1"/>
             <line type="Line" handle="1595827332" lineType="1" fMod="780844668" tMod="966398023" fPlg="7"/>
-            <line type="Line" handle="82606310" lineType="1" fMod="966398023" tMod="1640271786" fPlg="1" tPlg="1"/>
-            <line type="Line" handle="92085820" lineType="1" fMod="2003959737" tMod="1309716604" fPlg="1"/>
-            <line type="Line" handle="1730842626" lineType="1" fMod="1640271786" tMod="1309716604" fPlg="2" tPlg="1"/>
             <line type="Line" handle="1673498829" lineType="1" fMod="395634574" tMod="1295943398" fPlg="1"/>
             <line type="Line" handle="406744223" lineType="1" fMod="997549525" tMod="323314987" fPlg="2"/>
-            <line type="Line" handle="1924191460" lineType="1" fMod="323314987" tMod="427045972" fPlg="1"/>
-            <line type="Line" handle="998116576" lineType="1" fMod="1309716604" tMod="427045972" fPlg="2" tPlg="1"/>
-            <line type="Line" handle="833439395" lineType="1" fMod="427045972" tMod="674436769" fPlg="2" tPlg="2"/>
-            <line type="Line" handle="1197055673" lineType="1" fMod="427045972" tMod="395634574" fPlg="2"/>
-            <line type="Line" handle="392733724" lineType="1" fMod="674436769" tMod="1685381400" tPlg="1"/>
             <line type="Line" handle="1077033675" lineType="1" fMod="997549525" tMod="265024608" fPlg="2" tPlg="1"/>
             <line type="Line" handle="419321233" lineType="1" fMod="780844668" tMod="265024608" fPlg="7" tPlg="2"/>
+            <line type="Line" handle="501375976" lineType="1" fMod="427045972" tMod="395634574"/>
+            <line type="Line" handle="1926519453" lineType="1" fMod="427045972" tMod="674436769" tPlg="2"/>
+            <line type="Line" handle="388666075" lineType="1" fMod="674436769" tMod="1685381400" tPlg="1"/>
+            <line type="Line" handle="1717439118" lineType="1" fMod="2003959737" tMod="427045972" fPlg="1" tPlg="1"/>
+            <line type="Line" handle="1044956190" lineType="1" fMod="323314987" tMod="427045972" fPlg="1" tPlg="2"/>
+            <line type="Line" handle="171059246" lineType="1" fMod="966398023" tMod="1640271786" fPlg="1" tPlg="1"/>
+            <line type="Line" handle="126240951" lineType="1" fMod="1640271786" tMod="427045972" tPlg="3"/>
+            <line type="Line" handle="1898087523" lineType="1" fMod="215806463" tMod="1640271786" fPlg="1" tPlg="2"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
         <PanelLocation l="110" r="665" t="667" b="1091"/>
@@ -138,6 +147,7 @@
                 <Pin name="Filename" datatype="string" default="knob_sm" isFilename="true" metadata="bmp"/>
                 <Pin name="Animation Position" datatype="float"/>
                 <Pin name="Frame Count" datatype="int" direction="out"/>
+                <Pin name="HD" datatype="bool" isMinimised="true"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Blob2ToBlob" name="Blob2 To Blob" flags="33554688" category="Conversion" helpUrl="converters.htm">
@@ -293,16 +303,14 @@
         </Plugin>
         <Plugin id="SE MathGui Add" name="Add (int)" flags="384" category="Experimental/Sub-Controls">
             <GUI>
-                <Pin name="A" datatype="int"/>
-                <Pin name="B" datatype="int"/>
                 <Pin name="Result" datatype="int" direction="out"/>
+                <Pin name="In" datatype="int" autoDuplicate="true"/>
             </GUI>
         </Plugin>
         <Plugin id="SE MathGui Multiply" name="Multiply (int)" flags="384" category="Experimental/Sub-Controls">
             <GUI>
-                <Pin name="A" datatype="int"/>
-                <Pin name="B" datatype="int"/>
                 <Pin name="Result" datatype="int" direction="out"/>
+                <Pin name="In" datatype="int" autoDuplicate="true"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Mouse Target" name="Mouse Target" flags="384" category="Experimental/Sub-Controls">

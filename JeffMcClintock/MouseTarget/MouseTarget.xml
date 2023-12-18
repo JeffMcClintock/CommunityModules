@@ -16,16 +16,14 @@
 	</Plugin>
 	<Plugin id="SE MathGui Multiply" name="Multiply (int)" category="Experimental/Sub-Controls">
 		<GUI>
-			<Pin name="A" datatype="int"/>
-			<Pin name="B" datatype="int"/>
 			<Pin name="Result" datatype="int" direction="out"/>
+			<Pin name="In" datatype="int" autoDuplicate="true" />
 		</GUI>
 	</Plugin>
 	<Plugin id="SE MathGui Add" name="Add (int)" category="Experimental/Sub-Controls">
 		<GUI>
-			<Pin name="A" datatype="int"/>
-			<Pin name="B" datatype="int"/>
 			<Pin name="Result" datatype="int" direction="out"/>
+			<Pin name="In" datatype="int" autoDuplicate="true" />
 		</GUI>
 	</Plugin>
 	<Plugin id="Image4" name="Image4" category="Experimental/Sub-Controls" >
