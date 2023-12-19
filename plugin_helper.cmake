@@ -111,7 +111,7 @@ endmacro()
 
 #more sophistcated
 function(BUILD_GMPI_PLUGIN)
-set(options HAS_DSP HAS_GUI)
+set(options HAS_DSP HAS_GUI IS_OFFICIAL_MODULE)
 set(oneValueArgs PROJECT_NAME)
 set(multiValueArgs SOURCE_FILES)
 cmake_parse_arguments(BUILD_GMPI_PLUGIN "${options}" "${oneValueArgs}"
@@ -138,6 +138,7 @@ endif()
 if(${BUILD_GMPI_PLUGIN_HAS_GUI})
     set(sdk_srcs ${sdk_srcs}
     ${se_sdk_folder}/mp_sdk_gui.h
+    ${se_sdk_folder}/mp_sdk_gui2.h
     ${se_sdk_folder}/mp_sdk_gui.cpp
     )
     set(srcs ${srcs}
@@ -183,18 +184,27 @@ set_target_properties(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PROPERTIES SUFFIX ".sem"
 
 if(WIN32)
 target_link_options(${BUILD_GMPI_PLUGIN_PROJECT_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
+target_compile_definitions (${BUILD_GMPI_PLUGIN_PROJECT_NAME} PRIVATE -D_UNICODE -DUNICODE)
 endif()
 
 if(CMAKE_HOST_WIN32)
 
 if (SE_LOCAL_BUILD)
+if(${BUILD_GMPI_PLUGIN_IS_OFFICIAL_MODULE})
     add_custom_command(TARGET ${BUILD_GMPI_PLUGIN_PROJECT_NAME}
     # Run after all other rules within the target have been executed
     POST_BUILD
-    COMMAND xcopy /c /y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules"
-    COMMENT "Copy to system plugin folder"
-    VERBATIM
-)
+    COMMAND xcopy /c /y "\"$(OutDir)$(TargetName)$(TargetExt)\"" "\"C:\\SE\\SE15\\SynthEdit\\modules64\""
+    COMMENT "Copy to SynthEdit plugin folder"
+    )
+else()
+    add_custom_command(TARGET ${BUILD_GMPI_PLUGIN_PROJECT_NAME}
+    # Run after all other rules within the target have been executed
+    POST_BUILD
+    COMMAND xcopy /c /y "\"$(OutDir)$(TargetName)$(TargetExt)\"" "\"C:\\Program Files\\Common Files\\SynthEdit\\modules\""
+    COMMENT "Copy to SynthEdit plugin folder"
+    )
+endif()
 endif()
 endif()
 

@@ -145,6 +145,7 @@ namespace se_sdk
 	{
 		constexpr double oneOver255 = 1.0f / 255.0f;
 
+//		_RPT0(0, "\n");
 		for (int i = 1; i < 256; ++i)
 		{
 			auto srgb = i * oneOver255;
@@ -152,6 +153,10 @@ namespace se_sdk
 			RgbToFloat[i] = static_cast<float>(FastGamma::gamma22ToLinear(srgb));
 			SrgbToFloat[i] = static_cast<float>(FastGamma::srgbToLinear(srgb));
 			LinearToSRGB[i] = static_cast<float>(FastGamma::srgbToLinear((i - 0.5f) * oneOver255));
+
+//			if ((i & 7) == 0)
+//				_RPT0(0, "\n");
+//			_RPTN(0, "%ff, ", LinearToSRGB[i]);
 		}
 		RgbToFloat[0] = LinearToSRGB[0] = SrgbToFloat[0] = 0.0f;
 
