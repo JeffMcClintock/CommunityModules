@@ -220,10 +220,10 @@ public:
 
 		auto lbitmap = getDrawBitmap();
 
+		// Draw "not loaded" graphic.
 		if (lbitmap == nullptr)
 		{
 			GmpiDrawing::Rect r(topLeft.width, topLeft.height, topLeft.width + 8, topLeft.height + 10);
-			// Draw "not loaded" graphic.
 			auto brush = dc.CreateSolidColorBrush(GmpiDrawing::Color::White);
 			dc.FillRectangle(r, brush);
 
@@ -332,6 +332,19 @@ public:
 		}
 		break;
 		}
+	}
+
+	bool calcFrame(int frameNumber)
+	{
+		if (bitmap_.isNull())
+			return false;
+
+		const auto oldDrawAt = drawAt;
+
+		drawAt = frameNumber * bitmapMetadata_->frameSize.height;
+		drawAt = std::clamp(drawAt, 0, (int) bitmap_.GetSize().height - (int) bitmapMetadata_->frameSize.height);
+
+		return oldDrawAt != drawAt;
 	}
 
 	bool calcDrawAt(float animationPosition)

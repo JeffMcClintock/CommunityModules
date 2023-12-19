@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Document file_format="150000" vst_latencyCompensation="1" vst_preset_count="64">
-    <master_container type="Container" handle="1205675382" name="Main" ViewOpenFlags="256" skin="default2">
+<Document file_format="150000" vst_latencyCompensation="1" vst_user_email="Jeff McClintock" vst_panel_size_w="-842150451" vst_panel_size_h="-842150451" vst_preset_count="64">
+    <master_container type="Container" handle="1205675382" name="Main" ViewOpenFlags="384" skin="default2">
         <plugs>
             <plug idx="7"/>
         </plugs>
@@ -13,115 +13,93 @@
                         <s repeat="128"></s>
                     </patch-list>
                 </param>
+                <param type="6" handle="627911569" module="209106939" moduleParamId="0">
+                    <patch-list>
+                        <s>4</s>
+                        <s repeat="127">0</s>
+                    </patch-list>
+                </param>
                 <param type="4" handle="1667480531" module="780844668" moduleParamId="0">
                     <patch-list>
-                        <s>1</s>
-                        <s repeat="127">0</s>
+                        <s repeat="128">0</s>
                     </patch-list>
                 </param>
             </Parameters>
         </PatchManager>
         <modules>
-            <module type="SE Int64ToIntGui" handle="215806463">
+            <module type="SE Mouse Target" handle="204902708">
                 <plugs>
-                    <plug default="2"/>
+                    <plug default="0"/>
                 </plugs>
-                <structRect l="192" r="264" t="204" b="228"/>
-                <panelRect l="288" r="288" t="216" b="216"/>
+                <structRect l="192" r="300" t="252" b="352"/>
+                <panelRect l="248" r="280" t="176" b="208"/>
+            </module>
+            <module type="SE MT2PMF" handle="195493820">
+                <structRect l="384" r="504" t="324" b="348"/>
+                <panelRect l="312" r="313" t="184" b="185"/>
+            </module>
+            <module type="Image4" handle="1990926855">
+                <plugs>
+                    <plug default="C:\Users\Public\Documents\SynthEdit Projects\skins\default\knob_med.png"/>
+                    <plug default=""/>
+                    <plug default="0" idx="3"/>
+                </plugs>
+                <structRect l="456" r="576" t="348" b="420"/>
+                <panelRect l="248" r="280" t="176" b="208"/>
+            </module>
+            <module type="SE PatchMemory Float" handle="209106939">
+                <structRect l="84" r="204" t="360" b="444"/>
+                <panelRect l="280" r="281" t="224" b="225"/>
+            </module>
+            <module type="SE MathGui Bin2Int" handle="2083069773">
+                <plugs>
+                    <plug id="2" idx="2"/>
+                    <plug id="3"/>
+                </plugs>
+                <structRect l="348" r="408" t="84" b="132"/>
+                <panelRect l="288" r="289" t="216" b="217"/>
             </module>
             <module type="SE Mouse Target" handle="997549525">
                 <plugs>
                     <plug default="0"/>
                 </plugs>
-                <structRect l="36" r="144" t="60" b="160"/>
-                <panelRect l="160" r="288" t="48" b="176"/>
+                <structRect l="24" r="132" t="48" b="148"/>
+                <panelRect l="160" r="224" t="48" b="112"/>
             </module>
             <module type="SE MT2PMB" handle="265024608">
                 <plugs>
                     <plug default="1"/>
                 </plugs>
-                <structRect l="180" r="264" t="252" b="276"/>
+                <structRect l="228" r="288" t="204" b="228"/>
                 <panelRect l="312" r="313" t="184" b="185"/>
             </module>
             <module type="Image4" handle="1685381400">
                 <plugs>
                     <plug default="C:\Users\Public\Documents\SynthEdit Projects\skins\AIMP\Redo.png"/>
+                    <plug default=""/>
+                    <plug default="1" idx="3"/>
                 </plugs>
-                <structRect l="636" r="780" t="72" b="240"/>
-                <panelRect l="160" r="288" t="48" b="176"/>
-            </module>
-            <module type="SE MathGui Add" handle="427045972">
-                <plugs>
-                    <plug id="2" idx="2"/>
-                    <plug id="3"/>
-                    <plug id="4"/>
-                </plugs>
-                <structRect l="372" r="432" t="84" b="144"/>
-                <panelRect l="360" r="361" t="264" b="265"/>
-            </module>
-            <module type="SE BoolToInt GUI" handle="323314987">
-                <structRect l="240" r="312" t="96" b="120"/>
-                <panelRect l="352" r="353" t="264" b="265"/>
-            </module>
-            <module type="SE IntToText GUI" handle="395634574">
-                <structRect l="504" r="576" t="360" b="384"/>
-                <panelRect l="312" r="313" t="184" b="185"/>
-            </module>
-            <module type="SE MathGui Multiply" handle="1640271786">
-                <plugs>
-                    <plug id="2" idx="2"/>
-                    <plug id="3"/>
-                </plugs>
-                <structRect l="288" r="348" t="156" b="204"/>
-                <panelRect l="288" r="289" t="216" b="217"/>
-            </module>
-            <module type="SE BoolToInt GUI" handle="966398023">
-                <structRect l="192" r="264" t="156" b="180"/>
-                <panelRect l="272" r="273" t="224" b="225"/>
+                <structRect l="516" r="636" t="60" b="164"/>
+                <panelRect l="160" r="224" t="48" b="112"/>
             </module>
             <module type="SE PatchMemory Bool" handle="780844668">
                 <structRect l="12" r="132" t="204" b="288"/>
                 <panelRect l="280" r="281" t="224" b="225"/>
             </module>
-            <module type="SynthEdit Image to Frame" handle="674436769">
-                <plugs>
-                    <plug default="4" idx="1"/>
-                </plugs>
-                <structRect l="480" r="600" t="60" b="96"/>
-                <panelRect l="312" r="313" t="184" b="185"/>
-            </module>
-            <module type="SE BoolToInt GUI" handle="2003959737">
-                <structRect l="240" r="312" t="48" b="72"/>
-                <panelRect l="288" r="289" t="216" b="217"/>
-            </module>
-            <module type="SE Text Entry4" handle="1295943398">
-                <plugs>
-                    <plug default="&lt;"/>
-                    <plug default="0" idx="3"/>
-                </plugs>
-                <structRect l="612" r="720" t="372" b="516"/>
-                <panelRect l="112" r="136" t="56" b="80"/>
-            </module>
         </modules>
         <lines>
-            <line type="Line" handle="906346390" lineType="1" fMod="997549525" tMod="2003959737" fPlg="1"/>
-            <line type="Line" handle="1595827332" lineType="1" fMod="780844668" tMod="966398023" fPlg="7"/>
-            <line type="Line" handle="1673498829" lineType="1" fMod="395634574" tMod="1295943398" fPlg="1"/>
-            <line type="Line" handle="406744223" lineType="1" fMod="997549525" tMod="323314987" fPlg="2"/>
-            <line type="Line" handle="1077033675" lineType="1" fMod="997549525" tMod="265024608" fPlg="2" tPlg="1"/>
             <line type="Line" handle="419321233" lineType="1" fMod="780844668" tMod="265024608" fPlg="7" tPlg="2"/>
-            <line type="Line" handle="501375976" lineType="1" fMod="427045972" tMod="395634574"/>
-            <line type="Line" handle="1926519453" lineType="1" fMod="427045972" tMod="674436769" tPlg="2"/>
-            <line type="Line" handle="388666075" lineType="1" fMod="674436769" tMod="1685381400" tPlg="1"/>
-            <line type="Line" handle="1717439118" lineType="1" fMod="2003959737" tMod="427045972" fPlg="1" tPlg="1"/>
-            <line type="Line" handle="1044956190" lineType="1" fMod="323314987" tMod="427045972" fPlg="1" tPlg="2"/>
-            <line type="Line" handle="171059246" lineType="1" fMod="966398023" tMod="1640271786" fPlg="1" tPlg="1"/>
-            <line type="Line" handle="126240951" lineType="1" fMod="1640271786" tMod="427045972" tPlg="3"/>
-            <line type="Line" handle="1898087523" lineType="1" fMod="215806463" tMod="1640271786" fPlg="1" tPlg="2"/>
+            <line type="Line" handle="1162845901" lineType="1" fMod="780844668" tMod="2083069773" fPlg="7" tPlg="2"/>
+            <line type="Line" handle="372913745" lineType="1" fMod="2083069773" tMod="1685381400" tPlg="2"/>
+            <line type="Line" handle="1610757390" lineType="1" fMod="209106939" tMod="1990926855" fPlg="8" tPlg="1"/>
+            <line type="Line" handle="1651001641" lineType="1" fMod="209106939" tMod="195493820" fPlg="8" tPlg="1"/>
+            <line type="Line" handle="1824530681" lineType="1" fMod="997549525" tMod="2083069773" fPlg="1" tPlg="1"/>
+            <line type="Line" handle="1468655434" lineType="1" fMod="997549525" tMod="265024608" fPlg="2" tPlg="1"/>
+            <line type="Line" handle="198264149" lineType="1" fMod="204902708" tMod="195493820" fPlg="4"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
-        <PanelLocation l="110" r="665" t="667" b="1091"/>
-        <StructLocation l="0" r="1036" t="0" b="754"/>
+        <PanelLocation l="636" r="1191" t="290" b="714"/>
+        <StructLocation l="0" r="741" t="0" b="537"/>
         <PanelScroll x="0" y="0"/>
         <StructScroll x="0" y="0"/>
         <PanelWndOffset cx="-99999" cy="-99999"/>
@@ -145,8 +123,8 @@
         <Plugin id="Image4" name="Image4" flags="384" category="Experimental/Sub-Controls">
             <GUI graphicsApi="GmpiGui">
                 <Pin name="Filename" datatype="string" default="knob_sm" isFilename="true" metadata="bmp"/>
-                <Pin name="Animation Position" datatype="float"/>
-                <Pin name="Frame Count" datatype="int" direction="out"/>
+                <Pin name="Animation Position" datatype="float" default="-1"/>
+                <Pin name="Frame" datatype="int" default="-1"/>
                 <Pin name="HD" datatype="bool" isMinimised="true"/>
             </GUI>
         </Plugin>
@@ -173,12 +151,6 @@
                 <Pin name="Bool Val" datatype="bool"/>
                 <Pin name="Int Val" datatype="int" direction="out"/>
             </Audio>
-        </Plugin>
-        <Plugin id="SE BoolToInt GUI" name="Bool To Int" flags="384" category="Sub-Controls/Conversion" helpUrl="Sub-control-converters.htm">
-            <GUI>
-                <Pin name="Bool Val" datatype="bool"/>
-                <Pin name="Int Val" datatype="int" direction="out"/>
-            </GUI>
         </Plugin>
         <Plugin id="SE BoolToText" name="Bool To Text" flags="33554688" category="Conversion" helpUrl="converters.htm">
             <Audio>
@@ -276,12 +248,6 @@
                 <Pin name="Text Val" datatype="string" direction="out"/>
             </Audio>
         </Plugin>
-        <Plugin id="SE IntToText GUI" name="Int To Text" flags="384" category="Sub-Controls/Conversion" helpUrl="Sub-control-converters.htm">
-            <GUI>
-                <Pin name="Int Val" datatype="int"/>
-                <Pin name="Text Val" datatype="string" direction="out"/>
-            </GUI>
-        </Plugin>
         <Plugin id="SE IntToVolts" name="Int to Volts" flags="33554688" category="Conversion" helpUrl="converters.htm">
             <Audio>
                 <Pin name="In" datatype="int"/>
@@ -298,19 +264,19 @@
             <GUI graphicsApi="GmpiGui">
                 <Pin name="Toggle" datatype="bool" isMinimised="true"/>
                 <Pin name="Click" datatype="bool"/>
-                <Pin name="Patch Mem" datatype="bool"/>
+                <Pin name="Value" datatype="bool"/>
             </GUI>
         </Plugin>
-        <Plugin id="SE MathGui Add" name="Add (int)" flags="384" category="Experimental/Sub-Controls">
-            <GUI>
-                <Pin name="Result" datatype="int" direction="out"/>
-                <Pin name="In" datatype="int" autoDuplicate="true"/>
+        <Plugin id="SE MT2PMF" name="Mouse Target to PatchMem Float" flags="384" category="Experimental/Sub-Controls">
+            <GUI graphicsApi="GmpiGui">
+                <Pin name="Drag" datatype="float"/>
+                <Pin name="Animation Position" datatype="float"/>
             </GUI>
         </Plugin>
-        <Plugin id="SE MathGui Multiply" name="Multiply (int)" flags="384" category="Experimental/Sub-Controls">
+        <Plugin id="SE MathGui Bin2Int" name="Binary 2 Int" flags="384" category="Experimental/Sub-Controls">
             <GUI>
                 <Pin name="Result" datatype="int" direction="out"/>
-                <Pin name="In" datatype="int" autoDuplicate="true"/>
+                <Pin name="In" datatype="bool" autoDuplicate="true"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Mouse Target" name="Mouse Target" flags="384" category="Experimental/Sub-Controls">
@@ -318,6 +284,8 @@
                 <Pin name="Show" datatype="bool" isMinimised="true"/>
                 <Pin name="Hover" datatype="bool" direction="out"/>
                 <Pin name="Left Click" datatype="bool" direction="out"/>
+                <Pin name="Drag H" datatype="float" direction="out"/>
+                <Pin name="Drag V" datatype="float" direction="out"/>
             </GUI>
         </Plugin>
         <Plugin id="SE PatchMemory Bool" name="PatchMemory Bool" flags="384" category="Sub-Controls" helpUrl="Patchmemory.htm">
@@ -343,18 +311,27 @@
                 <Pin name="Mouse Down" datatype="bool" direction="out"/>
             </GUI>
         </Plugin>
-        <Plugin id="SE Text Entry4" name="Text Entry4" flags="384" category="Sub-Controls">
-            <GUI graphicsApi="GmpiGui">
-                <Pin name="Text" datatype="string"/>
-                <Pin name="Style" datatype="string" default="normal"/>
-                <Pin name="Multiline" datatype="bool"/>
-                <Pin name="Writeable" datatype="bool" default="1"/>
-                <Pin name="Greyed" datatype="bool"/>
-                <Pin name="Hint" datatype="string"/>
-                <Pin name="Menu Items" datatype="string"/>
-                <Pin name="Menu Selection" datatype="int"/>
-                <Pin name="Mouse Down" datatype="bool" direction="out" private="true"/>
-                <Pin name="Mouse Down" datatype="bool"/>
+        <Plugin id="SE PatchMemory Float" name="PatchMemory Float3" flags="384" category="Sub-Controls" helpUrl="Patchmemory.htm">
+            <Parameters>
+                <Parameter id="0" datatype="float" name=""/>
+            </Parameters>
+            <Audio>
+                <Pin name="Value In" datatype="float" private="true" parameterId="0"/>
+                <Pin name="Value Out" datatype="float" direction="out" autoConfigureParameter="true"/>
+            </Audio>
+            <GUI>
+                <Pin name="Value In" datatype="float" private="true" parameterId="0"/>
+                <Pin name="Name In" datatype="string" private="true" parameterId="0" parameterField="ShortName"/>
+                <Pin name="Menu Items" datatype="string" private="true" parameterId="0" parameterField="MenuItems"/>
+                <Pin name="Menu Selection" datatype="int" private="true" parameterId="0" parameterField="MenuSelection"/>
+                <Pin name="Mouse Down" datatype="bool" private="true" parameterId="0" parameterField="Grab"/>
+                <Pin name="AnimationIn" datatype="float" private="true" parameterId="0" parameterField="Normalized"/>
+                <Pin name="Name" datatype="string" direction="out"/>
+                <Pin name="Value" datatype="float" direction="out"/>
+                <Pin name="Animation Position" datatype="float" direction="out"/>
+                <Pin name="Menu Items" datatype="string" direction="out"/>
+                <Pin name="Menu Selection" datatype="int" direction="out"/>
+                <Pin name="Mouse Down" datatype="bool" direction="out"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Text8ToText" name="Text8 To Text" flags="33554688" category="Debug" helpUrl="converters.htm">
@@ -406,13 +383,6 @@
                 <Pin name="In" datatype="float" rate="audio"/>
                 <Pin name="Out" datatype="int" direction="out"/>
             </Audio>
-        </Plugin>
-        <Plugin id="SynthEdit Image to Frame" name="Image to Frame" flags="384" category="Sub-Controls" helpUrl="ImageToFrame.htm">
-            <GUI>
-                <Pin name="Animation Position" datatype="float" direction="out"/>
-                <Pin name="Frame Count" datatype="int"/>
-                <Pin name="Frame Number" datatype="int"/>
-            </GUI>
         </Plugin>
     </PluginList>
 </Document>

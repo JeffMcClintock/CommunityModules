@@ -12,7 +12,8 @@ Image4Gui::Image4Gui()
 {
 	initializePin(pinFilename, static_cast<MpGuiBaseMemberPtr2>(&Image4Gui::onSetFilename));
 	initializePin(pinAnimationPosition, static_cast<MpGuiBaseMemberPtr2>( &Image4Gui::calcDrawAt ));
-	initializePin(pinFrameCount);
+	initializePin(pinFrame, static_cast<MpGuiBaseMemberPtr2>(&Image4Gui::calcDrawAt));
+	initializePin(pinHdMode);
 }
 
 void Image4Gui::onSetFilename()
@@ -32,9 +33,22 @@ void Image4Gui::onSetFilename()
 
 int32_t Image4Gui::OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext)
 {
-	GmpiDrawing::Graphics dc2(drawingContext);
+	GmpiDrawing::Graphics g(drawingContext);
 
-	renderBitmap(dc2, SizeU(0, 0));
+	if (pinHdMode)
+	{
+		const auto originalTransform = g.GetTransform();
+		const auto adjustedTransform = Matrix3x2::Scale({ 0.5f, 0.5f }) * originalTransform;
+		g.SetTransform(adjustedTransform);
+
+		renderBitmap(g, { 0, 0 });
+
+		g.SetTransform(originalTransform);
+	}
+	else
+	{
+		renderBitmap(g, { 0, 0 });
+	}
 
 	return gmpi::MP_OK;
 }
@@ -46,8 +60,16 @@ void Image4Gui::setAnimationPos(float p)
 
 void Image4Gui::calcDrawAt()
 {
-	if (skinBitmap::calcDrawAt(getAnimationPos()))
-		invalidateRect();
+	if(pinFrame >= 0)
+	{
+		if (skinBitmap::calcFrame(pinFrame))
+			invalidateRect();
+	}
+	else
+	{
+		if (skinBitmap::calcDrawAt(pinAnimationPosition))
+			invalidateRect();
+	}
 }
 
 void Image4Gui::onLoaded()
@@ -55,7 +77,7 @@ void Image4Gui::onLoaded()
 	if (bitmapMetadata_)
 	{
 		int fc = bitmapMetadata_->getFrameCount();
-		pinFrameCount = fc;
+		pinFrame = fc;
 	}
 }
 
@@ -64,6 +86,12 @@ int32_t Image4Gui::measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_
 	if( !bitmap_.isNull() )
 	{
 		*returnDesiredSize = bitmapMetadata_->getPaddedFrameSize();
+
+		if (pinHdMode)
+		{
+			returnDesiredSize->width /= 2;
+			returnDesiredSize->height /= 2;
+		}
 	}
 	else
 	{

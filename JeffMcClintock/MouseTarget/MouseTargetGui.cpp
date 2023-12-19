@@ -23,6 +23,10 @@ class MouseTargetGui final : public gmpi_gui::MpGuiGfxBase
 	BoolGuiPin pinShow;
 	BoolGuiPin pinHover;
 	BoolGuiPin pinLeftClick;
+	FloatGuiPin pinDragH;
+	FloatGuiPin pinDragV;
+
+	GmpiDrawing::Point prevPoint{};
 
 public:
 	MouseTargetGui()
@@ -30,6 +34,8 @@ public:
 		initializePin(pinShow);
 		initializePin(pinHover);
 		initializePin(pinLeftClick);
+		initializePin(pinDragH);
+		initializePin(pinDragV);
 	}
 
 	int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext ) override
@@ -48,12 +54,20 @@ public:
 	int32_t MP_STDCALL onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point) override
 	{
 		setCapture();
+		prevPoint = point;
 		pinLeftClick = true;
 		return gmpi::MP_OK;
 	}
 
 	int32_t MP_STDCALL onPointerMove(int32_t flags, GmpiDrawing_API::MP1_POINT point) override
 	{
+		if (getCapture())
+		{
+			pinDragH = pinDragH + point.x - prevPoint.x;
+			pinDragV = pinDragV + prevPoint.y - point.y;
+		}
+		prevPoint = point;
+
 		return hitTest(point);
 	}
 
@@ -111,4 +125,32 @@ public:
 namespace
 {
 	auto r2 = Register<MT2PMB>::withId(L"SE MT2PMB");
+}
+
+
+// Mouse Target to Patch Mem - Bool
+class MT2PMF final : public SeGuiInvisibleBase
+{
+	FloatGuiPin pinDrag;
+	FloatGuiPin pinPatchMem;
+	float lastDrag = 0.0f;
+
+public:
+	MT2PMF()
+	{
+		initializePin(pinDrag, static_cast<MpGuiBaseMemberPtr2>(&MT2PMF::recalc));
+		initializePin(pinPatchMem);
+	}
+
+	void recalc()
+	{
+		const float newNormalized = pinPatchMem + 0.01f * (pinDrag - lastDrag);
+		pinPatchMem = std::clamp(newNormalized, 0.0f, 1.0f);
+		lastDrag = pinDrag;
+	}
+};
+
+namespace
+{
+	auto r4 = Register<MT2PMF>::withId(L"SE MT2PMF");
 }

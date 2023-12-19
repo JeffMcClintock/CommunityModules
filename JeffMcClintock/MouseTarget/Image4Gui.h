@@ -8,14 +8,12 @@ class Image4Gui: public gmpi_gui::MpGuiGfxBase, public skinBitmap
 protected:
 	StringGuiPin pinFilename;
 	FloatGuiPin pinAnimationPosition;
-	IntGuiPin pinFrameCount;
+	IntGuiPin pinFrame;
+	BoolGuiPin pinHdMode;
 
 public:
 	Image4Gui();
 
-	float getAnimationPos(){
-		return pinAnimationPosition;
-	}
 	void setAnimationPos(float p);
 	void onSetFilename();
 	void onLoaded();

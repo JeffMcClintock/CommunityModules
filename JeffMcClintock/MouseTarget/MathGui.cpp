@@ -21,7 +21,6 @@ template<class T>
 class MultiplyGui final : public SeGuiInvisibleBase
 {
 	static constexpr int fixedPinCount = 1;
-	int autoPinCount{};
 	MpGuiPin<T> pinResult;
 	std::vector< std::unique_ptr< MpGuiPin<T> > > pinIns;
 
@@ -36,24 +35,22 @@ public:
 		int plugIndex = pinId - fixedPinCount; // Calc index of autoduplicating pin.
 
 		// Add autoduplicate pins as needed.
-		while ((int)pinIns.size() < plugIndex + 1)
+		while ((int)pinIns.size() <= plugIndex)
 		{
-			const int pinId = static_cast<int>(pinIns.size()) + fixedPinCount;
 			pinIns.push_back(std::make_unique< MpGuiPin<T> >());
-			initializePin(pinId, *pinIns.back());
-			autoPinCount = static_cast<int>(pinIns.size());
+			initializePin(*pinIns.back());
 		}
 
 		auto result = MpGuiBase2::setPin(pinId, voice, size, data);
 
-		int sum{1};
+		T sum{1};
 
 		for (auto& it : pinIns)
 		{
 			sum *= it->getValue();
 		};
 
-		pinResult = sum;
+		pinResult = pinIns.empty() ? T{} : sum;
 
 		return result;
 	}
@@ -67,7 +64,6 @@ template<class T>
 class AdderGui final : public SeGuiInvisibleBase
 {
 	static constexpr int fixedPinCount = 1;
-	int autoPinCount{};
 	MpGuiPin<T> pinResult;
 	std::vector< std::unique_ptr< MpGuiPin<T> > > pinIns;
 
@@ -82,17 +78,15 @@ public:
 		int plugIndex = pinId - fixedPinCount; // Calc index of autoduplicating pin.
 
 		// Add autoduplicate pins as needed.
-		while ((int)pinIns.size() < plugIndex + 1)
+		while ((int)pinIns.size() <= plugIndex)
 		{
-			const int pinId = static_cast<int>(pinIns.size()) + fixedPinCount;
 			pinIns.push_back(std::make_unique< MpGuiPin<T> >());
-			initializePin(pinId, *pinIns.back());
-			autoPinCount = static_cast<int>(pinIns.size());
+			initializePin(*pinIns.back());
 		}
 
 		auto result = MpGuiBase2::setPin(pinId, voice, size, data);
 
-		int sum{};
+		T sum{};
 
 		for (auto& it : pinIns)
 		{
@@ -108,4 +102,48 @@ public:
 namespace
 {
 	auto r2 = Register< AdderGui<int32_t> >::withId(L"SE MathGui Add");
+}
+
+class Bin2IntGui final : public SeGuiInvisibleBase
+{
+	static constexpr int fixedPinCount = 1;
+	IntGuiPin pinResult;
+	std::vector< std::unique_ptr< MpGuiPin<bool> > > pinIns;
+
+public:
+	Bin2IntGui()
+	{
+		initializePin(pinResult);
+	}
+
+	int32_t MP_STDCALL setPin(int32_t pinId, int32_t voice, int32_t size, const void* data) override
+	{
+		const int plugIndex = pinId - fixedPinCount; // Calc index of autoduplicating pin.
+
+		// Add autoduplicate pins as needed.
+		while ((int)pinIns.size() <= plugIndex)
+		{
+			pinIns.push_back(std::make_unique< MpGuiPin<bool> >());
+			initializePin(*pinIns.back());
+		}
+
+		auto result = MpGuiBase2::setPin(pinId, voice, size, data);
+
+		int32_t sum{};
+		int32_t mask{ 1 };
+		for (auto& it : pinIns)
+		{
+			sum |= it->getValue() ? mask : 0;
+			mask <<= 1;
+		};
+
+		pinResult = sum;
+
+		return result;
+	}
+};
+
+namespace
+{
+	auto r3 = Register<Bin2IntGui>::withId(L"SE MathGui Bin2Int");
 }

@@ -5,13 +5,21 @@
 			<Pin name="Show" datatype="bool" isMinimised="true"/>
 			<Pin name="Hover" datatype="bool" direction="out"/>
 			<Pin name="Left Click" datatype="bool" direction="out"/>
+			<Pin name="Drag H" datatype="float" direction="out"/>
+			<Pin name="Drag V" datatype="float" direction="out"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE MT2PMB" name="Mouse Target to PatchMem Bool" category="Experimental/Sub-Controls">
 		<GUI graphicsApi="GmpiGui">
 			<Pin name="Toggle" datatype="bool" isMinimised="true"/>
-			<Pin name="Click" datatype="bool" direction="in"/>
-			<Pin name="Patch Mem" datatype="bool" direction="in"/>
+			<Pin name="Click" datatype="bool"/>
+			<Pin name="Value" datatype="bool"/>
+		</GUI>
+	</Plugin>
+	<Plugin id="SE MT2PMF" name="Mouse Target to PatchMem Float" category="Experimental/Sub-Controls">
+		<GUI graphicsApi="GmpiGui">
+			<Pin name="Drag" datatype="float"/>
+			<Pin name="Animation Position" datatype="float"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE MathGui Multiply" name="Multiply (int)" category="Experimental/Sub-Controls">
@@ -26,11 +34,17 @@
 			<Pin name="In" datatype="int" autoDuplicate="true" />
 		</GUI>
 	</Plugin>
+	<Plugin id="SE MathGui Bin2Int" name="Binary 2 Int" category="Experimental/Sub-Controls">
+		<GUI>
+			<Pin name="Result" datatype="int" direction="out"/>
+			<Pin name="In" datatype="bool" autoDuplicate="true" />
+		</GUI>
+	</Plugin>
 	<Plugin id="Image4" name="Image4" category="Experimental/Sub-Controls" >
 		<GUI graphicsApi="GmpiGui">
 			<Pin name="Filename" datatype="string" default="knob_sm" isFilename="true" metadata="bmp" />
-			<Pin name="Animation Position" datatype="float" />
-			<Pin name="Frame Count" datatype="int" direction="out" />
+			<Pin name="Animation Position" datatype="float" default="-1" />
+			<Pin name="Frame" datatype="int" default="-1" />
 			<Pin name="HD" datatype="bool" isMinimised="true"/>
 		</GUI>
 	</Plugin>
