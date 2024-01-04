@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PluginList>
-    <Plugin id="SE Dent" name="Dent" category="SubControls">
+    <Plugin id="SE Dent" name="Dent" category="Sub-Controls">
         <GUI graphicsApi="GmpiGui">
             <Pin name="Corner Radius" datatype="float" default="10" isMinimised="true"/>
             <Pin name="Top Left" datatype="bool" default="1" isMinimised="true"/>

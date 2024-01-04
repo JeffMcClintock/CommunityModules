@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PluginList>
+	<Plugin id="SE Color Switch" name="Color Switch" category="Experimental/Sub-Controls">
+		<GUI>
+			<Pin name="Out" datatype="int64" direction="out"/>
+			<Pin name="Select" datatype="int"/>
+			<Pin name="In" datatype="int64" autoDuplicate="true"/>
+		</GUI>
+	</Plugin>
+	<Plugin id="SE Dumb Label" name="Label" category="Experimental/Sub-Controls">
+		<GUI graphicsApi="GmpiGui">
+			<Pin name="Text" datatype="string" default="&#x2660;"/> <!-- unicode char number 2660 (hex) -->
+			<Pin name="Color" datatype="int64" default="4278190080" />
+		</GUI>
+	</Plugin>
 	<Plugin id="SE Mouse Target" name="Mouse Target" category="Experimental/Sub-Controls">
 		<GUI graphicsApi="GmpiGui">
 			<Pin name="Show" datatype="bool" isMinimised="true"/>

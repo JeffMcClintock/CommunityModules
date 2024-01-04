@@ -55,6 +55,7 @@ public:
 		return result;
 	}
 };
+
 namespace
 {
 	auto r = Register<MultiplyGui<int32_t> >::withId(L"SE MathGui Multiply");

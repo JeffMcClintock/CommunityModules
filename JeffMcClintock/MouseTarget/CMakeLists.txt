@@ -10,6 +10,8 @@ build_gmpi_plugin(
         MathGui.cpp
         Image4Gui.h
         Image4Gui.cpp
+        LabelGui.cpp
+        ColorSwitchGui.cpp
         ${se_shared_folder}/skinBitmap.h
         ${se_shared_folder}/ImageMetadata.h
         ${se_shared_folder}/ImageMetadata.cpp
