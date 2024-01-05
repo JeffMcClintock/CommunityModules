@@ -7,6 +7,7 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
 set(SE_LOCAL_BUILD FALSE CACHE BOOL "Execute extra build steps for developers machine")
+set(IS_OFFICIAL_MODULE TRUE)
 
 # This is for macOS commandline only, because it uses a single-target generator. for other targets, ref: target_compile_definitions
 # this point of this is to ensure NDEBUG macro is set
@@ -118,3 +119,24 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
+
+if(CMAKE_HOST_WIN32)
+
+if (SE_LOCAL_BUILD)
+if(${IS_OFFICIAL_MODULE})
+    add_custom_command(TARGET ${PROJECT_NAME}
+    # Run after all other rules within the target have been executed
+    POST_BUILD
+    COMMAND xcopy /c /y "\"$(OutDir)$(TargetName)$(TargetExt)\"" "\"C:\\SE\\SE15\\SynthEdit\\modules64\\\""
+    COMMENT "Copy to SynthEdit plugin folder"
+    )
+else()
+    add_custom_command(TARGET ${PROJECT_NAME}
+    # Run after all other rules within the target have been executed
+    POST_BUILD
+    COMMAND xcopy /c /y "\"$(OutDir)$(TargetName)$(TargetExt)\"" "\"C:\\Program Files\\Common Files\\SynthEdit\\modules\""
+    COMMENT "Copy to SynthEdit plugin folder"
+    )
+endif()
+endif()
+endif()

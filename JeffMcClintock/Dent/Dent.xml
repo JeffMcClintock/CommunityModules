@@ -7,7 +7,9 @@
             <Pin name="Top Right" datatype="bool" default="1" isMinimised="true"/>
             <Pin name="Bottom Left" datatype="bool" default="1" isMinimised="true"/>
             <Pin name="Bottom Right" datatype="bool" default="1" isMinimised="true"/>
-            <Pin name="Depth" datatype="int" default="6"/>
-        </GUI>
+			<Pin name="Blur" datatype="int" default="6"/>
+			<Pin name="Color" datatype="string" default="FF000000"/>
+			<Pin name="Intensity" datatype="float" default="0.5"/>
+		</GUI>
     </Plugin>
 </PluginList>

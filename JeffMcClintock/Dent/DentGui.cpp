@@ -61,8 +61,11 @@ class DentGui final : public gmpi_gui::MpGuiGfxBase
  	BoolGuiPin pinTopRight;
  	BoolGuiPin pinBottomLeft;
  	BoolGuiPin pinBottomRight;
- 	IntGuiPin pinDepth;
- 	StringGuiPin pinBottomColor;
+ 	IntGuiPin pinBlurRadius;
+ 	StringGuiPin pinColor;
+	FloatGuiPin pinIntensity;
+
+//	const float blurRadius = 10.0f;
 
 public:
 	DentGui()
@@ -72,14 +75,16 @@ public:
 		initializePin( pinTopRight, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopRight) );
 		initializePin( pinBottomLeft, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetBottomLeft) );
 		initializePin( pinBottomRight, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetBottomRight) );
-		initializePin(pinDepth, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor) );
+		initializePin(pinBlurRadius, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
+		initializePin(pinColor, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
+		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
 	}
 
-	int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override
+	// draw a white image on a black background, suitable for blurring
+	void drawMask(BitmapRenderTarget& g)
 	{
-		Graphics g(drawingContext);
+		auto r = getClientRect();
 
-		auto r = getRect();
 		int width = r.right - r.left;
 		int height = r.bottom - r.top;
 
@@ -166,27 +171,139 @@ public:
 			{ 1.0f, Color{0x000000u, 0.05f} },
 		};
 
-		auto gradientBrush = g.CreateLinearGradientBrush(gradientStops, point1, point2);
+		bool outerBlur = true;
 
-		const auto orig = g.GetTransform();
+		auto brush = g.CreateSolidColorBrush(outerBlur ? Color::White : Color::Black);
 
-		for (int x = -1 ; x < 2; ++x)
+		g.Clear(outerBlur ? Color::Black : Color::White);
+		g.FillGeometry(geometry, brush);
+	}
+
+	int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override
+	{
+		Graphics g_orig(drawingContext);
+
+		auto r = getRect();
+		// Draw the black and white mask.
+		auto g_mask = g_orig.CreateCompatibleRenderTarget(Size(r.getWidth(), r.getHeight()));
+		g_mask.BeginDraw();
+
+		const int blurRadius = pinBlurRadius;
+		g_mask.SetTransform(Matrix3x2::Translation(blurRadius, blurRadius));
+
+		drawMask(g_mask);
+
+		g_mask.EndDraw();
+
+		// blur the mask.
+		if(true)
 		{
-			for (int i = -5; i < 6; ++i)
+			auto bm = g_mask.GetBitmap();
+			auto imageSize = bm.GetSize();
+			auto pixelsSource = bm.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+			int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+
+			int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+
+			std::vector<float> linearImageOut(imageSize.width * imageSize.height, 0.0f);
+
+//			float error = {}; // dithering
+
+			// Copt the image intensity to a linear float format
+			for (int y = 0; y < imageSize.height; ++y)
 			{
-				g.SetTransform(orig * Matrix3x2::Translation(x, i));
-				g.FillGeometry(geometry, gradientBrush);
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					const auto intensity = pinIntensity * se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+
+					if (intensity > 0.0f)
+					{
+						for (int dy = y - blurRadius; dy < y + blurRadius; ++dy)
+						{
+							for (int dx = x - blurRadius; dx < x + blurRadius; ++dx)
+							{
+								if (dx >= 0 && dx < imageSize.width && dy >= 0 && dy < imageSize.height)
+								{
+									linearImageOut[dy * imageSize.width + dx] += intensity;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// mask off pixels under the mask itself
+			if(0)
+			{
+				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+
+				for (int y = 0; y < imageSize.height; ++y)
+				{
+					for (int x = 0; x < imageSize.width; ++x)
+					{
+						const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+
+						if (intensity > 0.0f)
+						{
+							linearImageOut[y * imageSize.width + x] *= 1.0f - intensity;
+						}
+//						linearImageOut[y * imageSize.width + x] *= intensity;
+					}
+				}
+			}
+
+			// overwrite the bitmap with the blurred image.
+			{
+				Color tint = Color::FromHexString(pinColor);
+				const bool subtractive = tint.r == 0.0f && tint.g == 0.0f && tint.b == 0.0f;
+
+				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+
+				for (int y = 0; y < imageSize.height; ++y)
+				{
+					for (int x = 0; x < imageSize.width; ++x)
+					{
+						const auto intensity = (std::min)(1.0f, linearImageOut[y * imageSize.width + x]);
+
+						Color c = tint;
+						if (subtractive) // shadow
+						{
+							c.a = intensity;
+						}
+						else // glow
+						{
+							c.a = 0.0f;// -intensity;
+							// pre-multiply
+							c.r *= intensity;
+							c.g *= intensity;
+							c.b *= intensity;
+						}
+
+						int32_t pixelVal =
+							se_sdk::FastGamma::float_to_sRGB(c.r) |
+							(se_sdk::FastGamma::float_to_sRGB(c.g) << 8) |
+							(se_sdk::FastGamma::float_to_sRGB(c.b) << 16) |
+							(se_sdk::FastGamma::fastNormalisedToPixel(c.a) << 24);
+
+						//int32_t colorVal = pixelVal << 24; // | (pixelVal << 8) | (pixelVal << 16) | 0xff000000;
+						*sourcePixels++ = pixelVal;
+					}
+				}
 			}
 		}
 
-		g.SetTransform(orig);
-
-		auto fillBrush = g.CreateSolidColorBrush(Color::FromArgb(0xff555555));
-		g.FillGeometry(geometry, fillBrush);
+		g_orig.DrawBitmap(g_mask.GetBitmap(), Point(0, 0), r);
 
 		return gmpi::MP_OK;
 	}
 
+	Rect getClientRect()
+	{
+		auto r = getRect();
+		r.Deflate(pinBlurRadius);
+
+		return r;
+	}
 };
 
 namespace
