@@ -5,9 +5,9 @@
       <Pin name="MIDI In" datatype="midi" />
       <Pin name="Filename" datatype="string"  isFilename="true" metadata="sfz" />
       <Pin name="Voice Count" datatype="int" default="64" />
-      <Pin name="Oversampling" datatype="enum" default="3" metadata="1=1,2=2,4=4,8=8" />
       <Pin name="Output L" datatype="float" rate="audio" direction="out" />
       <Pin name="Output R" datatype="float" rate="audio" direction="out" />
-    </Audio>
+      <Pin name="Process Mode" datatype="int" private="true" hostConnect="Processor/OfflineRenderMode" />
+	</Audio>
   </Plugin>
 </PluginList>

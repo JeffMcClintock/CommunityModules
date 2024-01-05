@@ -14,9 +14,10 @@ class SamplePlayerSfz : public MpBase2
 	MidiInPin pinMIDIIn;
 	StringInPin pinFilename;
 	IntInPin pinVoiceCount;
-	IntInPin pinOversampling;
-	AudioOutPin pinOutputLeft;
+    IntInPin pinOversampling;
+    AudioOutPin pinOutputLeft;
 	AudioOutPin pinOutputRight;
+    IntInPin pinProcessMode;
 
     // synth state. acquire processMutex before accessing
     std::unique_ptr<sfz::Sfizz> _synth;
@@ -29,6 +30,8 @@ class SamplePlayerSfz : public MpBase2
     bool firstTime = true;
 
     gmpi::midi_2_0::MidiConverter2 midiConverter;
+    std::string loadFilename;
+    std::atomic<bool> loadNewZfzFlag;
 
 public:
 	SamplePlayerSfz() :
@@ -41,47 +44,38 @@ public:
         )
     {
 		initializePin( pinMIDIIn );
-//		initializePin( pinChannel );
 		initializePin( pinFilename );
 		initializePin( pinVoiceCount );
-		initializePin( pinOversampling );
 		initializePin( pinOutputLeft );
-		initializePin( pinOutputRight );
+        initializePin(pinOutputRight);
+        initializePin(pinProcessMode);      
 	}
 
     ~SamplePlayerSfz()
     {
-        // ask thread to stop
-        {
-            closeBackgroundThread = true;
-        }
-        signalBackgroundThread();
-
+        closeBackgroundThread = true;
         _worker.join();
-    }
-
-    void signalBackgroundThread()
-    {
     }
 
     void doBackgroundWork()
     {
         while (!closeBackgroundThread)
         {
+            updateSfizz();
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        }
+    }
 
-            // Perform time-consuming operations.
-            if (pinVoiceCount.getValue() > 0) // skip this until pins are init to proper values.
-            {
-                _synth->setNumVoices((std::max)(1, pinVoiceCount.getValue()));
-                _synth->setOversamplingFactor(pinOversampling);
-            }
+    void updateSfizz()
+    {
+        // Perform time-consuming operations.
+        _synth->setNumVoices((std::max)(1, pinVoiceCount.getValue()));
 
-            if (_synth->shouldReloadFile())
-            {
-                std::unique_lock<std::mutex> lock(_processMutex);
-                loadFile();
-            }
+        const bool shouldReload = loadNewZfzFlag.exchange(false) || _synth->shouldReloadFile();
+        if (shouldReload)
+        {
+            std::unique_lock<std::mutex> lock(_processMutex);
+            _synth->loadSfzFile(loadFilename);
         }
     }
 
@@ -96,8 +90,6 @@ public:
 
         _synth->setSampleRate(getSampleRate());
         _synth->setSamplesPerBlock(getBlockSize());
-
-        _worker = std::thread([this]() { doBackgroundWork(); });
 
         return MpBase2::open();
     }
@@ -264,46 +256,42 @@ public:
         };
     }
     
-    void loadFile()
-    {
-        wchar_t fullFilename[500];
-        getHost()->resolveFilename(pinFilename.getValue().c_str(), std::size(fullFilename), fullFilename);
-        std::wstring temp(fullFilename);
-
-        const auto filename = FastUnicode::WStringToUtf8(temp);
-
-        _synth->loadSfzFile(filename);
-    }
-
 	void onSetPins(void) override
 	{
-		// Check which pins are updated.
-		if( pinVoiceCount.isUpdated() || pinOversampling.isUpdated())
+		if( pinFilename.isUpdated() )
 		{
-            if (!firstTime)
+            wchar_t fullFilename[500];
+            getHost()->resolveFilename(pinFilename.getValue().c_str(), std::size(fullFilename), fullFilename);
+            std::wstring temp(fullFilename);
+
+            loadFilename = FastUnicode::WStringToUtf8(temp);
+            if (pinProcessMode == 2) // Offline
             {
-                _synth->setNumVoices((std::max)(1, pinVoiceCount.getValue()));
-                _synth->setOversamplingFactor(pinOversampling);
+                _synth->loadSfzFile(loadFilename);
             }
             else
             {
-                signalBackgroundThread();
+                loadNewZfzFlag.store(true);
             }
-		}
+        }
 
-		if( pinFilename.isUpdated() )
-		{
-            loadFile();
-		}
+        if (firstTime)
+        {
+            if (pinProcessMode == 2) // Offline
+            {
+                _synth->setNumVoices((std::max)(1, pinVoiceCount.getValue()));
+            }
 
-		// Set state of output audio pins.
-		pinOutputLeft.setStreaming(true);
-		pinOutputRight.setStreaming(true);
+            _worker = std::thread([this]() { doBackgroundWork(); });
+            firstTime = false;
+        }
 
 		// Set sleep mode (optional).
 		setSleep(false);
 
-        firstTime = false;
+		// Set state of output audio pins.
+		pinOutputLeft.setStreaming(true);
+		pinOutputRight.setStreaming(true);
 	}
 };
 
