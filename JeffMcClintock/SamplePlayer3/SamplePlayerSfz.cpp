@@ -54,7 +54,8 @@ public:
     ~SamplePlayerSfz()
     {
         closeBackgroundThread = true;
-        _worker.join();
+        if(_worker.joinable())
+            _worker.join();
     }
 
     void doBackgroundWork()
@@ -87,7 +88,6 @@ public:
         _synth->timeSignature(0, 4, 4);
         _synth->timePosition(0, 0, 0);
         _synth->playbackState(0, 0);
-
         _synth->setSampleRate(getSampleRate());
         _synth->setSamplesPerBlock(getBlockSize());
 
