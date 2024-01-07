@@ -19,7 +19,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 using namespace gmpi;
 using namespace GmpiDrawing;
 
-class DentGui final : public gmpi_gui::MpGuiGfxBase
+class DentGuiB final : public gmpi_gui::MpGuiGfxBase
 {
  	void onSetCornerRadius()
 	{
@@ -68,16 +68,16 @@ class DentGui final : public gmpi_gui::MpGuiGfxBase
 //	const float blurRadius = 10.0f;
 
 public:
-	DentGui()
+	DentGuiB()
 	{
-		initializePin( pinCornerRadius, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetCornerRadius) );
-		initializePin( pinTopLeft, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopLeft) );
-		initializePin( pinTopRight, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopRight) );
-		initializePin( pinBottomLeft, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetBottomLeft) );
-		initializePin( pinBottomRight, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetBottomRight) );
-		initializePin(pinBlurRadius, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
-		initializePin(pinColor, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
-		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
+		initializePin( pinCornerRadius, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetCornerRadius) );
+		initializePin( pinTopLeft, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopLeft) );
+		initializePin( pinTopRight, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopRight) );
+		initializePin( pinBottomLeft, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetBottomLeft) );
+		initializePin( pinBottomRight, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetBottomRight) );
+		initializePin(pinBlurRadius, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopColor));
+		initializePin(pinColor, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopColor));
+		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopColor));
 	}
 
 	// draw a white image on a black background, suitable for blurring
@@ -184,115 +184,72 @@ public:
 		Graphics g_orig(drawingContext);
 
 		auto r = getRect();
-		// Draw the black and white mask.
-		auto g_mask = g_orig.CreateCompatibleRenderTarget(Size(r.getWidth(), r.getHeight()));
-		g_mask.BeginDraw();
+		auto bitmapMem = GetGraphicsFactory().CreateImage(r.getWidth(), r.getHeight());
 
-		const int blurRadius = pinBlurRadius;
-		g_mask.SetTransform(Matrix3x2::Translation(blurRadius, blurRadius));
-
-		drawMask(g_mask);
-
-		g_mask.EndDraw();
-
-		// blur the mask.
-		if(true)
 		{
-			auto bm = g_mask.GetBitmap();
-			auto imageSize = bm.GetSize();
-			auto pixelsSource = bm.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+			auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+			auto imageSize = bitmapMem.GetSize();
 			int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
 
-			int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+			uint8_t* sourcePixels = pixelsSource.getAddress();
 
-			std::vector<float> linearImageOut(imageSize.width * imageSize.height, 0.0f);
+			Point center(r.getWidth() / 2, r.getHeight() / 2);
+			float radius = (std::min)(center.x, center.y) * 0.8f;
+			float planeDepth = radius * 2.0f;
 
-//			float error = {}; // dithering
+			constexpr float sqrrt_one_third = 0.57735026918962576450914878050196f;
+			const float light_normal[3]{ -sqrrt_one_third, -sqrrt_one_third, sqrrt_one_third };
+			const float ambient_intensity = 0.3f;
+			const float directional_intensity = 1.0f - ambient_intensity;
 
-			// Copt the image intensity to a linear float format
-			for (int y = 0; y < imageSize.height; ++y)
+			for (float y = 0; y < r.getHeight(); y++)
 			{
-				for (int x = 0; x < imageSize.width; ++x)
+				float alpha = 1.0f;
+				for (float x = 0; x < r.getWidth(); x++)
 				{
-					const auto intensity = pinIntensity * se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+					float r = sqrt((x - center.x) * (x - center.x) + (y - center.y) * (y - center.y));
 
-					if (intensity > 0.0f)
+					float normal[3];
+
+					float z{};
+					if (r > radius)
 					{
-						for (int dy = y - blurRadius; dy < y + blurRadius; ++dy)
-						{
-							for (int dx = x - blurRadius; dx < x + blurRadius; ++dx)
-							{
-								if (dx >= 0 && dx < imageSize.width && dy >= 0 && dy < imageSize.height)
-								{
-									linearImageOut[dy * imageSize.width + dx] += intensity;
-								}
-							}
-						}
+						z = planeDepth;
+
+						// normal points at camera.
+						normal[0] =0.0f;
+						normal[1] =0.0f;
+						normal[2] =1.0f;
 					}
-				}
-			}
-
-			// mask off pixels under the mask itself
-			if(0)
-			{
-				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
-
-				for (int y = 0; y < imageSize.height; ++y)
-				{
-					for (int x = 0; x < imageSize.width; ++x)
+					else
 					{
-						const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+						z = planeDepth - sqrt(radius * radius - r * r);
 
-						if (intensity > 0.0f)
-						{
-							linearImageOut[y * imageSize.width + x] *= 1.0f - intensity;
-						}
-//						linearImageOut[y * imageSize.width + x] *= intensity;
+						normal[0] = (x - center.x) / radius;
+						normal[1] = (y - center.y) / radius;
+						normal[2] = sqrt(radius * radius - r * r) / radius;
 					}
-				}
-			}
 
-			// overwrite the bitmap with the blurred image.
-			{
-				Color tint = Color::FromHexString(pinColor);
-				const bool subtractive = tint.r == 0.0f && tint.g == 0.0f && tint.b == 0.0f;
+					// compute dot-product of light-normal and surface-normal
+					float dot = normal[0] * light_normal[0] + normal[1] * light_normal[1] + normal[2] * light_normal[2];
 
-				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+					// Add some scattering with noise.
+					dot += (rand() % 1000) / 1000.0f * 0.05f - 0.025f;
 
-				for (int y = 0; y < imageSize.height; ++y)
-				{
-					for (int x = 0; x < imageSize.width; ++x)
-					{
-						const auto intensity = (std::min)(1.0f, linearImageOut[y * imageSize.width + x]);
+					float intensity = directional_intensity * dot + ambient_intensity;
 
-						Color c = tint;
-						if (subtractive) // shadow - subtractive
-						{
-							c.a = intensity;
-						}
-						else // glow - additive
-						{
-							c.a = 0.0f;// -intensity;
-							// pre-multiply
-							c.r *= intensity;
-							c.g *= intensity;
-							c.b *= intensity;
-						}
+					auto pixelVal = se_sdk::FastGamma::float_to_sRGB(std::clamp(intensity, 0.0f, 1.0f));
+					sourcePixels[0] = pixelVal;
+					sourcePixels[1] = pixelVal;
+					sourcePixels[2] = pixelVal;
+					sourcePixels[3] = 255;
 
-						int32_t pixelVal =
-							se_sdk::FastGamma::float_to_sRGB(c.r) |
-							(se_sdk::FastGamma::float_to_sRGB(c.g) << 8) |
-							(se_sdk::FastGamma::float_to_sRGB(c.b) << 16) |
-							(se_sdk::FastGamma::fastNormalisedToPixel(c.a) << 24);
-
-						//int32_t colorVal = pixelVal << 24; // | (pixelVal << 8) | (pixelVal << 16) | 0xff000000;
-						*sourcePixels++ = pixelVal;
-					}
+					sourcePixels += 4;
 				}
 			}
 		}
 
-		g_orig.DrawBitmap(g_mask.GetBitmap(), Point(0, 0), r);
+		g_orig.DrawBitmap(bitmapMem, Point(0, 0), r);
 
 		return gmpi::MP_OK;
 	}
@@ -308,5 +265,5 @@ public:
 
 namespace
 {
-	auto r = Register<DentGui>::withId(L"SE Dent");
+	auto r = Register<DentGuiB>::withId(L"SE DentB");
 }

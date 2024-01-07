@@ -7,4 +7,5 @@ build_gmpi_plugin(
     HAS_GUI
     SOURCE_FILES 
         ${PROJECT_NAME}Gui.cpp
+        ${PROJECT_NAME}BGui.cpp
 )
