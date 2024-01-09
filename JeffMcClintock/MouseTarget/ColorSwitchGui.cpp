@@ -63,3 +63,51 @@ namespace
 {
 	auto r = Register<ColorSwitchGui>::withId(L"SE Color Switch");
 }
+
+class BlobSwitchGui final : public SeGuiInvisibleBase
+{
+	static constexpr int fixedPinCount = 2;
+
+	void onSetResult()
+	{
+		const int selectionPin = pinSelect;
+		if (selectionPin >= 0 && selectionPin < (int)pinIns.size())
+		{
+			pinOut = pinIns[selectionPin]->getValue();
+		}
+	}
+
+	IntGuiPin pinSelect;
+	BlobGuiPin pinOut;
+	std::vector< std::unique_ptr< BlobGuiPin > > pinIns;
+
+public:
+	BlobSwitchGui()
+	{
+		initializePin(pinOut);
+		initializePin(pinSelect, static_cast<MpGuiBaseMemberPtr2>(&BlobSwitchGui::onSetResult));
+	}
+
+	int32_t MP_STDCALL setPin(int32_t pinId, int32_t voice, int32_t size, const void* data) override
+	{
+		int plugIndex = pinId - fixedPinCount; // Calc index of autoduplicating pin.
+
+		// Add autoduplicate pins as needed.
+		while ((int)pinIns.size() <= plugIndex)
+		{
+			pinIns.push_back(std::make_unique< BlobGuiPin >());
+			initializePin(*pinIns.back());
+		}
+
+		auto result = MpGuiBase2::setPin(pinId, voice, size, data);
+
+		onSetResult();
+
+		return result;
+	}
+};
+
+namespace
+{
+	auto r2 = Register<BlobSwitchGui>::withId(L"SE Blob Switch");
+}

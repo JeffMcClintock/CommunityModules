@@ -21,7 +21,7 @@ using namespace GmpiDrawing;
 class LabelGui final : public gmpi_gui::MpGuiGfxBase
 {
 	StringGuiPin pinText;
-	MpGuiPin<int64_t> pinColor;
+	BlobGuiPin pinColor;
 	std::wstring decodedString;
 	TextFormat textFormat;
 	bool containsSymbols = {}; // support for Sego MDL2 Assets font.
@@ -116,7 +116,13 @@ public:
 			textFormat.SetTextAlignment(TextAlignment::Center);
 		}
 
-		auto brush = g.CreateSolidColorBrush(Color::FromArgb( pinColor.getValue() ));
+		Color color;
+		if (pinColor.rawSize() == sizeof(color))
+		{
+			memcpy(&color, pinColor.rawData(), sizeof(color)); // endian matter?
+		}
+
+		auto brush = g.CreateSolidColorBrush(color);
 
 		g.DrawTextW(decodedString, textFormat, getRect(), brush);
 

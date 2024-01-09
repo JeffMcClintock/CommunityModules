@@ -12,9 +12,23 @@ build_gmpi_plugin(
         Image4Gui.cpp
         LabelGui.cpp
         ColorSwitchGui.cpp
+        HexToColorGui.cpp
+        ColorLagGui.cpp
         ${se_shared_folder}/skinBitmap.h
         ${se_shared_folder}/ImageMetadata.h
         ${se_shared_folder}/ImageMetadata.cpp
         ${se_shared_folder}/ImageCache.h
         ${se_shared_folder}/ImageCache.cpp
+        ${se_sdk_folder}/TimerManager.h
+        ${se_sdk_folder}/TimerManager.cpp
+)
+
+source_group(sdk FILES
+    ${se_shared_folder}/skinBitmap.h
+    ${se_shared_folder}/ImageMetadata.h
+    ${se_shared_folder}/ImageMetadata.cpp
+    ${se_shared_folder}/ImageCache.h
+    ${se_shared_folder}/ImageCache.cpp
+    ${se_sdk_folder}/TimerManager.h
+    ${se_sdk_folder}/TimerManager.cpp
 )

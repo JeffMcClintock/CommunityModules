@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document file_format="150000" vst_latencyCompensation="1" vst_user_email="Jeff McClintock" vst_panel_size_w="-842150451" vst_panel_size_h="-842150451" vst_preset_count="64">
-    <master_container type="Container" handle="1205675382" name="Main" ViewOpenFlags="384" skin="default2">
+    <master_container type="Container" handle="1205675382" name="Main" ViewOpenFlags="384" m_locked="true" skin="default2">
         <plugs>
             <plug idx="7"/>
         </plugs>
@@ -13,18 +13,19 @@
                         <s repeat="128"></s>
                     </patch-list>
                 </param>
-                <param type="4" handle="512529268" module="231468488" moduleParamId="0">
+                <param type="4" handle="512529268" vstParameterNumber="0" module="231468488" moduleParamId="0">
                     <patch-list>
-                        <s repeat="128">0</s>
+                        <s>1</s>
+                        <s repeat="127">0</s>
                     </patch-list>
                 </param>
-                <param type="6" handle="627911569" module="209106939" moduleParamId="0">
+                <param type="6" handle="627911569" vstParameterNumber="1" module="209106939" moduleParamId="0">
                     <patch-list>
                         <s>4.7</s>
                         <s repeat="127">0</s>
                     </patch-list>
                 </param>
-                <param type="4" handle="1667480531" module="780844668" moduleParamId="0">
+                <param type="4" handle="1667480531" vstParameterNumber="2" module="780844668" moduleParamId="0">
                     <patch-list>
                         <s repeat="128">0</s>
                     </patch-list>
@@ -32,6 +33,56 @@
             </Parameters>
         </PatchManager>
         <modules>
+            <module type="SE Color Lag" handle="202011793">
+                <structRect l="567" r="615" t="513" b="537"/>
+                <panelRect l="240" r="240" t="248" b="248"/>
+            </module>
+            <module type="SE Mouse Target" handle="76256490">
+                <plugs>
+                    <plug default="0"/>
+                </plugs>
+                <structRect l="48" r="156" t="553" b="653"/>
+                <panelRect l="129" r="153" t="243" b="267"/>
+            </module>
+            <module type="SE Hex to Color" handle="1805897487">
+                <plugs>
+                    <plug default="666666"/>
+                </plugs>
+                <structRect l="332" r="404" t="546" b="570"/>
+                <panelRect l="512" r="513" t="296" b="297"/>
+            </module>
+            <module type="SE Hex to Color" handle="1711631184">
+                <plugs>
+                    <plug default="cccccc"/>
+                </plugs>
+                <structRect l="333" r="405" t="590" b="614"/>
+                <panelRect l="552" r="553" t="336" b="337"/>
+            </module>
+            <module type="SE Hex to Color" handle="1564182818">
+                <plugs>
+                    <plug default="ffffff"/>
+                </plugs>
+                <structRect l="338" r="410" t="634" b="658"/>
+                <panelRect l="536" r="537" t="336" b="337"/>
+            </module>
+            <module type="SE Blob Switch" handle="387628790">
+                <plugs>
+                    <plug name="Off" idx="2"/>
+                    <plug name="Off-Hover" id="3"/>
+                    <plug name="On" id="4"/>
+                    <plug name="On-Hover" id="5"/>
+                    <plug id="6"/>
+                </plugs>
+                <structRect l="469" r="541" t="514" b="598"/>
+                <panelRect l="464" r="465" t="248" b="249"/>
+            </module>
+            <module type="SE Hex to Color" handle="69712103">
+                <plugs>
+                    <plug default="000000"/>
+                </plugs>
+                <structRect l="329" r="401" t="505" b="529"/>
+                <panelRect l="464" r="465" t="248" b="249"/>
+            </module>
             <module type="SE Dent" handle="1724013726">
                 <plugs>
                     <plug default="100"/>
@@ -64,53 +115,23 @@
             <module type="SE Dumb Label" handle="1438699012">
                 <plugs>
                     <plug default="A    B"/>
-                    <plug default="4289374890"/>
                 </plugs>
                 <structRect l="478" r="610" t="784" b="859"/>
-                <panelRect l="135" r="331" t="240" b="269"/>
-            </module>
-            <module type="SE Mouse Target" handle="76256490">
-                <plugs>
-                    <plug default="0"/>
-                </plugs>
-                <structRect l="48" r="156" t="551" b="651"/>
-                <panelRect l="299" r="323" t="244" b="268"/>
-            </module>
-            <module type="SE:GUIFixedValues_int64" handle="1808162184">
-                <plugs>
-                    <plug name="Off" default="4289374890"/>
-                    <plug name="Off-Hover" default="4294967295" id="1"/>
-                    <plug name="On" default="4294967295" id="2"/>
-                    <plug name="On-Hover" default="4289374890" id="3"/>
-                    <plug id="4"/>
-                </plugs>
-                <structRect l="360" r="432" t="720" b="780"/>
-                <panelRect l="398" r="398" t="335" b="335"/>
-            </module>
-            <module type="SE Color Switch" handle="1618918843">
-                <plugs>
-                    <plug id="3" idx="3"/>
-                    <plug id="4"/>
-                    <plug id="5"/>
-                    <plug id="6"/>
-                </plugs>
-                <structRect l="456" r="516" t="696" b="780"/>
-                <panelRect l="374" r="374" t="367" b="367"/>
+                <panelRect l="208" r="282" t="240" b="269"/>
             </module>
             <module type="SE Dumb Label" handle="2049039770">
                 <plugs>
-                    <plug default="&amp;#xE7A7;&amp;#xE7A6;     &amp;#xE973;       &amp;#xE7E8;"/>
-                    <plug default="4278190081"/>
+                    <plug default="&amp;#xE7A7;"/>
                 </plugs>
-                <structRect l="535" r="607" t="673" b="748"/>
-                <panelRect l="129" r="325" t="243" b="264"/>
+                <structRect l="562" r="634" t="598" b="673"/>
+                <panelRect l="129" r="155" t="243" b="264"/>
             </module>
             <module type="SE MathGui Bin2Int" handle="396924144">
                 <plugs>
                     <plug id="2" idx="2"/>
                     <plug id="3"/>
                 </plugs>
-                <structRect l="345" r="405" t="621" b="669"/>
+                <structRect l="237" r="297" t="529" b="577"/>
                 <panelRect l="374" r="375" t="287" b="288"/>
             </module>
             <module type="SE MT2PMB" handle="190057832">
@@ -235,17 +256,18 @@
             <line type="Line" handle="1140163900" lineType="1" fMod="231468488" tMod="396924144" fPlg="7" tPlg="2"/>
             <line type="Line" handle="1836624631" lineType="1" fMod="76256490" tMod="396924144" fPlg="1" tPlg="1"/>
             <line type="Line" handle="425744394" lineType="1" fMod="76256490" tMod="190057832" fPlg="2" tPlg="1"/>
-            <line type="Line" handle="1935284371" lineType="1" fMod="1618918843" tMod="2049039770" tPlg="1"/>
-            <line type="Line" handle="830810319" lineType="1" fMod="396924144" tMod="1618918843" tPlg="1"/>
-            <line type="Line" handle="386440591" lineType="1" fMod="1808162184" tMod="1618918843" tPlg="2"/>
-            <line type="Line" handle="1316899378" lineType="1" fMod="1808162184" tMod="1618918843" fPlg="1" tPlg="3"/>
-            <line type="Line" handle="1966577946" lineType="1" fMod="1808162184" tMod="1618918843" fPlg="2" tPlg="4"/>
-            <line type="Line" handle="1288682188" lineType="1" fMod="1808162184" tMod="1618918843" fPlg="3" tPlg="5"/>
+            <line type="Line" handle="799351085" lineType="1" fMod="69712103" tMod="387628790" fPlg="1" tPlg="2"/>
+            <line type="Line" handle="476055436" lineType="1" fMod="1805897487" tMod="387628790" fPlg="1" tPlg="3"/>
+            <line type="Line" handle="1398336311" lineType="1" fMod="1711631184" tMod="387628790" fPlg="1" tPlg="4"/>
+            <line type="Line" handle="538160167" lineType="1" fMod="1564182818" tMod="387628790" fPlg="1" tPlg="5"/>
+            <line type="Line" handle="1653408948" lineType="1" fMod="396924144" tMod="387628790" tPlg="1"/>
+            <line type="Line" handle="1105218263" lineType="1" fMod="387628790" tMod="202011793"/>
+            <line type="Line" handle="1931535011" lineType="1" fMod="202011793" tMod="2049039770" fPlg="1" tPlg="1"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
-        <PanelLocation l="22" r="476" t="110" b="590"/>
-        <StructLocation l="495" r="1163" t="58" b="815"/>
-        <PanelScroll x="230" y="0"/>
+        <PanelLocation l="16" r="470" t="306" b="786"/>
+        <StructLocation l="37" r="705" t="57" b="814"/>
+        <PanelScroll x="0" y="0"/>
         <StructScroll x="1" y="484"/>
         <PanelWndOffset cx="-99999" cy="-99999"/>
         <panel_rect l="16" r="312" t="16" b="216"/>
@@ -271,6 +293,13 @@
                 <Pin name="Animation Position" datatype="float" default="-1"/>
                 <Pin name="Frame" datatype="int" default="-1"/>
                 <Pin name="HD" datatype="bool" isMinimised="true"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE Blob Switch" name="Blob Switch" flags="384" category="Experimental/Sub-Controls">
+            <GUI>
+                <Pin name="Out" datatype="blob" direction="out"/>
+                <Pin name="Select" datatype="int"/>
+                <Pin name="In" datatype="blob" autoRename="true" autoDuplicate="true"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Blob2ToBlob" name="Blob2 To Blob" flags="33554688" category="Conversion" helpUrl="converters.htm">
@@ -309,14 +338,13 @@
                 <Pin name="Out" datatype="float" rate="audio" direction="out"/>
             </Audio>
         </Plugin>
-        <Plugin id="SE Color Switch" name="Color Switch" flags="384" category="Experimental/Sub-Controls">
+        <Plugin id="SE Color Lag" name="Color Lag" flags="384" category="Experimental/Sub-Controls/Conversion">
             <GUI>
-                <Pin name="Out" datatype="int64" direction="out"/>
-                <Pin name="Select" datatype="int"/>
-                <Pin name="In" datatype="int64" autoDuplicate="true"/>
+                <Pin name="In" datatype="blob"/>
+                <Pin name="Out" datatype="blob" direction="out"/>
             </GUI>
         </Plugin>
-        <Plugin id="SE Dent" name="Dent" flags="384" category="Sub-Controls">
+        <Plugin id="SE Dent" name="Dent" flags="384" category="Experimental/Sub-Controls">
             <GUI graphicsApi="GmpiGui">
                 <Pin name="Corner Radius" datatype="float" default="10" isMinimised="true"/>
                 <Pin name="Top Left" datatype="bool" default="1" isMinimised="true"/>
@@ -331,7 +359,7 @@
         <Plugin id="SE Dumb Label" name="Label" flags="384" category="Experimental/Sub-Controls">
             <GUI graphicsApi="GmpiGui">
                 <Pin name="Text" datatype="string" default="♠"/>
-                <Pin name="Color" datatype="int64" default="2147483647"/>
+                <Pin name="Color" datatype="blob" default="4278190080"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Float64ToFloat" name="Double To Float" flags="33554688" category="Conversion" helpUrl="converters.htm">
@@ -375,6 +403,12 @@
                 <Pin name="Float Val" datatype="float"/>
                 <Pin name="Text Val" datatype="string" direction="out"/>
             </Audio>
+        </Plugin>
+        <Plugin id="SE Hex to Color" name="Hex to Color" flags="384" category="Experimental/Sub-Controls/Conversion">
+            <GUI>
+                <Pin name="Hex Color" datatype="string" default="ffff00"/>
+                <Pin name="Color" datatype="blob" direction="out"/>
+            </GUI>
         </Plugin>
         <Plugin id="SE Int64ToInt" name="Int64 To Int" flags="33554688" category="Conversion" helpUrl="converters.htm">
             <Audio>
@@ -564,11 +598,6 @@
                 <Pin name="In" datatype="float" rate="audio"/>
                 <Pin name="Out" datatype="int" direction="out"/>
             </Audio>
-        </Plugin>
-        <Plugin id="SE:GUIFixedValues_int64" name="Fixed Values (int64)" flags="384" category="Experimental/Sub-Controls/Conversion">
-            <GUI>
-                <Pin name="Val" datatype="int64" direction="out" autoRename="true" settableOutput="true" autoDuplicate="true"/>
-            </GUI>
         </Plugin>
     </PluginList>
 </Document>

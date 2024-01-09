@@ -185,7 +185,15 @@ public:
 
 		auto r = getRect();
 		// Draw the black and white mask.
-		auto g_mask = g_orig.CreateCompatibleRenderTarget(Size(r.getWidth(), r.getHeight()));
+
+		// access newer API.
+		gmpi_sdk::mp_shared_ptr<GmpiDrawing_API::IMpDeviceContextExt> graphics2;
+		if (gmpi::MP_NOSUPPORT == drawingContext->queryInterface(GmpiDrawing_API::IMpDeviceContextExt::guid, graphics2.asIMpUnknownPtr()))
+			return MP_FAIL;
+
+		GmpiDrawing::BitmapRenderTarget g_mask;
+		graphics2->CreateBitmapRenderTarget(SizeL(r.getWidth(), r.getHeight()), true, (GmpiDrawing_API::IMpBitmapRenderTarget**) g_mask.asIMpUnknownPtr());
+
 		g_mask.BeginDraw();
 
 		const int blurRadius = pinBlurRadius;

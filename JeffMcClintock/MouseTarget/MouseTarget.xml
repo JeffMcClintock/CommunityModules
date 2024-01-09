@@ -1,16 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PluginList>
+	<Plugin id="SE Color Lag" name="Color Lag" category="Experimental/Sub-Controls/Conversion">
+		<GUI>
+			<Pin name="In" datatype="blob" class="SE::Color"/>
+			<Pin name="Out" datatype="blob" class="SE::Color" direction="out"/>
+		</GUI>
+	</Plugin>
+	<Plugin id="SE Hex to Color" name="Hex to Color" category="Experimental/Sub-Controls/Conversion">
+		<GUI>
+			<Pin name="Hex Color" datatype="string" default="ffff00"/>
+			<Pin name="Color" datatype="blob" class="SE::Color" direction="out"/>
+		</GUI>
+	</Plugin>
+	<Plugin id="SE Blob Switch" name="Blob Switch" category="Experimental/Sub-Controls">
+		<GUI>
+			<Pin name="Out" datatype="blob" direction="out"/>
+			<Pin name="Select" datatype="int"/>
+			<Pin name="In" datatype="blob" autoDuplicate="true" autoRename="true"/>
+		</GUI>
+	</Plugin>
 	<Plugin id="SE Color Switch" name="Color Switch" category="Experimental/Sub-Controls">
 		<GUI>
 			<Pin name="Out" datatype="int64" direction="out"/>
 			<Pin name="Select" datatype="int"/>
-			<Pin name="In" datatype="int64" autoDuplicate="true"/>
+			<Pin name="In" datatype="int64" autoDuplicate="true" autoRename="true"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Dumb Label" name="Label" category="Experimental/Sub-Controls">
 		<GUI graphicsApi="GmpiGui">
 			<Pin name="Text" datatype="string" default="&#x2660;"/> <!-- unicode char number 2660 (hex) -->
-			<Pin name="Color" datatype="int64" default="4278190080" />
+			<Pin name="Color" datatype="blob" class="SE::Color" default="4278190080" />
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Mouse Target" name="Mouse Target" category="Experimental/Sub-Controls">
