@@ -32,3 +32,10 @@ source_group(sdk FILES
     ${se_sdk_folder}/TimerManager.h
     ${se_sdk_folder}/TimerManager.cpp
 )
+
+# Support for timers on macOS
+if(APPLE)
+FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation )
+MARK_AS_ADVANCED (COREFOUNDATION_LIBRARY)
+TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${COREFOUNDATION_LIBRARY} )
+endif()
