@@ -500,9 +500,9 @@ private:
 	BoolInPin pinClear;
 
 	std::vector<float> buffer;
-	float m_prev_out;
-	float readOffset;
-	int count;
+	float m_prev_out = 0.0f;
+	float readOffset = 0.0f;
+	int count = 0;
 	int buffer_size;
 	int padded_buffer_size;
 };
