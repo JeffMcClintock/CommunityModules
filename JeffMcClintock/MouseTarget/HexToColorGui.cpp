@@ -29,11 +29,6 @@ class HexToColorGui final : public SeGuiInvisibleBase
 		pinValueOut = b;
 	}
 
- 	void onSetValueOut()
-	{
-		// pinValueOut changed
-	}
-
  	StringGuiPin pinValueIn;
  	BlobGuiPin pinValueOut;
 
@@ -41,7 +36,7 @@ public:
 	HexToColorGui()
 	{
 		initializePin( pinValueIn, static_cast<MpGuiBaseMemberPtr2>(&HexToColorGui::onSetValueIn) );
-		initializePin( pinValueOut, static_cast<MpGuiBaseMemberPtr2>(&HexToColorGui::onSetValueOut) );
+		initializePin( pinValueOut);
 	}
 
 };

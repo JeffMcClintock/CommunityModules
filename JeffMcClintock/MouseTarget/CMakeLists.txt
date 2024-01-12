@@ -5,6 +5,7 @@ project(MouseTarget)
 build_gmpi_plugin(
     PROJECT_NAME ${PROJECT_NAME}
     HAS_GUI
+    HAS_DSP
     SOURCE_FILES 
         ${PROJECT_NAME}Gui.cpp
         MathGui.cpp
@@ -14,6 +15,9 @@ build_gmpi_plugin(
         ColorSwitchGui.cpp
         HexToColorGui.cpp
         ColorLagGui.cpp
+        SVGToCPP.cpp
+        tinyxml2/tinyxml2.h
+        tinyxml2/tinyxml2.cpp
         ${se_shared_folder}/skinBitmap.h
         ${se_shared_folder}/ImageMetadata.h
         ${se_shared_folder}/ImageMetadata.cpp
