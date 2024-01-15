@@ -12,6 +12,7 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
+#include <span>
 #include "mp_sdk_gui2.h"
 #include "unicode_conversion.h"
 #include "Drawing.h"
@@ -26,7 +27,7 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 	StringGuiPin pinSvgFilename;
 	StringGuiPin pinCppSourceCodeOut;
 
-	SizeL svgSize{};
+	GmpiDrawing_API::MP1_SIZE svgSize{};
 	tinyxml2::XMLDocument doc;
 
 	void onSetTextVal()
@@ -43,9 +44,101 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 		if (!svgE)
 			return;
 
-		svgSize = {};
-		svgE->QueryIntAttribute("width", &svgSize.width);
-		svgE->QueryIntAttribute("height", &svgSize.height);
+		svgSize.width = static_cast<int>(ceilf(svgE->FloatAttribute("width")));
+		svgSize.height = static_cast<int>(ceilf(svgE->FloatAttribute("height")));
+	}
+
+	struct pathState
+	{
+		GeometrySink fillSink;
+		GeometrySink strokeSink;
+		Point first;
+		Point last;
+		bool inFigure{};
+	};
+
+	void path_moveTo(pathState& state, Point p)
+	{
+		if (state.inFigure)
+		{
+			if (state.strokeSink)
+				state.strokeSink.EndFigure(FigureEnd::Open);
+
+			if (state.fillSink)
+				state.fillSink.EndFigure(FigureEnd::Closed);
+		}
+
+		if (state.strokeSink)
+			state.strokeSink.BeginFigure(p, FigureBegin::Hollow);
+
+		if (state.fillSink)
+			state.fillSink.BeginFigure(p, FigureBegin::Filled);
+
+		state.first = state.last = p;
+	}
+
+	void path_lineTo(pathState& state, Point p)
+	{
+		if (state.strokeSink)
+			state.strokeSink.AddLine(p);
+
+		if (state.fillSink)
+			state.fillSink.AddLine(p);
+
+		state.last = p;
+	}
+
+	void path_hLine(pathState& state, float x)
+	{
+		state.last.x = x;
+
+		if (state.strokeSink)
+			state.strokeSink.AddLine(state.last);
+
+		if (state.fillSink)
+			state.fillSink.AddLine(state.last);
+	}
+
+	void path_vLine(pathState& state, float y)
+	{
+		state.last.y = y;
+
+		if (state.strokeSink)
+			state.strokeSink.AddLine(state.last);
+
+		if (state.fillSink)
+			state.fillSink.AddLine(state.last);
+	}
+
+	void path_quadCurve(pathState& state, std::span<float const> coords)
+	{
+		assert(coords.size() == 4); // (x1 y1 x y)
+
+		const Point pt1{ coords[0], coords[1] };
+		const Point pt2{ coords[2], coords[3] };
+
+		if (state.strokeSink)
+			state.strokeSink.AddQuadraticBezier({ pt1, pt2 });
+		if (state.fillSink)
+			state.fillSink.AddQuadraticBezier({ pt1, pt2 });
+
+		state.last = pt2;
+	}
+
+	void path_cubicCurve(pathState& state, std::span<float const> coords)
+	{
+		assert(coords.size() == 6);
+
+		const Point pt1{ coords[0], coords[1] };
+		const Point pt2{ coords[2], coords[3] };
+		const Point pt3{ coords[4], coords[5] };
+
+		if (state.strokeSink)
+			state.strokeSink.AddBezier({ pt1, pt2, pt3 });
+		if (state.fillSink)
+			state.fillSink.AddBezier({ pt1, pt2, pt3 });
+
+		state.last = pt3;
 	}
 
 	int32_t OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext)
@@ -56,6 +149,9 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 
 		if (!svgE)
 			return gmpi::MP_OK;
+
+		svgSize.width  = static_cast<int>(ceilf(svgE->FloatAttribute("width")));
+		svgSize.height = static_cast<int>(ceilf(svgE->FloatAttribute("height")));
 
 		auto fillBrush = g.CreateSolidColorBrush(Color::Black);
 		auto strokeBrush = g.CreateSolidColorBrush(Color::Black);
@@ -77,7 +173,6 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 				std::string fillstr(fill + 1);
 				fillColor = Color::FromHexStringU(fillstr);
 			}
-			fillBrush.SetColor(fillColor);
 
 			auto stroke(c->Attribute("stroke"));
 			if (stroke && stroke[0] == '#')
@@ -85,19 +180,24 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 				std::string strokestr(stroke + 1);
 				strokeColor = Color::FromHexStringU(strokestr);
 			}
+
+			if (!stroke && !fill)
+			{
+				fillColor = Color::Black;
+			}
+
+			fillBrush.SetColor(fillColor);
 			strokeBrush.SetColor(strokeColor);
 
 			if (strcmp(c->Name(), "rect") == 0)
 			{
 				RoundedRect r{};
 
-				//				Rect r{};
 				r.rect.left = c->FloatAttribute("x");
 				r.rect.top = c->FloatAttribute("y");
 				r.rect.right = r.rect.left + c->FloatAttribute("width");
 				r.rect.bottom = r.rect.top + c->FloatAttribute("height");
 
-				//				Size radius{};
 				r.radiusX = c->FloatAttribute("rx");
 				r.radiusY = c->FloatAttribute("ry", r.radiusX);
 
@@ -113,206 +213,213 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 			}
 			else if (strcmp(c->Name(), "path") == 0)
 			{
+				// https://www.w3.org/TR/SVGTiny12/paths.html#PathDataCurveCommands
 				auto d = c->Attribute("d");
-				if (d)
+				if (!d)
+					break;
+
+				// split the string at spaces and non-numbers into strokes
+				struct strokeToken
 				{
-					// split the string at spaces and non-numbers into strokes
-					struct strokeToken
-					{
-						char strokeType;
-						std::vector<float> args;
-					};
+					char strokeType;
+					std::vector<float> args;
+				};
 
-					std::vector<strokeToken> tokens;
+				std::vector<strokeToken> tokens;
+				{
+					for (auto p = d; *p; ++p)
 					{
-						for (auto p = d; *p; ++p)
+						if (isalpha(*p))
 						{
-							if (isalpha(*p))
+							tokens.push_back({ *p });
+						}
+						else if (isdigit(*p) || *p == '-' || *p == '.')
+						{
+							if (!tokens.empty())
 							{
-								tokens.push_back({ *p });
-							}
-							else if (isdigit(*p) || *p == '-' || *p == '.')
-							{
-								if (!tokens.empty())
-								{
-									auto& token = tokens.back();
-									char* pEnd{};
-									token.args.push_back(strtod(p, &pEnd));
-									p = pEnd - 1;
-								}
+								auto& token = tokens.back();
+								char* pEnd{};
+								token.args.push_back(strtod(p, &pEnd));
+								p = pEnd - 1;
 							}
 						}
 					}
-
-					// render the strokes
-					PathGeometry fillPath;
-					GeometrySink fillSink;
-					if (fillColor.a > 0)
-					{
-						fillPath = g.GetFactory().CreatePathGeometry();
-						fillSink = fillPath.Open();
-					}
-					PathGeometry strokePath;
-					GeometrySink strokeSink;
-					if (strokeColor.a > 0)
-					{
-						strokePath = g.GetFactory().CreatePathGeometry();
-						strokeSink = strokePath.Open();
-					}
-
-					Point last{};
-					bool inFigure{};
-
-					for (const auto& t : tokens)
-					{
-						switch (t.strokeType)
-						{
-						case 'M': // Move-to
-						{
-							if (t.args.size() != 2)
-								break;
-
-							if (inFigure)
-							{
-								if(strokeSink)
-									strokeSink.EndFigure(FigureEnd::Open);
-								if(fillSink)
-									fillSink.EndFigure(FigureEnd::Closed);
-							}
-
-							last = { t.args[0], t.args[1] };
-
-							if (strokeSink)
-							{
-								strokeSink.BeginFigure(last, FigureBegin::Hollow);
-							}
-							if (fillSink)
-							{
-								fillSink.BeginFigure(last, FigureBegin::Filled);
-							}
-						}
-						break;
-
-						case 'L': // Line-to
-						{
-							for (int i = 0; i < t.args.size(); i += 2)
-							{
-								last = { t.args[i], t.args[i + 1] };
-
-								if (strokeSink)
-									strokeSink.AddLine(last);
-								if (fillSink)
-									fillSink.AddLine(last);
-							}
-						}
-						break;
-
-						case 'Q': // Quadratic Bezier
-						{
-							if(t.args.size() != 4)
-								break;
-
-							Point pt1{t.args[0], t.args[1]};
-							last = {t.args[2], t.args[3]};
-
-							if (strokeSink)
-								strokeSink.AddQuadraticBezier({ pt1, last });
-							if (fillSink)
-								fillSink.AddQuadraticBezier({ pt1, last });
-						}
-						break;
-
-							/* todo
-						case 'A': // Arc
-						{
-							if(t.args.size() != 7)
-								break;
-
-							Point pt1{t.args[0], t.args[1]};
-							Point pt2{t.args[2], t.args[3]};
-							float radius = t.args[4];
-							bool largeArc = t.args[5] != 0;
-							bool sweep = t.args[6] != 0;
-
-							sink.AddArc({ pt1, pt2 }, radius, largeArc, sweep);
-						}
-							*/
-
-						case 'H': // Horizontal Line
-						{
-							if(t.args.size() != 1)
-								break;
-
-							last.x = t.args[0];
-
-							if (strokeSink)
-								strokeSink.AddLine(last);
-							if (fillSink)
-								fillSink.AddLine(last);
-						}
-						break;
-
-						case 'V': // Vertical Line
-						{
-							if(t.args.size() != 1)
-								break;
-
-							last.y = t.args[0];
-							if (strokeSink)
-								strokeSink.AddLine(last);
-							if (fillSink)
-								fillSink.AddLine(last);
-						}
-						break;
-
-						case 'C': // Cubic Bezier
-						{
-							if(t.args.size() != 6)
-								break;
-
-							Point pt1{t.args[0], t.args[1]};
-							Point pt2{t.args[2], t.args[3]};
-							last = {t.args[4], t.args[5]};
-
-							if (strokeSink)
-								strokeSink.AddBezier({ pt1, pt2, last });
-							if (fillSink)
-								fillSink.AddBezier({ pt1, pt2, last });
-						}
-						break;
-
-						case 'Z': // Close
-						{
-							if (strokeSink)
-								strokeSink.EndFigure();
-							if (fillSink)
-								fillSink.EndFigure();
-
-							inFigure = false;
-						}
-						break;
-
-						default:
-							assert(false); // TODO
-							break;
-						}
-					}
-
-					if (strokeSink)
-						strokeSink.Close();
-					if (fillSink)
-						fillSink.Close();
-
-					if (fillSink)
-					{
-						g.FillGeometry(fillPath, fillBrush);
-					}
-
-					if (strokeSink)
-					{
-						g.DrawGeometry(strokePath, strokeBrush);
-					}						
 				}
+
+				// render the strokes
+				pathState state;
+
+				PathGeometry fillPath;
+				if (fillColor.a > 0)
+				{
+					fillPath = g.GetFactory().CreatePathGeometry();
+					state.fillSink = fillPath.Open();
+//					state.fillSink.SetFillMode(FillMode::Winding);
+				}
+				PathGeometry strokePath;
+				if (strokeColor.a > 0)
+				{
+					strokePath = g.GetFactory().CreatePathGeometry();
+					state.strokeSink = strokePath.Open();
+				}
+#if 0
+				_RPT0(0, "\nd=\"");
+				for (auto& t : tokens)
+				{
+					_RPTN(0,"%c ", t.strokeType);
+					for (size_t i = 0 ; i < t.args.size(); ++i)
+					{
+						if((i & 1) == 0 && i > 0)
+							_RPTN(0, "%g,", t.args[i]);
+						else
+							_RPTN(0, "%g ", t.args[i]);
+					}
+				}
+				_RPT0(0, "\n");
+#endif
+				for (auto& t : tokens)
+				{
+					switch (t.strokeType)
+					{
+					case 'M': // Move-to
+						if (t.args.size() >= 2)
+							path_moveTo(state, { t.args[0], t.args[1] });
+
+						for (size_t i = 1; i < t.args.size() / 2; i++)
+							path_lineTo(state, { t.args[2 * i], t.args[2 * i + 1] });
+					break;
+
+					case 'm': // move (relative)
+						if (t.args.size() >= 2)
+							path_moveTo(state, { state.last.x + t.args[0], state.last.y + t.args[1] });
+
+						for (size_t i = 1; i < t.args.size() / 2; i++)
+							path_lineTo(state, { state.last.x + t.args[2 * i], state.last.y + t.args[2 * i + 1] });
+					break;
+
+					case 'L': // Line-to
+						for (size_t i = 0; i < t.args.size() / 2; i++)
+							path_lineTo(state, { t.args[2 * i], t.args[2 * i + 1] });
+						break;
+
+					case 'l': // Line-to (relative)
+						for (size_t i = 0; i < t.args.size() / 2; i++)
+							path_lineTo(state, { state.last.x + t.args[2 * i], state.last.y + t.args[2 * i + 1] });
+						break;
+
+					case 'H': // Horizontal Line
+						for (auto x : t.args)
+							path_hLine(state, x);
+						break;
+
+					case 'h': // Horizontal Line
+						for (auto x : t.args)
+							path_hLine(state, state.last.x + x);
+						break;
+
+					case 'V': // Vertical Line
+						for (auto y : t.args)
+							path_vLine(state, y);
+						break;
+
+					case 'v': // Vertical Line
+						for (auto y : t.args)
+							path_vLine(state, state.last.y + y);
+						//if(!t.args.empty())
+						//	path_vLine(state, state.last.y + t.args.back());
+						break;
+
+					case 'Q': // Quadratic Bezier
+						for (size_t i = 0; i < t.args.size() / 4; i++)
+							path_quadCurve(state, std::span{ t.args }.subspan(4 * i, 4));
+						break;
+
+					case 'q': // Quadratic Bezier (relative)
+						for (size_t i = 0; i < t.args.size() / 4; i++)
+						{
+							const float relativeArgs[4]
+							{
+								state.last.x + t.args[4 * i], state.last.y + t.args[4 * i + 1],
+								state.last.x + t.args[4 * i + 2], state.last.y + t.args[4 * i + 3]
+							};
+
+							path_quadCurve(state, std::span{ relativeArgs });
+						}
+						break;
+
+					case 'C': // Cubic Bezier
+						for (size_t i = 0; i < t.args.size() / 6; i++)
+							path_cubicCurve(state, std::span{ t.args }.subspan(6 * i, 6));
+						break;
+
+					case 'c': // Cubic Bezier (relative)
+					{
+						for (size_t i = 0; i < t.args.size() / 6; i++)
+						{
+							const float relativeArgs[6]
+							{
+								state.last.x + t.args[6 * i], state.last.y + t.args[6 * i + 1],
+								state.last.x + t.args[6 * i + 2], state.last.y + t.args[6 * i + 3],
+								state.last.x + t.args[6 * i + 4], state.last.y + t.args[6 * i + 5]
+							};
+
+							path_cubicCurve(state, std::span{ relativeArgs });
+						}
+					}
+					break;
+
+
+						/* todo
+					case 'A': // Arc
+					{
+						if(t.args.size() != 7)
+							break;
+
+						Point pt1{t.args[0], t.args[1]};
+						Point pt2{t.args[2], t.args[3]};
+						float radius = t.args[4];
+						bool largeArc = t.args[5] != 0;
+						bool sweep = t.args[6] != 0;
+
+						sink.AddArc({ pt1, pt2 }, radius, largeArc, sweep);
+					}
+						break;
+					*/
+
+
+					case 'Z': // Close
+					case 'z':
+					{
+						if (state.strokeSink)
+							state.strokeSink.EndFigure();
+						if (state.fillSink)
+							state.fillSink.EndFigure();
+
+						state.inFigure = false;
+						state.last = state.first;
+					}
+					break;
+
+					default:
+						assert(false); // TODO
+						break;
+					}
+				}
+
+				if (state.strokeSink)
+					state.strokeSink.Close();
+				if (state.fillSink)
+					state.fillSink.Close();
+
+				if (state.fillSink)
+				{
+					g.FillGeometry(fillPath, fillBrush);
+				}
+
+				if (state.strokeSink)
+				{
+					g.DrawGeometry(strokePath, strokeBrush);
+				}						
 			}
 			else if (strcmp(c->Name(), "circle") == 0)
 			{
@@ -399,6 +506,12 @@ public:
 	{
 		initializePin(pinSvgFilename, static_cast<MpGuiBaseMemberPtr2>(&SvgTocppGui::onSetTextVal));
 		initializePin(pinCppSourceCodeOut);
+	}
+
+	int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize)
+	{
+		*returnDesiredSize = svgSize;
+		return gmpi::MP_OK;
 	}
 };
 
