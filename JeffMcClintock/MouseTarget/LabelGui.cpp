@@ -24,7 +24,7 @@ class LabelGui final : public gmpi_gui::MpGuiGfxBase
 	BlobGuiPin pinColor;
 	std::wstring decodedString;
 	TextFormat textFormat;
-	bool containsSymbols = {}; // support for Sego MDL2 Assets font.
+	bool containsSymbols = {}; // support for Sego MDL2 Assets font. https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-ui-symbol-font
 
 	// Sego MDL2 Assets font.
 	bool requiresMDL2Font(wchar_t charCode) const

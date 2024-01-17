@@ -15,7 +15,7 @@ build_gmpi_plugin(
         ColorSwitchGui.cpp
         HexToColorGui.cpp
         ColorLagGui.cpp
-        SVGToCPP.cpp
+        SvgImage.cpp
         tinyxml2/tinyxml2.h
         tinyxml2/tinyxml2.cpp
         ${se_shared_folder}/skinBitmap.h

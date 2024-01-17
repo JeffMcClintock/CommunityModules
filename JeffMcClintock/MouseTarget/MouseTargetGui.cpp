@@ -128,7 +128,7 @@ namespace
 }
 
 
-// Mouse Target to Patch Mem - Bool
+// Mouse Target to Patch Mem - Float
 class MT2PMF final : public SeGuiInvisibleBase
 {
 	FloatGuiPin pinDrag;
@@ -144,7 +144,7 @@ public:
 
 	void recalc()
 	{
-		const float newNormalized = pinPatchMem + 0.01f * (pinDrag - lastDrag);
+		const float newNormalized = pinPatchMem + 0.005f * (pinDrag - lastDrag);
 		pinPatchMem = std::clamp(newNormalized, 0.0f, 1.0f);
 		lastDrag = pinDrag;
 	}

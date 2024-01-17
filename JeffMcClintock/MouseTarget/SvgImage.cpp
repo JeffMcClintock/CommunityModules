@@ -22,10 +22,11 @@ using namespace gmpi;
 using namespace tinyxml2;
 using namespace GmpiDrawing;
 
-class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
+class SvgImage final : public gmpi_gui::MpGuiGfxBase
 {
 	StringGuiPin pinSvgFilename;
-	StringGuiPin pinCppSourceCodeOut;
+	BlobGuiPin pinFillOverride;
+	BlobGuiPin pinStrokeOverride;
 
 	GmpiDrawing_API::MP1_SIZE svgSize{};
 	tinyxml2::XMLDocument doc;
@@ -46,6 +47,11 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 
 		svgSize.width = static_cast<int>(ceilf(svgE->FloatAttribute("width")));
 		svgSize.height = static_cast<int>(ceilf(svgE->FloatAttribute("height")));
+	}
+
+	void redraw()
+	{
+		invalidateRect();
 	}
 
 	struct pathState
@@ -179,6 +185,18 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 			{
 				std::string strokestr(stroke + 1);
 				strokeColor = Color::FromHexStringU(strokestr);
+			}
+
+			if (pinFillOverride.rawSize() == sizeof(Color))
+			{
+				memcpy(&fillColor, pinFillOverride.rawData(), sizeof(Color)); // endian matter?
+				fill = ""; // just to indicate that it's not null
+			}
+
+			if (pinStrokeOverride.rawSize() == sizeof(Color))
+			{
+				memcpy(&strokeColor, pinStrokeOverride.rawData(), sizeof(Color)); // endian matter?
+				stroke = ""; // just to indicate that it's not null
 			}
 
 			if (!stroke && !fill)
@@ -502,10 +520,11 @@ class SvgTocppGui final : public gmpi_gui::MpGuiGfxBase
 	}
 
 public:
-	SvgTocppGui()
+	SvgImage()
 	{
-		initializePin(pinSvgFilename, static_cast<MpGuiBaseMemberPtr2>(&SvgTocppGui::onSetTextVal));
-		initializePin(pinCppSourceCodeOut);
+		initializePin(pinSvgFilename, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::onSetTextVal));
+		initializePin(pinFillOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
+		initializePin(pinStrokeOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
 	}
 
 	int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize)
@@ -517,5 +536,5 @@ public:
 
 namespace
 {
-	auto r = Register<SvgTocppGui>::withId(L"SE SVG to C++");
+	auto r = Register<SvgImage>::withId(L"SE SVG Image");
 }

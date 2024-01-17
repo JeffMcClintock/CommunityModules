@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document file_format="150000" vst_latencyCompensation="1" vst_user_email="Jeff McClintock" vst_panel_size_w="-842150451" vst_panel_size_h="-842150451" vst_preset_count="64">
-    <master_container type="Container" handle="1205675382" name="Main" ViewOpenFlags="384" m_locked="true" skin="default2">
+    <master_container type="Container" handle="1205675382" name="Main" ViewOpenFlags="256" m_locked="true" skin="default2">
         <plugs>
             <plug idx="7"/>
         </plugs>
@@ -33,6 +33,13 @@
             </Parameters>
         </PatchManager>
         <modules>
+            <module type="SE SVG Image" handle="608052551">
+                <plugs>
+                    <plug default="C:\Bogren\MLC_Subzero100\Files\Graphics\main_ui\main_window\MLC_Subzero_100_logo.svg"/>
+                </plugs>
+                <structRect l="288" r="468" t="756" b="810"/>
+                <panelRect l="240" r="240" t="248" b="248"/>
+            </module>
             <module type="SE Color Lag" handle="202011793">
                 <structRect l="567" r="615" t="513" b="537"/>
                 <panelRect l="240" r="240" t="248" b="248"/>
@@ -197,7 +204,7 @@
                     <plug default=""/>
                     <plug default="1" idx="3"/>
                 </plugs>
-                <structRect l="516" r="636" t="60" b="164"/>
+                <structRect l="516" r="636" t="60" b="110"/>
                 <panelRect l="-87" r="-23" t="281" b="345"/>
             </module>
             <module type="SE PatchMemory Bool" handle="780844668">
@@ -263,6 +270,8 @@
             <line type="Line" handle="1653408948" lineType="1" fMod="396924144" tMod="387628790" tPlg="1"/>
             <line type="Line" handle="1105218263" lineType="1" fMod="387628790" tMod="202011793"/>
             <line type="Line" handle="1931535011" lineType="1" fMod="202011793" tMod="2049039770" fPlg="1" tPlg="1"/>
+            <line type="Line" handle="1645685772" lineType="1" fMod="202011793" tMod="608052551" fPlg="1" tPlg="1"/>
+            <line type="Line" handle="677755875" lineType="1" fMod="202011793" tMod="608052551" fPlg="1" tPlg="2"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
         <PanelLocation l="16" r="470" t="306" b="786"/>
@@ -547,6 +556,13 @@
                 <Pin name="Bottom Right" datatype="bool" default="1" isMinimised="true"/>
                 <Pin name="Top Color" datatype="string" default="FF9A9AAA"/>
                 <Pin name="Bottom Color" datatype="string" default="FF858595"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE SVG Image" name="SVG Image" flags="384" category="Experimental/Sub-Controls/Conversion">
+            <GUI>
+                <Pin name="SVG File" datatype="string" isFilename="true" metadata="svg"/>
+                <Pin name="Fill" datatype="blob"/>
+                <Pin name="Stroke" datatype="blob"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Text8ToText" name="Text8 To Text" flags="33554688" category="Debug" helpUrl="converters.htm">

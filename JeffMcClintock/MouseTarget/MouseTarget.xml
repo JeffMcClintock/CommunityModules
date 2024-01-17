@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PluginList>
-	<Plugin id="SE SVG to C++" name="SVG to C++" category="Experimental/Sub-Controls/Conversion">
+	<Plugin id="SE SVG Image" name="SVG Image" category="Experimental/Sub-Controls/Conversion">
 		<GUI>
 			<Pin name="SVG File" datatype="string" isFilename="true" metadata="svg"/>
-			<Pin name="C++ Code" datatype="string" direction="out"/>
+			<Pin name="Fill" datatype="blob" class="SE::Color"/>
+			<Pin name="Stroke" datatype="blob" class="SE::Color"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Color Lag" name="Color Lag" category="Experimental/Sub-Controls/Conversion">
