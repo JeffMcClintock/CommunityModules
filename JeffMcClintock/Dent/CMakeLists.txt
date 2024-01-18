@@ -8,4 +8,5 @@ build_gmpi_plugin(
     SOURCE_FILES 
         ${PROJECT_NAME}Gui.cpp
         ${PROJECT_NAME}BGui.cpp
+        ShadowGui.cpp
 )

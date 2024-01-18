@@ -64,6 +64,8 @@ class DentGui final : public gmpi_gui::MpGuiGfxBase
  	IntGuiPin pinBlurRadius;
  	StringGuiPin pinColor;
 	FloatGuiPin pinIntensity;
+	IntGuiPin pinOffsetX;
+	IntGuiPin pinOffsetY;
 
 //	const float blurRadius = 10.0f;
 
@@ -214,34 +216,70 @@ public:
 			int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
 
 			std::vector<float> linearImageOut(imageSize.width * imageSize.height, 0.0f);
+			std::vector<float> linearImageOut2(linearImageOut.size(), 0.0f);
 
-//			float error = {}; // dithering
-
-			// Copt the image intensity to a linear float format
+			// Copy the image intensity to a linear float format
 			for (int y = 0; y < imageSize.height; ++y)
 			{
 				for (int x = 0; x < imageSize.width; ++x)
 				{
 					const auto intensity = pinIntensity * se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
-
-					if (intensity > 0.0f)
-					{
-						for (int dy = y - blurRadius; dy < y + blurRadius; ++dy)
-						{
-							for (int dx = x - blurRadius; dx < x + blurRadius; ++dx)
-							{
-								if (dx >= 0 && dx < imageSize.width && dy >= 0 && dy < imageSize.height)
-								{
-									linearImageOut[dy * imageSize.width + dx] += intensity;
-								}
-							}
-						}
-					}
+					linearImageOut[y * imageSize.width + x] = 1.0f - intensity;
 				}
 			}
 
+			// Calculate the gausian blue filter
+			std::vector<float> filter;
+			{
+				float sum{};
+				for (int i = 0; i < blurRadius * 2 + 1; ++i)
+				{
+					const float dist = abs(blurRadius - i);
+					const float f = exp(-dist * dist / (2.0f * blurRadius * blurRadius));
+					sum += f;
+					filter.push_back(f);
+				}
+				for (auto& f : filter)
+				{
+					f /= sum;
+				}
+			}
+
+			// blur vert
+			for (int y = 0; y < imageSize.height; ++y)
+			{
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					float sum{};
+					int i{};
+					for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+					{
+						const auto y2 = std::clamp(y + dy, 0, (int) imageSize.height - 1);
+						sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+					}
+
+					linearImageOut2[y * imageSize.width + x] = sum;
+				}
+			}
+
+			// blur horizontal. linearImageOut2 -> linearImageOut
+			for (int y = 0; y < imageSize.height; ++y)
+			{
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					float sum{};
+					int i{};
+					for (int dx = -blurRadius; dx <= blurRadius; ++dx)
+					{
+						const auto x2 = std::clamp(x + dx, 0, (int)imageSize.width - 1);
+						sum += linearImageOut2[y * imageSize.width + x2] * filter[i++];
+					}
+
+					linearImageOut[y * imageSize.width + x] = sum;
+				}
+			}
 			// mask off pixels under the mask itself
-			if(0)
+			if(false)
 			{
 				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
 
@@ -251,11 +289,11 @@ public:
 					{
 						const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
 
-						if (intensity > 0.0f)
+						if (intensity < 0.0f)
 						{
 							linearImageOut[y * imageSize.width + x] *= 1.0f - intensity;
 						}
-//						linearImageOut[y * imageSize.width + x] *= intensity;
+						linearImageOut[y * imageSize.width + x] *= intensity;
 					}
 				}
 			}
@@ -308,7 +346,7 @@ public:
 	Rect getClientRect()
 	{
 		auto r = getRect();
-		r.Deflate(pinBlurRadius);
+		r.Deflate(1 + pinBlurRadius);
 
 		return r;
 	}

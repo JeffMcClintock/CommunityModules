@@ -12,17 +12,15 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
-
-// ray-traces a sphere
-
-#include "mp_sdk_gui2.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "mp_sdk_gui2.h"
+#include "Drawing.h"
 
 using namespace gmpi;
 using namespace GmpiDrawing;
 
-class DentGuiB final : public gmpi_gui::MpGuiGfxBase
+class ShadowGui final : public gmpi_gui::MpGuiGfxBase
 {
  	void onSetCornerRadius()
 	{
@@ -49,38 +47,43 @@ class DentGuiB final : public gmpi_gui::MpGuiGfxBase
 		// pinBottomRight changed
 	}
 
- 	void onSetTopColor()
+ 	void onSetBlur()
 	{
-		// pinTopColor changed
+		// pinBlur changed
 	}
 
- 	void onSetBottomColor()
+ 	void onSetColor()
 	{
-		// pinBottomColor changed
+		// pinColor changed
+	}
+
+ 	void onSetIntensity()
+	{
+		// pinIntensity changed
 	}
 
  	FloatGuiPin pinCornerRadius;
- 	BoolGuiPin pinTopLeft;
- 	BoolGuiPin pinTopRight;
+	BoolGuiPin pinInner;
+	BoolGuiPin pinTopLeft;
+	BoolGuiPin pinTopRight;
  	BoolGuiPin pinBottomLeft;
  	BoolGuiPin pinBottomRight;
- 	IntGuiPin pinBlurRadius;
+ 	IntGuiPin pinBlur;
  	StringGuiPin pinColor;
-	FloatGuiPin pinIntensity;
-
-//	const float blurRadius = 10.0f;
+ 	FloatGuiPin pinIntensity;
 
 public:
-	DentGuiB()
+	ShadowGui()
 	{
-		initializePin( pinCornerRadius, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetCornerRadius) );
-		initializePin( pinTopLeft, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopLeft) );
-		initializePin( pinTopRight, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopRight) );
-		initializePin( pinBottomLeft, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetBottomLeft) );
-		initializePin( pinBottomRight, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetBottomRight) );
-		initializePin(pinBlurRadius, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopColor));
-		initializePin(pinColor, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopColor));
-		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&DentGuiB::onSetTopColor));
+		initializePin( pinCornerRadius, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetCornerRadius) );
+		initializePin(pinInner, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::redraw));
+		initializePin(pinTopLeft, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetTopLeft));
+		initializePin( pinTopRight, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetTopRight) );
+		initializePin( pinBottomLeft, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetBottomLeft) );
+		initializePin( pinBottomRight, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetBottomRight) );
+		initializePin( pinBlur, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetBlur) );
+		initializePin( pinColor, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetColor) );
+		initializePin( pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetIntensity) );
 	}
 
 	// draw a white image on a black background, suitable for blurring
@@ -178,7 +181,7 @@ public:
 		auto bitmapMem = GetGraphicsFactory().CreateImage(r.getWidth(), r.getHeight());
 
 		{
-			auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+			auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ|GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 			auto imageSize = bitmapMem.GetSize();
 			int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
 
@@ -208,9 +211,9 @@ public:
 						z = planeDepth;
 
 						// normal points at camera.
-						normal[0] =0.0f;
-						normal[1] =0.0f;
-						normal[2] =1.0f;
+						normal[0] = 0.0f;
+						normal[1] = 0.0f;
+						normal[2] = 1.0f;
 					}
 					else
 					{
@@ -247,14 +250,20 @@ public:
 
 	Rect getClientRect()
 	{
+		const auto pinBlurRadius = 5.0f;
+
 		auto r = getRect();
 		r.Deflate(pinBlurRadius);
 
 		return r;
 	}
+	void redraw()
+	{
+		invalidateRect();
+	}
 };
 
 namespace
 {
-	auto r = Register<DentGuiB>::withId(L"SE DentB");
+	auto r = Register<ShadowGui>::withId(L"SE Shadow");
 }

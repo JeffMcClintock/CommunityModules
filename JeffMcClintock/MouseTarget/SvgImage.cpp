@@ -12,6 +12,10 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
+
+// Scalable Vector Graphics (SVG) Tiny 1.2 Specification
+// https://www.w3.org/TR/SVGTiny12/
+
 #include <span>
 #include "mp_sdk_gui2.h"
 #include "unicode_conversion.h"
