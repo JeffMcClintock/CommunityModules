@@ -33,11 +33,190 @@
             </Parameters>
         </PatchManager>
         <modules>
+            <module type="SE Dent" handle="575814342">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="+0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="1"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="336" r="468" t="2040" b="2184"/>
+                <panelRect l="952" r="1184" t="776" b="1008"/>
+            </module>
+            <module type="SE Dent" handle="650779359">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="-0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="1"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="180" r="312" t="2052" b="2196"/>
+                <panelRect l="696" r="928" t="784" b="1016"/>
+            </module>
+            <module type="SE Dent" handle="313153600">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="0.3"/>
+                    <plug default="10"/>
+                    <plug default="10"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="192" r="324" t="1212" b="1356"/>
+                <panelRect l="848" r="1080" t="-24" b="208"/>
+            </module>
+            <module type="SE Dent" handle="100034367">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="60" r="192" t="1212" b="1356"/>
+                <panelRect l="848" r="1080" t="-24" b="208"/>
+            </module>
+            <module type="SE Dent" handle="1364491396">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="-0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="0"/>
+                </plugs>
+                <structRect l="144" r="276" t="1812" b="1956"/>
+                <panelRect l="832" r="1064" t="256" b="488"/>
+            </module>
+            <module type="SE Dent" handle="2040722826">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="10" idx="7"/>
+                    <plug default="10"/>
+                    <plug default="0"/>
+                </plugs>
+                <structRect l="0" r="132" t="1812" b="1956"/>
+                <panelRect l="832" r="1064" t="256" b="488"/>
+            </module>
+            <module type="SE Dent" handle="1343368555">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="444" r="576" t="1656" b="1800"/>
+                <panelRect l="1008" r="1240" t="416" b="648"/>
+            </module>
+            <module type="SE Dent" handle="327313593">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="0"/>
+                </plugs>
+                <structRect l="144" r="276" t="1644" b="1788"/>
+                <panelRect l="1016" r="1248" t="96" b="328"/>
+            </module>
+            <module type="SE Dent" handle="717256724">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="10" idx="7"/>
+                    <plug default="10"/>
+                    <plug default="0"/>
+                </plugs>
+                <structRect l="0" r="132" t="1644" b="1788"/>
+                <panelRect l="1016" r="1248" t="96" b="328"/>
+            </module>
+            <module type="SE Dent" handle="967967270">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="-0.3"/>
+                    <plug default="10"/>
+                    <plug default="10"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="312" r="444" t="1656" b="1800"/>
+                <panelRect l="1008" r="1240" t="416" b="648"/>
+            </module>
+            <module type="SE Dent" handle="1633683454">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="-0.3"/>
+                    <plug default="10"/>
+                    <plug default="10"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="492" r="624" t="1404" b="1548"/>
+                <panelRect l="672" r="904" t="88" b="320"/>
+            </module>
+            <module type="SE Dent" handle="1787006547">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="0"/>
+                </plugs>
+                <structRect l="192" r="324" t="1392" b="1536"/>
+                <panelRect l="672" r="904" t="88" b="320"/>
+            </module>
+            <module type="SE Dent" handle="469897541">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="10" idx="7"/>
+                    <plug default="10"/>
+                    <plug default="0"/>
+                    <plug default="0"/>
+                </plugs>
+                <structRect l="48" r="180" t="1392" b="1536"/>
+                <panelRect l="672" r="904" t="88" b="320"/>
+            </module>
+            <module type="SE Dent" handle="701921997">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="0.5"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="360" r="492" t="1404" b="1548"/>
+                <panelRect l="672" r="904" t="88" b="320"/>
+            </module>
+            <module type="SE Dent" handle="432340969">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="10" idx="5"/>
+                    <plug default="-0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="516" r="648" t="1104" b="1248"/>
+                <panelRect l="680" r="912" t="424" b="656"/>
+            </module>
             <module type="SE Dent" handle="398518350">
                 <plugs>
                     <plug default="200"/>
                     <plug default="30" idx="5"/>
-                    <plug default=""/>
                     <plug default="1"/>
                     <plug default="10"/>
                     <plug default="10"/>
@@ -50,7 +229,6 @@
                 <plugs>
                     <plug default="200"/>
                     <plug default="10" idx="5"/>
-                    <plug default="0xffffffff"/>
                     <plug default="0.3"/>
                     <plug default="-10"/>
                     <plug default="-10"/>
@@ -63,8 +241,7 @@
                 <plugs>
                     <plug default="200"/>
                     <plug default="10" idx="5"/>
-                    <plug default=""/>
-                    <plug default="10" idx="8"/>
+                    <plug default="10" idx="7"/>
                     <plug default="10"/>
                     <plug default="0"/>
                 </plugs>
@@ -76,7 +253,7 @@
                     <plug default="C:\Bogren\MLC_Subzero100\Files\Graphics\main_ui\main_window\ultra_quality_switch_off.svg"/>
                 </plugs>
                 <structRect l="288" r="384" t="756" b="843"/>
-                <panelRect l="248" r="11357" t="248" b="7815"/>
+                <panelRect l="248" r="13979" t="248" b="9601"/>
             </module>
             <module type="SE Color Lag" handle="202011793">
                 <structRect l="567" r="615" t="513" b="537"/>
@@ -250,19 +427,14 @@
             <module type="SE Dent" handle="633162474">
                 <plugs>
                     <plug default="200"/>
-                    <plug default="0"/>
-                    <plug default="0"/>
-                    <plug default="0"/>
-                    <plug default="0"/>
-                    <plug default="10"/>
-                    <plug default="0xffffffff"/>
+                    <plug default="10" idx="5"/>
                     <plug default="0.3"/>
-                    <plug default="-10"/>
-                    <plug default="-10"/>
+                    <plug default="10"/>
+                    <plug default="10"/>
                     <plug default="1"/>
                 </plugs>
                 <structRect l="444" r="576" t="1020" b="1164"/>
-                <panelRect l="728" r="960" t="104" b="336"/>
+                <panelRect l="680" r="912" t="424" b="656"/>
             </module>
         </modules>
         <lines>
@@ -288,10 +460,10 @@
             <line type="Line" handle="1645685772" lineType="1" fMod="202011793" tMod="608052551" fPlg="1" tPlg="1"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
-        <PanelLocation l="433" r="1183" t="45" b="790"/>
+        <PanelLocation l="253" r="1393" t="180" b="925"/>
         <StructLocation l="37" r="705" t="57" b="814"/>
         <PanelScroll x="238" y="0"/>
-        <StructScroll x="1" y="484"/>
+        <StructScroll x="1" y="973"/>
         <PanelWndOffset cx="-99999" cy="-99999"/>
         <panel_rect l="16" r="608" t="16" b="664"/>
     </master_container>
@@ -375,11 +547,11 @@
                 <Pin name="Bottom Left" datatype="bool" default="1" isMinimised="true"/>
                 <Pin name="Bottom Right" datatype="bool" default="1" isMinimised="true"/>
                 <Pin name="Blur" datatype="int" default="6"/>
-                <Pin name="Color" datatype="string" default="FF000000"/>
-                <Pin name="Intensity" datatype="float" default="0.5"/>
+                <Pin name="Intensity" datatype="float" default="-0.5"/>
                 <Pin name="OffsetX" datatype="int" default="6"/>
                 <Pin name="OffsetY" datatype="int" default="6"/>
                 <Pin name="Inner" datatype="bool" isMinimised="true"/>
+                <Pin name="Outer" datatype="bool" isMinimised="true"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Dumb Label" name="Label" flags="384" category="Experimental/Sub-Controls">
