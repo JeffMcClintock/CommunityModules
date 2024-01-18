@@ -66,6 +66,7 @@ class DentGui final : public gmpi_gui::MpGuiGfxBase
 	FloatGuiPin pinIntensity;
 	IntGuiPin pinOffsetX;
 	IntGuiPin pinOffsetY;
+	BoolGuiPin pinIsInnerShadow;
 
 //	const float blurRadius = 10.0f;
 
@@ -80,6 +81,9 @@ public:
 		initializePin(pinBlurRadius, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
 		initializePin(pinColor, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
 		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&DentGui::onSetTopColor));
+		initializePin(pinOffsetX);
+		initializePin(pinOffsetY);
+		initializePin(pinIsInnerShadow);
 	}
 
 	// draw a white image on a black background, suitable for blurring
@@ -87,13 +91,7 @@ public:
 	{
 		auto r = getClientRect();
 
-		int width = r.right - r.left;
-		int height = r.bottom - r.top;
-
-		int radius = (int)pinCornerRadius;
-
-		radius = (std::min)(radius, width / 2);
-		radius = (std::min)(radius, height / 2);
+		const int radius = (std::min)(pinCornerRadius.getValue(), (std::min)(r.getWidth(), r.getHeight()) / 2);
 
 		auto geometry = g.GetFactory().CreatePathGeometry();
 		auto sink = geometry.Open();
@@ -103,81 +101,60 @@ public:
 		// top left
 		if (pinTopLeft)
 		{
-			sink.BeginFigure(Point(0, radius), FigureBegin::Filled);
-			ArcSegment as(Point(radius, 0), Size(radius, radius), rightAngle);
+			sink.BeginFigure(r.getTopLeft() + Size(0, radius), FigureBegin::Filled);
+			ArcSegment as(r.getTopLeft() + Size(radius, 0), Size(radius, radius), rightAngle);
 			sink.AddArc(as);
 		}
 		else
 		{
-			sink.BeginFigure(Point(0, 0), FigureBegin::Filled);
+			sink.BeginFigure(r.getTopLeft(), FigureBegin::Filled);
 		}
-		/*
-		// tweak needed for radius of 10
-		if(radius == 20)
-		{
-		Corner.Width += 1;
-		Corner.Height += 1;
-		width -=1; height -= 1;
-		}
-		*/
+
 		// top right
 		if (pinTopRight)
 		{
-			sink.AddLine(Point(width - radius, 0));
-			//		sink.AddArc(Corner, 270, 90);
-			ArcSegment as(Point(width, radius), Size(radius, radius), rightAngle);
+			sink.AddLine(r.getTopRight() - Size(radius, 0));
+			ArcSegment as(r.getTopRight() + Size(0, radius), Size(radius, radius), rightAngle);
 			sink.AddArc(as);
 		}
 		else
 		{
-			sink.AddLine(Point(width, 0));
+			sink.AddLine(r.getTopRight());
 		}
 
 		// bottom right
 		if (pinBottomRight)
 		{
-			sink.AddLine(Point(width, height - radius));
-			//		sink.AddArc(Corner, 0, 90);
-			ArcSegment as(Point(width - radius, height), Size(radius, radius), rightAngle);
+			sink.AddLine(r.getBottomRight() - Size(0, radius));
+			ArcSegment as(r.getBottomRight() - Size(radius, 0), Size(radius, radius), rightAngle);
 			sink.AddArc(as);
 		}
 		else
 		{
-			sink.AddLine(Point(width, height));
+			sink.AddLine(r.getBottomRight());
 		}
 
 		// bottom left
 		if (pinBottomLeft)
 		{
-			sink.AddLine(Point(radius, height));
-			ArcSegment as(Point(0, height - radius), Size(radius, radius), rightAngle);
+			sink.AddLine(r.getBottomLeft() + Size(radius, 0));
+			ArcSegment as(r.getBottomLeft() - Size(0, radius), Size(radius, radius), rightAngle);
 			sink.AddArc(as);
 		}
 		else
 		{
-			sink.AddLine(Point(0, height));
+			sink.AddLine(r.getBottomLeft());
 		}
 
 		// end path
 		sink.EndFigure();
 		sink.Close();
 
-		Point point1(1, 0);
-		Point point2(1, height);
-
-		GradientStop gradientStops[]
-		{
-			{ 0.0f, Color{0xffffffu, 0.01f} },
-			{ 0.49f, Color{0xffffffu, 0.0f} },
-			{ 0.5f, Color{0x000000u, 0.0f} },
-			{ 1.0f, Color{0x000000u, 0.05f} },
-		};
-
-		bool outerBlur = true;
-
-		auto brush = g.CreateSolidColorBrush(outerBlur ? Color::White : Color::Black);
+		const bool outerBlur = pinIsInnerShadow;
 
 		g.Clear(outerBlur ? Color::Black : Color::White);
+
+		auto brush = g.CreateSolidColorBrush(outerBlur ? Color::White : Color::Black);
 		g.FillGeometry(geometry, brush);
 	}
 
@@ -199,7 +176,10 @@ public:
 		g_mask.BeginDraw();
 
 		const int blurRadius = pinBlurRadius;
-		g_mask.SetTransform(Matrix3x2::Translation(blurRadius, blurRadius));
+		{
+			const auto bitmapRect = getClientRect();
+//			g_mask.SetTransform(Matrix3x2::Translation(bitmapRect.left, bitmapRect.top));
+		}
 
 		drawMask(g_mask);
 
@@ -223,12 +203,12 @@ public:
 			{
 				for (int x = 0; x < imageSize.width; ++x)
 				{
-					const auto intensity = pinIntensity * se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+					const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
 					linearImageOut[y * imageSize.width + x] = 1.0f - intensity;
 				}
 			}
 
-			// Calculate the gausian blue filter
+			// Calculate the gausian blur filter
 			std::vector<float> filter;
 			{
 				float sum{};
@@ -245,6 +225,9 @@ public:
 				}
 			}
 
+			const int offsetX = pinOffsetX;
+			const int offsetY = pinOffsetY;
+
 			// blur vert
 			for (int y = 0; y < imageSize.height; ++y)
 			{
@@ -254,7 +237,7 @@ public:
 					int i{};
 					for (int dy = -blurRadius; dy <= blurRadius; ++dy)
 					{
-						const auto y2 = std::clamp(y + dy, 0, (int) imageSize.height - 1);
+						const auto y2 = std::clamp(y + dy - offsetY, 0, (int) imageSize.height - 1);
 						sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
 					}
 
@@ -271,7 +254,7 @@ public:
 					int i{};
 					for (int dx = -blurRadius; dx <= blurRadius; ++dx)
 					{
-						const auto x2 = std::clamp(x + dx, 0, (int)imageSize.width - 1);
+						const auto x2 = std::clamp(x + dx - offsetX, 0, (int)imageSize.width - 1);
 						sum += linearImageOut2[y * imageSize.width + x2] * filter[i++];
 					}
 
@@ -279,7 +262,7 @@ public:
 				}
 			}
 			// mask off pixels under the mask itself
-			if(false)
+			if(pinIsInnerShadow)
 			{
 				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
 
@@ -287,12 +270,24 @@ public:
 				{
 					for (int x = 0; x < imageSize.width; ++x)
 					{
+//						const auto intensity = se_sdk::FastGamma::pixelToNormalised(*sourcePixels++ >> 24);
 						const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
 
-						if (intensity < 0.0f)
-						{
-							linearImageOut[y * imageSize.width + x] *= 1.0f - intensity;
-						}
+						linearImageOut[y * imageSize.width + x] *= intensity;
+					}
+				}
+			}
+			else
+			{
+				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+
+				for (int y = 0; y < imageSize.height; ++y)
+				{
+					for (int x = 0; x < imageSize.width; ++x)
+					{
+//						const auto intensity = 1.0f - se_sdk::FastGamma::pixelToNormalised(*sourcePixels++ >> 24);
+						const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+
 						linearImageOut[y * imageSize.width + x] *= intensity;
 					}
 				}
@@ -302,6 +297,7 @@ public:
 			{
 				Color tint = Color::FromHexString(pinColor);
 				const bool subtractive = tint.r == 0.0f && tint.g == 0.0f && tint.b == 0.0f;
+				const float brightness = std::clamp(pinIntensity.getValue(), 0.0f, 1.0f);
 
 				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
 
@@ -314,15 +310,15 @@ public:
 						Color c = tint;
 						if (subtractive) // shadow - subtractive
 						{
-							c.a = intensity;
+							c.a = brightness * intensity;
 						}
 						else // glow - additive
 						{
 							c.a = 0.0f;// -intensity;
 							// pre-multiply
-							c.r *= intensity;
-							c.g *= intensity;
-							c.b *= intensity;
+							c.r *= brightness * intensity;
+							c.g *= brightness * intensity;
+							c.b *= brightness * intensity;
 						}
 
 						int32_t pixelVal =
@@ -346,7 +342,7 @@ public:
 	Rect getClientRect()
 	{
 		auto r = getRect();
-		r.Deflate(1 + pinBlurRadius);
+		r.Deflate(1 + pinBlurRadius + (std::max)(abs(pinOffsetX.getValue()), abs(pinOffsetY.getValue())) );
 
 		return r;
 	}

@@ -33,68 +33,82 @@
             </Parameters>
         </PatchManager>
         <modules>
-            <module type="SE Dent" handle="1460831263">
+            <module type="SE Dent" handle="398518350">
+                <plugs>
+                    <plug default="200"/>
+                    <plug default="30" idx="5"/>
+                    <plug default=""/>
+                    <plug default="1"/>
+                    <plug default="10"/>
+                    <plug default="10"/>
+                    <plug default="1"/>
+                </plugs>
+                <structRect l="192" r="324" t="936" b="1080"/>
+                <panelRect l="368" r="600" t="368" b="600"/>
+            </module>
+            <module type="SE Dent" handle="1678295909">
                 <plugs>
                     <plug default="200"/>
                     <plug default="10" idx="5"/>
-                    <plug default=""/>
-                    <plug default="-0.8"/>
+                    <plug default="0xffffffff"/>
+                    <plug default="0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="0"/>
                 </plugs>
-                <structRect l="264" r="396" t="972" b="1062"/>
-                <panelRect l="664" r="752" t="160" b="248"/>
+                <structRect l="276" r="408" t="1008" b="1152"/>
+                <panelRect l="680" r="912" t="424" b="656"/>
             </module>
             <module type="SE Dent" handle="135906005">
                 <plugs>
                     <plug default="200"/>
-                    <plug default="3" idx="5"/>
+                    <plug default="10" idx="5"/>
                     <plug default=""/>
-                    <plug default="0.8"/>
+                    <plug default="10" idx="8"/>
+                    <plug default="10"/>
+                    <plug default="0"/>
                 </plugs>
-                <structRect l="216" r="348" t="912" b="1002"/>
-                <panelRect l="600" r="688" t="48" b="136"/>
-            </module>
-            <module type="SE Shadow" handle="1532149176">
-                <structRect l="72" r="240" t="972" b="1140"/>
-                <panelRect l="240" r="340" t="248" b="348"/>
+                <structRect l="132" r="264" t="1008" b="1152"/>
+                <panelRect l="680" r="912" t="424" b="656"/>
             </module>
             <module type="SE SVG Image" handle="608052551">
                 <plugs>
                     <plug default="C:\Bogren\MLC_Subzero100\Files\Graphics\main_ui\main_window\ultra_quality_switch_off.svg"/>
                 </plugs>
                 <structRect l="288" r="384" t="756" b="843"/>
-                <panelRect l="240" r="2172" t="248" b="1564"/>
+                <panelRect l="248" r="11357" t="248" b="7815"/>
             </module>
             <module type="SE Color Lag" handle="202011793">
                 <structRect l="567" r="615" t="513" b="537"/>
-                <panelRect l="240" r="240" t="248" b="248"/>
+                <panelRect l="248" r="249" t="248" b="249"/>
             </module>
             <module type="SE Mouse Target" handle="76256490">
                 <plugs>
                     <plug default="0"/>
                 </plugs>
                 <structRect l="48" r="156" t="553" b="653"/>
-                <panelRect l="129" r="153" t="243" b="267"/>
+                <panelRect l="137" r="161" t="243" b="267"/>
             </module>
             <module type="SE Hex to Color" handle="1805897487">
                 <plugs>
                     <plug default="666666"/>
                 </plugs>
                 <structRect l="332" r="404" t="546" b="570"/>
-                <panelRect l="512" r="513" t="296" b="297"/>
+                <panelRect l="520" r="521" t="296" b="297"/>
             </module>
             <module type="SE Hex to Color" handle="1711631184">
                 <plugs>
                     <plug default="cccccc"/>
                 </plugs>
                 <structRect l="333" r="405" t="590" b="614"/>
-                <panelRect l="552" r="553" t="336" b="337"/>
+                <panelRect l="560" r="561" t="336" b="337"/>
             </module>
             <module type="SE Hex to Color" handle="1564182818">
                 <plugs>
                     <plug default="ffffff"/>
                 </plugs>
                 <structRect l="338" r="410" t="634" b="658"/>
-                <panelRect l="536" r="537" t="336" b="337"/>
+                <panelRect l="544" r="545" t="336" b="337"/>
             </module>
             <module type="SE Blob Switch" handle="387628790">
                 <plugs>
@@ -105,34 +119,14 @@
                     <plug id="6"/>
                 </plugs>
                 <structRect l="469" r="541" t="514" b="598"/>
-                <panelRect l="464" r="465" t="248" b="249"/>
+                <panelRect l="472" r="473" t="248" b="249"/>
             </module>
             <module type="SE Hex to Color" handle="69712103">
                 <plugs>
                     <plug default="000000"/>
                 </plugs>
                 <structRect l="329" r="401" t="505" b="529"/>
-                <panelRect l="464" r="465" t="248" b="249"/>
-            </module>
-            <module type="SE Dent" handle="1724013726">
-                <plugs>
-                    <plug default="100"/>
-                    <plug default="4" idx="5"/>
-                    <plug default="0"/>
-                    <plug default="0.004"/>
-                </plugs>
-                <structRect l="398" r="530" t="997" b="1087"/>
-                <panelRect l="520" r="628" t="208" b="319"/>
-            </module>
-            <module type="SE Dent" handle="580279202">
-                <plugs>
-                    <plug default="100"/>
-                    <plug default="4" idx="5"/>
-                    <plug default="ffffff"/>
-                    <plug default="0.003"/>
-                </plugs>
-                <structRect l="469" r="601" t="1082" b="1172"/>
-                <panelRect l="520" r="624" t="232" b="336"/>
+                <panelRect l="472" r="473" t="248" b="249"/>
             </module>
             <module type="SE Rectangle XP" handle="2132489744">
                 <plugs>
@@ -141,21 +135,21 @@
                     <plug default="FFcccccc"/>
                 </plugs>
                 <structRect l="71" r="167" t="847" b="943"/>
-                <panelRect l="392" r="490" t="169" b="267"/>
+                <panelRect l="400" r="498" t="169" b="267"/>
             </module>
             <module type="SE Dumb Label" handle="1438699012">
                 <plugs>
                     <plug default="A    B"/>
                 </plugs>
                 <structRect l="478" r="610" t="784" b="859"/>
-                <panelRect l="208" r="282" t="240" b="269"/>
+                <panelRect l="216" r="290" t="240" b="269"/>
             </module>
             <module type="SE Dumb Label" handle="2049039770">
                 <plugs>
                     <plug default="&amp;#xE7A7;"/>
                 </plugs>
                 <structRect l="562" r="634" t="598" b="673"/>
-                <panelRect l="129" r="155" t="243" b="264"/>
+                <panelRect l="137" r="163" t="243" b="264"/>
             </module>
             <module type="SE MathGui Bin2Int" handle="396924144">
                 <plugs>
@@ -163,29 +157,29 @@
                     <plug id="3"/>
                 </plugs>
                 <structRect l="237" r="297" t="529" b="577"/>
-                <panelRect l="374" r="375" t="287" b="288"/>
+                <panelRect l="382" r="383" t="287" b="288"/>
             </module>
             <module type="SE MT2PMB" handle="190057832">
                 <plugs>
                     <plug default="1"/>
                 </plugs>
                 <structRect l="252" r="312" t="708" b="732"/>
-                <panelRect l="398" r="399" t="255" b="256"/>
+                <panelRect l="406" r="407" t="255" b="256"/>
             </module>
             <module type="SE PatchMemory Bool" handle="231468488">
                 <structRect l="36" r="156" t="708" b="792"/>
-                <panelRect l="366" r="367" t="295" b="296"/>
+                <panelRect l="374" r="375" t="295" b="296"/>
             </module>
             <module type="SE Mouse Target" handle="204902708">
                 <plugs>
                     <plug default="0"/>
                 </plugs>
                 <structRect l="192" r="300" t="252" b="352"/>
-                <panelRect l="1" r="33" t="409" b="441"/>
+                <panelRect l="9" r="41" t="409" b="441"/>
             </module>
             <module type="SE MT2PMF" handle="195493820">
                 <structRect l="384" r="504" t="324" b="348"/>
-                <panelRect l="334" r="335" t="207" b="208"/>
+                <panelRect l="342" r="343" t="207" b="208"/>
             </module>
             <module type="Image4" handle="1990926855">
                 <plugs>
@@ -194,11 +188,11 @@
                     <plug default="0" idx="3"/>
                 </plugs>
                 <structRect l="456" r="576" t="348" b="420"/>
-                <panelRect l="1" r="33" t="409" b="441"/>
+                <panelRect l="9" r="41" t="409" b="441"/>
             </module>
             <module type="SE PatchMemory Float" handle="209106939">
                 <structRect l="84" r="204" t="360" b="444"/>
-                <panelRect l="302" r="303" t="247" b="248"/>
+                <panelRect l="310" r="311" t="247" b="248"/>
             </module>
             <module type="SE MathGui Bin2Int" handle="2083069773">
                 <plugs>
@@ -206,21 +200,21 @@
                     <plug id="3"/>
                 </plugs>
                 <structRect l="348" r="408" t="84" b="132"/>
-                <panelRect l="310" r="311" t="239" b="240"/>
+                <panelRect l="318" r="319" t="239" b="240"/>
             </module>
             <module type="SE Mouse Target" handle="997549525">
                 <plugs>
                     <plug default="0"/>
                 </plugs>
                 <structRect l="24" r="132" t="48" b="148"/>
-                <panelRect l="-87" r="-23" t="281" b="345"/>
+                <panelRect l="-79" r="-15" t="281" b="345"/>
             </module>
             <module type="SE MT2PMB" handle="265024608">
                 <plugs>
                     <plug default="1"/>
                 </plugs>
                 <structRect l="228" r="288" t="204" b="228"/>
-                <panelRect l="334" r="335" t="207" b="208"/>
+                <panelRect l="342" r="343" t="207" b="208"/>
             </module>
             <module type="Image4" handle="1685381400">
                 <plugs>
@@ -229,11 +223,11 @@
                     <plug default="1" idx="3"/>
                 </plugs>
                 <structRect l="516" r="636" t="60" b="110"/>
-                <panelRect l="-87" r="-77" t="281" b="291"/>
+                <panelRect l="-79" r="-69" t="281" b="291"/>
             </module>
             <module type="SE PatchMemory Bool" handle="780844668">
                 <structRect l="12" r="132" t="204" b="288"/>
-                <panelRect l="302" r="303" t="247" b="248"/>
+                <panelRect l="310" r="311" t="247" b="248"/>
             </module>
             <module type="SE Rectangle XP" handle="241615823">
                 <plugs>
@@ -242,7 +236,7 @@
                     <plug default="FF2A2D34"/>
                 </plugs>
                 <structRect l="494" r="590" t="886" b="982"/>
-                <panelRect l="-238" r="330" t="236" b="273"/>
+                <panelRect l="-230" r="338" t="236" b="273"/>
             </module>
             <module type="SE Rectangle XP" handle="1229770694">
                 <plugs>
@@ -251,27 +245,24 @@
                     <plug default="FF000000"/>
                 </plugs>
                 <structRect l="384" r="480" t="888" b="984"/>
-                <panelRect l="-247" r="333" t="233" b="433"/>
+                <panelRect l="-239" r="341" t="233" b="433"/>
             </module>
-            <module type="SE Dent" handle="1629870971">
+            <module type="SE Dent" handle="633162474">
                 <plugs>
                     <plug default="200"/>
-                    <plug default="10" idx="5"/>
-                    <plug default=""/>
-                    <plug default="-0.8"/>
+                    <plug default="0"/>
+                    <plug default="0"/>
+                    <plug default="0"/>
+                    <plug default="0"/>
+                    <plug default="10"/>
+                    <plug default="0xffffffff"/>
+                    <plug default="0.3"/>
+                    <plug default="-10"/>
+                    <plug default="-10"/>
+                    <plug default="1"/>
                 </plugs>
-                <structRect l="168" r="300" t="864" b="954"/>
-                <panelRect l="432" r="520" t="48" b="136"/>
-            </module>
-            <module type="SE Dent" handle="2137657444">
-                <plugs>
-                    <plug default="8"/>
-                    <plug default="4" idx="5"/>
-                    <plug default="ffffff"/>
-                    <plug default="0.003"/>
-                </plugs>
-                <structRect l="242" r="374" t="946" b="1036"/>
-                <panelRect l="386" r="494" t="162" b="273"/>
+                <structRect l="444" r="576" t="1020" b="1164"/>
+                <panelRect l="728" r="960" t="104" b="336"/>
             </module>
         </modules>
         <lines>
@@ -297,12 +288,12 @@
             <line type="Line" handle="1645685772" lineType="1" fMod="202011793" tMod="608052551" fPlg="1" tPlg="1"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
-        <PanelLocation l="116" r="866" t="150" b="895"/>
+        <PanelLocation l="433" r="1183" t="45" b="790"/>
         <StructLocation l="37" r="705" t="57" b="814"/>
-        <PanelScroll x="208" y="0"/>
+        <PanelScroll x="238" y="0"/>
         <StructScroll x="1" y="484"/>
         <PanelWndOffset cx="-99999" cy="-99999"/>
-        <panel_rect l="16" r="312" t="16" b="216"/>
+        <panel_rect l="16" r="608" t="16" b="664"/>
     </master_container>
     <PluginList>
         <Plugin id="Container" class="1" name="Container" flags="384" category="">
@@ -376,7 +367,7 @@
                 <Pin name="Out" datatype="blob" direction="out"/>
             </GUI>
         </Plugin>
-        <Plugin id="SE Dent" name="Dent" flags="384" category="Experimental/Sub-Controls">
+        <Plugin id="SE Dent" name="Shadow" flags="384" category="Experimental/Sub-Controls">
             <GUI graphicsApi="GmpiGui">
                 <Pin name="Corner Radius" datatype="float" default="10" isMinimised="true"/>
                 <Pin name="Top Left" datatype="bool" default="1" isMinimised="true"/>
@@ -386,6 +377,9 @@
                 <Pin name="Blur" datatype="int" default="6"/>
                 <Pin name="Color" datatype="string" default="FF000000"/>
                 <Pin name="Intensity" datatype="float" default="0.5"/>
+                <Pin name="OffsetX" datatype="int" default="6"/>
+                <Pin name="OffsetY" datatype="int" default="6"/>
+                <Pin name="Inner" datatype="bool" isMinimised="true"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Dumb Label" name="Label" flags="384" category="Experimental/Sub-Controls">
@@ -586,19 +580,6 @@
                 <Pin name="SVG File" datatype="string" isFilename="true" metadata="svg"/>
                 <Pin name="Fill" datatype="blob"/>
                 <Pin name="Stroke" datatype="blob"/>
-            </GUI>
-        </Plugin>
-        <Plugin id="SE Shadow" name="Shadow" flags="384" category="Experimental/Sub-Controls">
-            <GUI graphicsApi="GmpiGui">
-                <Pin name="Corner Radius" datatype="float" default="10" isMinimised="true"/>
-                <Pin name="Inner" datatype="bool" isMinimised="true"/>
-                <Pin name="Top Left" datatype="bool" default="1" isMinimised="true"/>
-                <Pin name="Top Right" datatype="bool" default="1" isMinimised="true"/>
-                <Pin name="Bottom Left" datatype="bool" default="1" isMinimised="true"/>
-                <Pin name="Bottom Right" datatype="bool" default="1" isMinimised="true"/>
-                <Pin name="Blur" datatype="int" default="6"/>
-                <Pin name="Color" datatype="string" default="FF000000"/>
-                <Pin name="Intensity" datatype="float" default="0.5"/>
             </GUI>
         </Plugin>
         <Plugin id="SE Text8ToText" name="Text8 To Text" flags="33554688" category="Debug" helpUrl="converters.htm">
