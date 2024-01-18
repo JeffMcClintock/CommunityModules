@@ -224,6 +224,13 @@ public:
 				next_segment();
 			}
 		}
+
+		// changing sustain level while in sustain segment, reverts to decay stage.
+		if (pinSustain.isUpdated() && cur_segment == 2)
+		{
+			cur_segment = 1;
+			next_segment();
+		}
 	}
 };
 
