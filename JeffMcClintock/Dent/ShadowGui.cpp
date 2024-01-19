@@ -12,78 +12,55 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
+#include "mp_sdk_gui2.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "mp_sdk_gui2.h"
-#include "Drawing.h"
 
 using namespace gmpi;
 using namespace GmpiDrawing;
 
 class ShadowGui final : public gmpi_gui::MpGuiGfxBase
 {
- 	void onSetCornerRadius()
-	{
-		// pinCornerRadius changed
-	}
-
- 	void onSetTopLeft()
-	{
-		// pinTopLeft changed
-	}
-
- 	void onSetTopRight()
-	{
-		// pinTopRight changed
-	}
-
- 	void onSetBottomLeft()
-	{
-		// pinBottomLeft changed
-	}
-
- 	void onSetBottomRight()
-	{
-		// pinBottomRight changed
-	}
-
- 	void onSetBlur()
-	{
-		// pinBlur changed
-	}
-
- 	void onSetColor()
-	{
-		// pinColor changed
-	}
-
- 	void onSetIntensity()
-	{
-		// pinIntensity changed
-	}
-
  	FloatGuiPin pinCornerRadius;
-	BoolGuiPin pinInner;
-	BoolGuiPin pinTopLeft;
-	BoolGuiPin pinTopRight;
+ 	BoolGuiPin pinTopLeft;
+ 	BoolGuiPin pinTopRight;
  	BoolGuiPin pinBottomLeft;
  	BoolGuiPin pinBottomRight;
- 	IntGuiPin pinBlur;
- 	StringGuiPin pinColor;
- 	FloatGuiPin pinIntensity;
+ 	IntGuiPin pinBlurRadius;
+	FloatGuiPin pinIntensity;
+	IntGuiPin pinOffsetX;
+	IntGuiPin pinOffsetY;
+	BoolGuiPin pinInnerShadow;
+	BoolGuiPin pinOuterShadow;
+	BoolGuiPin pinVisible;
+
+	Bitmap bitmap;
+
+	void redraw()
+	{
+		invalidateRect();
+	}
+	void rerender()
+	{
+		bitmap.setNull();
+		invalidateRect();
+	}
 
 public:
 	ShadowGui()
 	{
-		initializePin( pinCornerRadius, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetCornerRadius) );
-		initializePin(pinInner, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::redraw));
-		initializePin(pinTopLeft, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetTopLeft));
-		initializePin( pinTopRight, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetTopRight) );
-		initializePin( pinBottomLeft, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetBottomLeft) );
-		initializePin( pinBottomRight, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetBottomRight) );
-		initializePin( pinBlur, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetBlur) );
-		initializePin( pinColor, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetColor) );
-		initializePin( pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::onSetIntensity) );
+		initializePin( pinCornerRadius, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender) );
+		initializePin( pinTopLeft, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender) );
+		initializePin( pinTopRight, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender) );
+		initializePin( pinBottomLeft, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender) );
+		initializePin( pinBottomRight, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender) );
+		initializePin(pinBlurRadius, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
+		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
+		initializePin(pinOffsetX, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
+		initializePin(pinOffsetY, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
+		initializePin(pinInnerShadow, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
+		initializePin(pinOuterShadow, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
+		initializePin(pinVisible, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::redraw));
 	}
 
 	// draw a white image on a black background, suitable for blurring
@@ -91,13 +68,7 @@ public:
 	{
 		auto r = getClientRect();
 
-		int width = r.right - r.left;
-		int height = r.bottom - r.top;
-
-		int radius = (int)pinCornerRadius;
-
-		radius = (std::min)(radius, width / 2);
-		radius = (std::min)(radius, height / 2);
+		const int radius = (std::min)(pinCornerRadius.getValue(), (std::min)(r.getWidth(), r.getHeight()) / 2);
 
 		auto geometry = g.GetFactory().CreatePathGeometry();
 		auto sink = geometry.Open();
@@ -107,159 +78,260 @@ public:
 		// top left
 		if (pinTopLeft)
 		{
-			sink.BeginFigure(Point(0, radius), FigureBegin::Filled);
-			ArcSegment as(Point(radius, 0), Size(radius, radius), rightAngle);
+			sink.BeginFigure(r.getTopLeft() + Size(0, radius), FigureBegin::Filled);
+			ArcSegment as(r.getTopLeft() + Size(radius, 0), Size(radius, radius), rightAngle);
 			sink.AddArc(as);
 		}
 		else
 		{
-			sink.BeginFigure(Point(0, 0), FigureBegin::Filled);
+			sink.BeginFigure(r.getTopLeft(), FigureBegin::Filled);
 		}
-		/*
-		// tweak needed for radius of 10
-		if(radius == 20)
-		{
-		Corner.Width += 1;
-		Corner.Height += 1;
-		width -=1; height -= 1;
-		}
-		*/
+
 		// top right
 		if (pinTopRight)
 		{
-			sink.AddLine(Point(width - radius, 0));
-			//		sink.AddArc(Corner, 270, 90);
-			ArcSegment as(Point(width, radius), Size(radius, radius), rightAngle);
+			sink.AddLine(r.getTopRight() - Size(radius, 0));
+			ArcSegment as(r.getTopRight() + Size(0, radius), Size(radius, radius), rightAngle);
 			sink.AddArc(as);
 		}
 		else
 		{
-			sink.AddLine(Point(width, 0));
+			sink.AddLine(r.getTopRight());
 		}
 
 		// bottom right
 		if (pinBottomRight)
 		{
-			sink.AddLine(Point(width, height - radius));
-			//		sink.AddArc(Corner, 0, 90);
-			ArcSegment as(Point(width - radius, height), Size(radius, radius), rightAngle);
+			sink.AddLine(r.getBottomRight() - Size(0, radius));
+			ArcSegment as(r.getBottomRight() - Size(radius, 0), Size(radius, radius), rightAngle);
 			sink.AddArc(as);
 		}
 		else
 		{
-			sink.AddLine(Point(width, height));
+			sink.AddLine(r.getBottomRight());
 		}
 
 		// bottom left
 		if (pinBottomLeft)
 		{
-			sink.AddLine(Point(radius, height));
-			ArcSegment as(Point(0, height - radius), Size(radius, radius), rightAngle);
+			sink.AddLine(r.getBottomLeft() + Size(radius, 0));
+			ArcSegment as(r.getBottomLeft() - Size(0, radius), Size(radius, radius), rightAngle);
 			sink.AddArc(as);
 		}
 		else
 		{
-			sink.AddLine(Point(0, height));
+			sink.AddLine(r.getBottomLeft());
 		}
 
 		// end path
 		sink.EndFigure();
 		sink.Close();
-		bool outerBlur = true;
 
-		auto brush = g.CreateSolidColorBrush(outerBlur ? Color::White : Color::Black);
+		g.Clear(Color::White);
 
-		g.Clear(outerBlur ? Color::Black : Color::White);
+		auto brush = g.CreateSolidColorBrush(Color::Black);
 		g.FillGeometry(geometry, brush);
 	}
 
+
 	int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override
 	{
-		Graphics g_orig(drawingContext);
+		if(!pinVisible)
+			return gmpi::MP_OK;
 
-		auto r = getRect();
-		auto bitmapMem = GetGraphicsFactory().CreateImage(r.getWidth(), r.getHeight());
-
+		if (!bitmap)
 		{
-			auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ|GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
-			auto imageSize = bitmapMem.GetSize();
-			int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
-
-			uint8_t* sourcePixels = pixelsSource.getAddress();
-
-			Point center(r.getWidth() / 2, r.getHeight() / 2);
-			float radius = (std::min)(center.x, center.y) * 0.8f;
-			float planeDepth = radius * 2.0f;
-
-			constexpr float sqrrt_one_third = 0.57735026918962576450914878050196f;
-			const float light_normal[3]{ -sqrrt_one_third, -sqrrt_one_third, sqrrt_one_third };
-			const float ambient_intensity = 0.3f;
-			const float directional_intensity = 1.0f - ambient_intensity;
-
-			for (float y = 0; y < r.getHeight(); y++)
-			{
-				float alpha = 1.0f;
-				for (float x = 0; x < r.getWidth(); x++)
-				{
-					float r = sqrt((x - center.x) * (x - center.x) + (y - center.y) * (y - center.y));
-
-					float normal[3];
-
-					float z{};
-					if (r > radius)
-					{
-						z = planeDepth;
-
-						// normal points at camera.
-						normal[0] = 0.0f;
-						normal[1] = 0.0f;
-						normal[2] = 1.0f;
-					}
-					else
-					{
-						z = planeDepth - sqrt(radius * radius - r * r);
-
-						normal[0] = (x - center.x) / radius;
-						normal[1] = (y - center.y) / radius;
-						normal[2] = sqrt(radius * radius - r * r) / radius;
-					}
-
-					// compute dot-product of light-normal and surface-normal
-					float dot = normal[0] * light_normal[0] + normal[1] * light_normal[1] + normal[2] * light_normal[2];
-
-					// Add some scattering with noise.
-					dot += (rand() % 1000) / 1000.0f * 0.05f - 0.025f;
-
-					float intensity = directional_intensity * dot + ambient_intensity;
-
-					auto pixelVal = se_sdk::FastGamma::float_to_sRGB(std::clamp(intensity, 0.0f, 1.0f));
-					sourcePixels[0] = pixelVal;
-					sourcePixels[1] = pixelVal;
-					sourcePixels[2] = pixelVal;
-					sourcePixels[3] = 255;
-
-					sourcePixels += 4;
-				}
-			}
+			renderImage(drawingContext);
 		}
 
-		g_orig.DrawBitmap(bitmapMem, Point(0, 0), r);
+		Graphics g(drawingContext);
+		g.DrawBitmap(bitmap, Point{}, getRect());
 
 		return gmpi::MP_OK;
 	}
 
-	Rect getClientRect()
+	void renderImage(GmpiDrawing_API::IMpDeviceContext* drawingContext)
 	{
-		const auto pinBlurRadius = 5.0f;
+		Graphics g_orig(drawingContext);
 
 		auto r = getRect();
-		r.Deflate(pinBlurRadius);
+		// Draw the black and white mask.
+
+		// access newer API.
+		gmpi_sdk::mp_shared_ptr<GmpiDrawing_API::IMpDeviceContextExt> graphics2;
+		if (gmpi::MP_NOSUPPORT == drawingContext->queryInterface(GmpiDrawing_API::IMpDeviceContextExt::guid, graphics2.asIMpUnknownPtr()))
+			return; // MP_FAIL;
+
+		GmpiDrawing::BitmapRenderTarget g_mask;
+		graphics2->CreateBitmapRenderTarget(SizeL(r.getWidth(), r.getHeight()), true, (GmpiDrawing_API::IMpBitmapRenderTarget**) g_mask.asIMpUnknownPtr());
+
+		g_mask.BeginDraw();
+
+		const int blurRadius = pinBlurRadius;
+
+		drawMask(g_mask);
+
+		g_mask.EndDraw();
+		// blur the mask.
+		if(true)
+		{
+			bitmap = g_mask.GetBitmap();
+			auto imageSize = bitmap.GetSize();
+			auto pixelsSource = bitmap.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+			int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+
+			int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+
+			std::vector<float> linearImageOut(imageSize.width * imageSize.height, 0.0f);
+			std::vector<float> linearImageOut_temp(linearImageOut.size(), 0.0f);
+			std::vector<float> linearImageOut_neg(linearImageOut.size(), 0.0f);
+			std::vector<float> linearImageOut_pos(linearImageOut.size(), 0.0f);
+
+			// Copy the image intensity to a linear float format
+			for (int y = 0; y < imageSize.height; ++y)
+			{
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+					linearImageOut[y * imageSize.width + x] = 1.0f - intensity;
+				}
+			}
+
+			// Calculate the gausian blur filter
+			std::vector<float> filter;
+			{
+				float sum{};
+				for (int i = 0; i < blurRadius * 2 + 1; ++i)
+				{
+					const float dist = abs(blurRadius - i);
+					const float f = exp(-dist * dist / (2.0f * blurRadius * blurRadius));
+					sum += f;
+					filter.push_back(f);
+				}
+				for (auto& f : filter)
+				{
+					f /= sum;
+				}
+			}
+
+			const int offsetX = pinOffsetX;
+			const int offsetY = pinOffsetY;
+
+			// blur vert
+			for (int y = 0; y < imageSize.height; ++y)
+			{
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					float sum{};
+					int i{};
+					for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+					{
+						const auto y2 = std::clamp(y + dy - offsetY, 0, (int) imageSize.height - 1);
+						sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+					}
+
+					linearImageOut_temp[y * imageSize.width + x] = sum;
+				}
+			}
+
+			// blur horizontal. linearImageOut2 -> linearImageOut
+			for (int y = 0; y < imageSize.height; ++y)
+			{
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					float sum{};
+					int i{};
+					for (int dx = -blurRadius; dx <= blurRadius; ++dx)
+					{
+						const auto x2 = std::clamp(x + dx - offsetX, 0, (int)imageSize.width - 1);
+						sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
+					}
+
+					linearImageOut_neg[y * imageSize.width + x] = sum;
+				}
+			}
+
+			// blur vert, opposite direction
+			for (int y = 0; y < imageSize.height; ++y)
+			{
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					float sum{};
+					int i{};
+					for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+					{
+						const auto y2 = std::clamp(y + dy + offsetY, 0, (int)imageSize.height - 1);
+						sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+					}
+
+					linearImageOut_temp[y * imageSize.width + x] = sum;
+				}
+			}
+
+			// blur horizontal. opposit direction
+			for (int y = 0; y < imageSize.height; ++y)
+			{
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					float sum{};
+					int i{};
+					for (int dx = -blurRadius; dx <= blurRadius; ++dx)
+					{
+						const auto x2 = std::clamp(x + dx + offsetX, 0, (int)imageSize.width - 1);
+						sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
+					}
+
+					linearImageOut_pos[y * imageSize.width + x] = sum;
+				}
+			}
+
+			{
+				const bool subtractive = pinIntensity < 0.0f;
+				const float brightness = std::clamp(fabs(pinIntensity.getValue()), 0.0f, 1.0f);
+				const float innerEnable = pinInnerShadow.getValue() ? 1.0f : 0.0f;
+				const float outerEnable = pinOuterShadow.getValue() ? 1.0f : 0.0f;
+
+				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+
+				for (int y = 0; y < imageSize.height; ++y)
+				{
+					for (int x = 0; x < imageSize.width; ++x)
+					{
+						const auto intensityA = outerEnable * (std::min)(1.0f, linearImageOut_neg[y * imageSize.width + x]);
+						const auto intensityB = innerEnable * (1.0f - (std::min)(1.0f, linearImageOut_pos[y * imageSize.width + x]));
+
+						const auto bitsA = se_sdk::FastGamma::float_to_sRGB(intensityA);
+						const auto bitsB = se_sdk::FastGamma::float_to_sRGB(intensityB);
+
+						const auto blend = linearImageOut[y * imageSize.width + x];
+						const auto intensity = (intensityA + (intensityB - intensityA) * blend);
+
+						int32_t pixelVal{};
+						if (subtractive) // shadow - subtractive
+						{
+							// black with varying alpha
+							pixelVal = se_sdk::FastGamma::fastNormalisedToPixel(brightness * intensity) << 24;
+						}
+						else // glow - additive
+						{
+							// varying brightness white with zero alpha
+							const auto bits = se_sdk::FastGamma::float_to_sRGB(brightness * intensity);
+							pixelVal = bits | (bits << 8) | (bits << 16);
+						}
+
+						*sourcePixels++ = pixelVal;
+					}
+				}
+			}
+		}
+	}
+
+	Rect getClientRect()
+	{
+		auto r = getRect();
+		r.Deflate(1 + pinBlurRadius + (std::max)(abs(pinOffsetX.getValue()), abs(pinOffsetY.getValue())) );
 
 		return r;
-	}
-	void redraw()
-	{
-		invalidateRect();
 	}
 };
 

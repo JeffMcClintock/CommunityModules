@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PluginList>
-	<Plugin id="SE Dent" name="Shadow" category="Experimental/Sub-Controls">
+	<Plugin id="SE Shadow" name="Shadow" category="Experimental/Sub-Controls">
 		<GUI graphicsApi="GmpiGui">
 			<Pin name="Corner Radius" datatype="float" default="10" isMinimised="true"/>
 			<Pin name="Top Left" datatype="bool" default="1" isMinimised="true"/>
