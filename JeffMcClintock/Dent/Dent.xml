@@ -14,6 +14,7 @@
 			<Pin name="Inner" datatype="bool" isMinimised="true"/>
 			<Pin name="Outer" datatype="bool" isMinimised="true"/>
 			<Pin name="Visible" datatype="bool" default="1"/>
+			<Pin name="HD" datatype="bool"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE DentB" name="DentB" category="Experimental/Sub-Controls">

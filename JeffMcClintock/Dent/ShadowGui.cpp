@@ -33,6 +33,7 @@ class ShadowGui final : public gmpi_gui::MpGuiGfxBase
 	BoolGuiPin pinInnerShadow;
 	BoolGuiPin pinOuterShadow;
 	BoolGuiPin pinVisible;
+	BoolGuiPin pinHd;
 
 	Bitmap bitmap;
 
@@ -61,6 +62,7 @@ public:
 		initializePin(pinInnerShadow, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
 		initializePin(pinOuterShadow, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
 		initializePin(pinVisible, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::redraw));
+		initializePin(pinHd, static_cast<MpGuiBaseMemberPtr2>(&ShadowGui::rerender));
 	}
 
 	// draw a white image on a black background, suitable for blurring
@@ -144,8 +146,14 @@ public:
 			renderImage(drawingContext);
 		}
 
+		const auto scale = pinHd ? 2.0f : 1.0f;
+		const auto bitmapSize = bitmap.GetSizeF();
+		Rect sourceRect{};
+		sourceRect.right = sourceRect.left + bitmapSize.width * scale;
+		sourceRect.bottom = sourceRect.top + bitmapSize.height * scale;
+
 		Graphics g(drawingContext);
-		g.DrawBitmap(bitmap, Point{}, getRect());
+		g.DrawBitmap(bitmap, getRect(), sourceRect);
 
 		return gmpi::MP_OK;
 	}
@@ -162,12 +170,20 @@ public:
 		if (gmpi::MP_NOSUPPORT == drawingContext->queryInterface(GmpiDrawing_API::IMpDeviceContextExt::guid, graphics2.asIMpUnknownPtr()))
 			return; // MP_FAIL;
 
+		const float scale = pinHd ? 2.0f : 1.0f;
+
 		GmpiDrawing::BitmapRenderTarget g_mask;
-		graphics2->CreateBitmapRenderTarget(SizeL(r.getWidth(), r.getHeight()), true, (GmpiDrawing_API::IMpBitmapRenderTarget**) g_mask.asIMpUnknownPtr());
+		graphics2->CreateBitmapRenderTarget(SizeL(r.getWidth() * scale, r.getHeight() * scale), true, (GmpiDrawing_API::IMpBitmapRenderTarget**) g_mask.asIMpUnknownPtr());
 
 		g_mask.BeginDraw();
 
-		const int blurRadius = pinBlurRadius;
+		const int blurRadius = pinBlurRadius * (pinHd ? 2 : 1);
+
+		if (pinHd)
+		{
+			const auto sm = g_mask.GetTransform() * Matrix3x2::Scale({ scale, scale });
+			g_mask.SetTransform(sm);
+		}
 
 		drawMask(g_mask);
 
@@ -214,8 +230,8 @@ public:
 				}
 			}
 
-			const int offsetX = pinOffsetX;
-			const int offsetY = pinOffsetY;
+			const int offsetX = pinOffsetX * (pinHd ? 2 : 1);
+			const int offsetY = pinOffsetY * (pinHd ? 2 : 1);
 
 			// blur vert
 			for (int y = 0; y < imageSize.height; ++y)
@@ -329,9 +345,20 @@ public:
 	Rect getClientRect()
 	{
 		auto r = getRect();
-		r.Deflate(1 + pinBlurRadius + (std::max)(abs(pinOffsetX.getValue()), abs(pinOffsetY.getValue())) );
+
+		float boarder = 24.f; // 1 + pinBlurRadius + (std::max)(abs(pinOffsetX.getValue()), abs(pinOffsetY.getValue()));
+		//if(pinHd)
+		//	boarder *= 2.0f;
+
+		r.Deflate(boarder);
 
 		return r;
+	}
+
+	int32_t MP_STDCALL arrange(GmpiDrawing_API::MP1_RECT finalRect) override
+	{
+		rerender();
+		return gmpi_gui::MpGuiGfxBase::arrange(finalRect);
 	}
 };
 
