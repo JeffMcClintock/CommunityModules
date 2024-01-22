@@ -151,22 +151,12 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 		state.last = pt3;
 	}
 
-	int32_t OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext)
+	void parseGroup(GmpiDrawing::Graphics& g, XMLElement* groupE)
 	{
-		GmpiDrawing::Graphics g(drawingContext);
-
-		auto svgE = doc.FirstChildElement("svg");
-
-		if (!svgE)
-			return gmpi::MP_OK;
-
-		svgSize.width  = static_cast<int>(ceilf(svgE->FloatAttribute("width")));
-		svgSize.height = static_cast<int>(ceilf(svgE->FloatAttribute("height")));
-
 		auto fillBrush = g.CreateSolidColorBrush(Color::Black);
 		auto strokeBrush = g.CreateSolidColorBrush(Color::Black);
 
-		for (auto node = svgE->FirstChildElement(); node; node = node->NextSiblingElement())
+		for (auto node = groupE->FirstChildElement(); node; node = node->NextSiblingElement())
 		{
 			auto c = node->ToElement();
 
@@ -183,12 +173,22 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 				std::string fillstr(fill + 1);
 				fillColor = Color::FromHexStringU(fillstr);
 			}
+			else
+			{
+				// has a fill, but can't be bothered looking up the color name.
+				fillColor = Color::Black;
+			}
 
 			auto stroke(c->Attribute("stroke"));
 			if (stroke && stroke[0] == '#')
 			{
 				std::string strokestr(stroke + 1);
 				strokeColor = Color::FromHexStringU(strokestr);
+			}
+			else
+			{
+				// has a fill, but can't be bothered looking up the color name.
+				fillColor = Color::Black;
 			}
 
 			if (pinFillOverride.rawSize() == sizeof(Color))
@@ -210,6 +210,11 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 
 			fillBrush.SetColor(fillColor);
 			strokeBrush.SetColor(strokeColor);
+
+			if (strcmp(c->Name(), "g") == 0) //group
+			{
+				parseGroup(g, c);
+			}
 
 			if (strcmp(c->Name(), "rect") == 0)
 			{
@@ -276,7 +281,7 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 				{
 					fillPath = g.GetFactory().CreatePathGeometry();
 					state.fillSink = fillPath.Open();
-//					state.fillSink.SetFillMode(FillMode::Winding);
+					//					state.fillSink.SetFillMode(FillMode::Winding);
 				}
 				PathGeometry strokePath;
 				if (strokeColor.a > 0)
@@ -288,10 +293,10 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 				_RPT0(0, "\nd=\"");
 				for (auto& t : tokens)
 				{
-					_RPTN(0,"%c ", t.strokeType);
-					for (size_t i = 0 ; i < t.args.size(); ++i)
+					_RPTN(0, "%c ", t.strokeType);
+					for (size_t i = 0; i < t.args.size(); ++i)
 					{
-						if((i & 1) == 0 && i > 0)
+						if ((i & 1) == 0 && i > 0)
 							_RPTN(0, "%g,", t.args[i]);
 						else
 							_RPTN(0, "%g ", t.args[i]);
@@ -309,7 +314,7 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 
 						for (size_t i = 1; i < t.args.size() / 2; i++)
 							path_lineTo(state, { t.args[2 * i], t.args[2 * i + 1] });
-					break;
+						break;
 
 					case 'm': // move (relative)
 						if (t.args.size() >= 2)
@@ -317,7 +322,7 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 
 						for (size_t i = 1; i < t.args.size() / 2; i++)
 							path_lineTo(state, { state.last.x + t.args[2 * i], state.last.y + t.args[2 * i + 1] });
-					break;
+						break;
 
 					case 'L': // Line-to
 						for (size_t i = 0; i < t.args.size() / 2; i++)
@@ -391,22 +396,22 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 					break;
 
 
-						/* todo
-					case 'A': // Arc
-					{
-						if(t.args.size() != 7)
-							break;
-
-						Point pt1{t.args[0], t.args[1]};
-						Point pt2{t.args[2], t.args[3]};
-						float radius = t.args[4];
-						bool largeArc = t.args[5] != 0;
-						bool sweep = t.args[6] != 0;
-
-						sink.AddArc({ pt1, pt2 }, radius, largeArc, sweep);
-					}
+					/* todo
+				case 'A': // Arc
+				{
+					if(t.args.size() != 7)
 						break;
-					*/
+
+					Point pt1{t.args[0], t.args[1]};
+					Point pt2{t.args[2], t.args[3]};
+					float radius = t.args[4];
+					bool largeArc = t.args[5] != 0;
+					bool sweep = t.args[6] != 0;
+
+					sink.AddArc({ pt1, pt2 }, radius, largeArc, sweep);
+				}
+					break;
+				*/
 
 
 					case 'Z': // Close
@@ -441,7 +446,7 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 				if (state.strokeSink)
 				{
 					g.DrawGeometry(strokePath, strokeBrush);
-				}						
+				}
 			}
 			else if (strcmp(c->Name(), "circle") == 0)
 			{
@@ -520,6 +525,22 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 				}
 			}
 		}
+	}
+
+	int32_t OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext)
+	{
+		GmpiDrawing::Graphics g(drawingContext);
+
+		auto svgE = doc.FirstChildElement("svg");
+
+		if (!svgE)
+			return gmpi::MP_OK;
+
+		svgSize.width  = static_cast<int>(ceilf(svgE->FloatAttribute("width")));
+		svgSize.height = static_cast<int>(ceilf(svgE->FloatAttribute("height")));
+
+		parseGroup(g, svgE);
+
 		return gmpi::MP_OK;
 	}
 
