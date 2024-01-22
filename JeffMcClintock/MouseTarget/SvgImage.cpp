@@ -163,6 +163,13 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 			if (!c)
 				continue;
 
+			auto fillMode = FillMode::Winding;
+			auto fillRule(c->Attribute("fill-rule"));
+			if (fillRule && strcmp(fillRule, "evenodd") == 0)
+			{
+				fillMode = FillMode::Alternate;
+			}
+
 			Color fillColor;
 			Color strokeColor;
 			fillColor.a = strokeColor.a = 0.0f; // default to not drawn
@@ -281,7 +288,7 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 				{
 					fillPath = g.GetFactory().CreatePathGeometry();
 					state.fillSink = fillPath.Open();
-					//					state.fillSink.SetFillMode(FillMode::Winding);
+					state.fillSink.SetFillMode(fillMode);
 				}
 				PathGeometry strokePath;
 				if (strokeColor.a > 0)
