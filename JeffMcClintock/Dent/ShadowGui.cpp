@@ -15,11 +15,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "mp_sdk_gui2.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "../MouseTarget/WithImageEffects.h"
 
 using namespace gmpi;
 using namespace GmpiDrawing;
 
-class ShadowGui final : public gmpi_gui::MpGuiGfxBase
+class ShadowGui final : public WithImageEffects
 {
  	FloatGuiPin pinCornerRadius;
  	BoolGuiPin pinTopLeft;
@@ -27,25 +28,10 @@ class ShadowGui final : public gmpi_gui::MpGuiGfxBase
  	BoolGuiPin pinBottomLeft;
  	BoolGuiPin pinBottomRight;
  	IntGuiPin pinBlurRadius;
-	FloatGuiPin pinIntensity;
 	IntGuiPin pinOffsetX;
 	IntGuiPin pinOffsetY;
 	BoolGuiPin pinInnerShadow;
 	BoolGuiPin pinOuterShadow;
-	BoolGuiPin pinVisible;
-	BoolGuiPin pinHd;
-
-	Bitmap bitmap;
-
-	void redraw()
-	{
-		invalidateRect();
-	}
-	void rerender()
-	{
-		bitmap.setNull();
-		invalidateRect();
-	}
 
 public:
 	ShadowGui()
@@ -66,8 +52,10 @@ public:
 	}
 
 	// draw a white image on a black background, suitable for blurring
-	void drawMask(BitmapRenderTarget& g)
+	int32_t renderImage(GmpiDrawing_API::IMpDeviceContext* drawingContext) override
 	{
+		Graphics g(drawingContext);
+
 		auto r = getClientRect();
 
 		const int radius = (std::min)(pinCornerRadius.getValue(), (std::min)(r.getWidth(), r.getHeight()) / 2);
@@ -133,213 +121,163 @@ public:
 
 		auto brush = g.CreateSolidColorBrush(Color::Black);
 		g.FillGeometry(geometry, brush);
-	}
-
-
-	int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override
-	{
-		if(!pinVisible)
-			return gmpi::MP_OK;
-
-		if (!bitmap)
-		{
-			renderImage(drawingContext);
-		}
-
-		const auto scale = pinHd ? 2.0f : 1.0f;
-		const auto bitmapSize = bitmap.GetSizeF();
-		Rect sourceRect{};
-		sourceRect.right = sourceRect.left + bitmapSize.width * scale;
-		sourceRect.bottom = sourceRect.top + bitmapSize.height * scale;
-
-		Graphics g(drawingContext);
-		g.DrawBitmap(bitmap, getRect(), sourceRect);
 
 		return gmpi::MP_OK;
 	}
 
-	void renderImage(GmpiDrawing_API::IMpDeviceContext* drawingContext)
+	int32_t filterImage(Bitmap& bitmap) override
 	{
-		Graphics g_orig(drawingContext);
-
-		auto r = getRect();
-		// Draw the black and white mask.
-
-		// access newer API.
-		gmpi_sdk::mp_shared_ptr<GmpiDrawing_API::IMpDeviceContextExt> graphics2;
-		if (gmpi::MP_NOSUPPORT == drawingContext->queryInterface(GmpiDrawing_API::IMpDeviceContextExt::guid, graphics2.asIMpUnknownPtr()))
-			return; // MP_FAIL;
-
-		const float scale = pinHd ? 2.0f : 1.0f;
-
-		GmpiDrawing::BitmapRenderTarget g_mask;
-		graphics2->CreateBitmapRenderTarget(SizeL(r.getWidth() * scale, r.getHeight() * scale), true, (GmpiDrawing_API::IMpBitmapRenderTarget**) g_mask.asIMpUnknownPtr());
-
-		g_mask.BeginDraw();
-
 		const int blurRadius = pinBlurRadius * (pinHd ? 2 : 1);
 
-		if (pinHd)
+		// blur the mask.
+		auto imageSize = bitmap.GetSize();
+		auto pixelsSource = bitmap.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+		int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+
+		int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
+
+		std::vector<float> linearImageOut(imageSize.width * imageSize.height, 0.0f);
+		std::vector<float> linearImageOut_temp(linearImageOut.size(), 0.0f);
+		std::vector<float> linearImageOut_neg(linearImageOut.size(), 0.0f);
+		std::vector<float> linearImageOut_pos(linearImageOut.size(), 0.0f);
+
+		// Copy the image intensity to a linear float format
+		for (int y = 0; y < imageSize.height; ++y)
 		{
-			const auto sm = g_mask.GetTransform() * Matrix3x2::Scale({ scale, scale });
-			g_mask.SetTransform(sm);
+			for (int x = 0; x < imageSize.width; ++x)
+			{
+				const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+				linearImageOut[y * imageSize.width + x] = 1.0f - intensity;
+			}
 		}
 
-		drawMask(g_mask);
-
-		g_mask.EndDraw();
-		// blur the mask.
-		if(true)
+		// Calculate the gausian blur filter
+		std::vector<float> filter;
 		{
-			bitmap = g_mask.GetBitmap();
-			auto imageSize = bitmap.GetSize();
-			auto pixelsSource = bitmap.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
-			int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+			float sum{};
+			for (int i = 0; i < blurRadius * 2 + 1; ++i)
+			{
+				const float dist = abs(blurRadius - i);
+				const float f = exp(-dist * dist / (2.0f * blurRadius * blurRadius));
+				sum += f;
+				filter.push_back(f);
+			}
+			for (auto& f : filter)
+			{
+				f /= sum;
+			}
+		}
+
+		const int offsetX = pinOffsetX * (pinHd ? 2 : 1);
+		const int offsetY = pinOffsetY * (pinHd ? 2 : 1);
+
+		// blur vert
+		for (int y = 0; y < imageSize.height; ++y)
+		{
+			for (int x = 0; x < imageSize.width; ++x)
+			{
+				float sum{};
+				int i{};
+				for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+				{
+					const auto y2 = std::clamp(y + dy - offsetY, 0, (int)imageSize.height - 1);
+					sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+				}
+
+				linearImageOut_temp[y * imageSize.width + x] = sum;
+			}
+		}
+
+		// blur horizontal. linearImageOut2 -> linearImageOut
+		for (int y = 0; y < imageSize.height; ++y)
+		{
+			for (int x = 0; x < imageSize.width; ++x)
+			{
+				float sum{};
+				int i{};
+				for (int dx = -blurRadius; dx <= blurRadius; ++dx)
+				{
+					const auto x2 = std::clamp(x + dx - offsetX, 0, (int)imageSize.width - 1);
+					sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
+				}
+
+				linearImageOut_neg[y * imageSize.width + x] = sum;
+			}
+		}
+
+		// blur vert, opposite direction
+		for (int y = 0; y < imageSize.height; ++y)
+		{
+			for (int x = 0; x < imageSize.width; ++x)
+			{
+				float sum{};
+				int i{};
+				for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+				{
+					const auto y2 = std::clamp(y + dy + offsetY, 0, (int)imageSize.height - 1);
+					sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+				}
+
+				linearImageOut_temp[y * imageSize.width + x] = sum;
+			}
+		}
+
+		// blur horizontal. opposit direction
+		for (int y = 0; y < imageSize.height; ++y)
+		{
+			for (int x = 0; x < imageSize.width; ++x)
+			{
+				float sum{};
+				int i{};
+				for (int dx = -blurRadius; dx <= blurRadius; ++dx)
+				{
+					const auto x2 = std::clamp(x + dx + offsetX, 0, (int)imageSize.width - 1);
+					sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
+				}
+
+				linearImageOut_pos[y * imageSize.width + x] = sum;
+			}
+		}
+
+		{
+			const bool subtractive = pinIntensity < 0.0f;
+			const float brightness = std::clamp(fabs(pinIntensity.getValue()), 0.0f, 1.0f);
+			const float innerEnable = pinInnerShadow.getValue() ? 1.0f : 0.0f;
+			const float outerEnable = pinOuterShadow.getValue() ? 1.0f : 0.0f;
 
 			int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
 
-			std::vector<float> linearImageOut(imageSize.width * imageSize.height, 0.0f);
-			std::vector<float> linearImageOut_temp(linearImageOut.size(), 0.0f);
-			std::vector<float> linearImageOut_neg(linearImageOut.size(), 0.0f);
-			std::vector<float> linearImageOut_pos(linearImageOut.size(), 0.0f);
-
-			// Copy the image intensity to a linear float format
 			for (int y = 0; y < imageSize.height; ++y)
 			{
 				for (int x = 0; x < imageSize.width; ++x)
 				{
-					const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
-					linearImageOut[y * imageSize.width + x] = 1.0f - intensity;
-				}
-			}
+					const auto intensityA = outerEnable * (std::min)(1.0f, linearImageOut_neg[y * imageSize.width + x]);
+					const auto intensityB = innerEnable * (1.0f - (std::min)(1.0f, linearImageOut_pos[y * imageSize.width + x]));
 
-			// Calculate the gausian blur filter
-			std::vector<float> filter;
-			{
-				float sum{};
-				for (int i = 0; i < blurRadius * 2 + 1; ++i)
-				{
-					const float dist = abs(blurRadius - i);
-					const float f = exp(-dist * dist / (2.0f * blurRadius * blurRadius));
-					sum += f;
-					filter.push_back(f);
-				}
-				for (auto& f : filter)
-				{
-					f /= sum;
-				}
-			}
+					const auto bitsA = se_sdk::FastGamma::float_to_sRGB(intensityA);
+					const auto bitsB = se_sdk::FastGamma::float_to_sRGB(intensityB);
 
-			const int offsetX = pinOffsetX * (pinHd ? 2 : 1);
-			const int offsetY = pinOffsetY * (pinHd ? 2 : 1);
+					const auto blend = linearImageOut[y * imageSize.width + x];
+					const auto intensity = (intensityA + (intensityB - intensityA) * blend);
 
-			// blur vert
-			for (int y = 0; y < imageSize.height; ++y)
-			{
-				for (int x = 0; x < imageSize.width; ++x)
-				{
-					float sum{};
-					int i{};
-					for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+					int32_t pixelVal{};
+					if (subtractive) // shadow - subtractive
 					{
-						const auto y2 = std::clamp(y + dy - offsetY, 0, (int) imageSize.height - 1);
-						sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+						// black with varying alpha
+						pixelVal = se_sdk::FastGamma::fastNormalisedToPixel(brightness * intensity) << 24;
+					}
+					else // glow - additive
+					{
+						// varying brightness white with zero alpha
+						const auto bits = se_sdk::FastGamma::float_to_sRGB(brightness * intensity);
+						pixelVal = bits | (bits << 8) | (bits << 16);
 					}
 
-					linearImageOut_temp[y * imageSize.width + x] = sum;
-				}
-			}
-
-			// blur horizontal. linearImageOut2 -> linearImageOut
-			for (int y = 0; y < imageSize.height; ++y)
-			{
-				for (int x = 0; x < imageSize.width; ++x)
-				{
-					float sum{};
-					int i{};
-					for (int dx = -blurRadius; dx <= blurRadius; ++dx)
-					{
-						const auto x2 = std::clamp(x + dx - offsetX, 0, (int)imageSize.width - 1);
-						sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
-					}
-
-					linearImageOut_neg[y * imageSize.width + x] = sum;
-				}
-			}
-
-			// blur vert, opposite direction
-			for (int y = 0; y < imageSize.height; ++y)
-			{
-				for (int x = 0; x < imageSize.width; ++x)
-				{
-					float sum{};
-					int i{};
-					for (int dy = -blurRadius; dy <= blurRadius; ++dy)
-					{
-						const auto y2 = std::clamp(y + dy + offsetY, 0, (int)imageSize.height - 1);
-						sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
-					}
-
-					linearImageOut_temp[y * imageSize.width + x] = sum;
-				}
-			}
-
-			// blur horizontal. opposit direction
-			for (int y = 0; y < imageSize.height; ++y)
-			{
-				for (int x = 0; x < imageSize.width; ++x)
-				{
-					float sum{};
-					int i{};
-					for (int dx = -blurRadius; dx <= blurRadius; ++dx)
-					{
-						const auto x2 = std::clamp(x + dx + offsetX, 0, (int)imageSize.width - 1);
-						sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
-					}
-
-					linearImageOut_pos[y * imageSize.width + x] = sum;
-				}
-			}
-
-			{
-				const bool subtractive = pinIntensity < 0.0f;
-				const float brightness = std::clamp(fabs(pinIntensity.getValue()), 0.0f, 1.0f);
-				const float innerEnable = pinInnerShadow.getValue() ? 1.0f : 0.0f;
-				const float outerEnable = pinOuterShadow.getValue() ? 1.0f : 0.0f;
-
-				int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
-
-				for (int y = 0; y < imageSize.height; ++y)
-				{
-					for (int x = 0; x < imageSize.width; ++x)
-					{
-						const auto intensityA = outerEnable * (std::min)(1.0f, linearImageOut_neg[y * imageSize.width + x]);
-						const auto intensityB = innerEnable * (1.0f - (std::min)(1.0f, linearImageOut_pos[y * imageSize.width + x]));
-
-						const auto bitsA = se_sdk::FastGamma::float_to_sRGB(intensityA);
-						const auto bitsB = se_sdk::FastGamma::float_to_sRGB(intensityB);
-
-						const auto blend = linearImageOut[y * imageSize.width + x];
-						const auto intensity = (intensityA + (intensityB - intensityA) * blend);
-
-						int32_t pixelVal{};
-						if (subtractive) // shadow - subtractive
-						{
-							// black with varying alpha
-							pixelVal = se_sdk::FastGamma::fastNormalisedToPixel(brightness * intensity) << 24;
-						}
-						else // glow - additive
-						{
-							// varying brightness white with zero alpha
-							const auto bits = se_sdk::FastGamma::float_to_sRGB(brightness * intensity);
-							pixelVal = bits | (bits << 8) | (bits << 16);
-						}
-
-						*sourcePixels++ = pixelVal;
-					}
+					*sourcePixels++ = pixelVal;
 				}
 			}
 		}
+		return gmpi::MP_OK;
 	}
 
 	Rect getClientRect()
@@ -353,12 +291,6 @@ public:
 		r.Deflate(boarder);
 
 		return r;
-	}
-
-	int32_t MP_STDCALL arrange(GmpiDrawing_API::MP1_RECT finalRect) override
-	{
-		rerender();
-		return gmpi_gui::MpGuiGfxBase::arrange(finalRect);
 	}
 };
 

@@ -5,6 +5,10 @@
 			<Pin name="SVG File" datatype="string" isFilename="true" metadata="svg"/>
 			<Pin name="Fill" datatype="blob" class="SE::Color"/>
 			<Pin name="Stroke" datatype="blob" class="SE::Color"/>
+
+			<Pin name="Intensity" datatype="float" default="-0.5" isMinimised="true"/>
+			<Pin name="Visible" datatype="bool" default="1"/>
+			<Pin name="HD" datatype="bool"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Color Lag" name="Color Lag" category="Experimental/Sub-Controls/Conversion">

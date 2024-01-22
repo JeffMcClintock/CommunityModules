@@ -21,12 +21,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "unicode_conversion.h"
 #include "Drawing.h"
 #include "./tinyXml2/tinyxml2.h"
+#include "WithImageEffects.h"
 
 using namespace gmpi;
 using namespace tinyxml2;
 using namespace GmpiDrawing;
 
-class SvgImage final : public gmpi_gui::MpGuiGfxBase
+class SvgImage final : public WithImageEffects
 {
 	StringGuiPin pinSvgFilename;
 	BlobGuiPin pinFillOverride;
@@ -534,14 +535,14 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 		}
 	}
 
-	int32_t OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext)
+	int32_t renderImage(GmpiDrawing_API::IMpDeviceContext* drawingContext) override
 	{
 		GmpiDrawing::Graphics g(drawingContext);
 
 		auto svgE = doc.FirstChildElement("svg");
 
 		if (!svgE)
-			return gmpi::MP_OK;
+			return gmpi::MP_FAIL;
 
 		svgSize.width  = static_cast<int>(ceilf(svgE->FloatAttribute("width")));
 		svgSize.height = static_cast<int>(ceilf(svgE->FloatAttribute("height")));
@@ -551,12 +552,20 @@ class SvgImage final : public gmpi_gui::MpGuiGfxBase
 		return gmpi::MP_OK;
 	}
 
+	int32_t filterImage(Bitmap& bitmap) override
+	{
+		return gmpi::MP_OK;
+	}
+
 public:
 	SvgImage()
 	{
 		initializePin(pinSvgFilename, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::onSetTextVal));
 		initializePin(pinFillOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
 		initializePin(pinStrokeOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
+		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
+		initializePin(pinVisible, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
+		initializePin(pinHd, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
 	}
 
 	int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize)
