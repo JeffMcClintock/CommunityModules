@@ -84,7 +84,12 @@ public:
 
 	int32_t MP_STDCALL arrange(GmpiDrawing_API::MP1_RECT finalRect) override
 	{
-		rerender();
+		const Rect final(finalRect);
+		const auto prevRect = getRect();
+		if (prevRect.getWidth() != final.getWidth() || prevRect.getHeight() != final.getHeight())
+		{
+			rerender();
+		}
 		return gmpi_gui::MpGuiGfxBase::arrange(finalRect);
 	}
 

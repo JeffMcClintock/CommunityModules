@@ -16,6 +16,9 @@ build_gmpi_plugin(
         HexToColorGui.cpp
         ColorLagGui.cpp
         SvgImage.cpp
+        WithImageEffects.h
+        EmmissiveComponent.h
+        EmmissiveComponent.cpp
         tinyxml2/tinyxml2.h
         tinyxml2/tinyxml2.cpp
         ${se_shared_folder}/skinBitmap.h

@@ -21,13 +21,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "unicode_conversion.h"
 #include "Drawing.h"
 #include "./tinyXml2/tinyxml2.h"
-#include "WithImageEffects.h"
+#include "EmmissiveComponent.h"
 
 using namespace gmpi;
 using namespace tinyxml2;
 using namespace GmpiDrawing;
 
-class SvgImage final : public WithImageEffects
+class SvgImage final : public EmmissiveComponent
 {
 	StringGuiPin pinSvgFilename;
 	BlobGuiPin pinFillOverride;
@@ -549,11 +549,6 @@ class SvgImage final : public WithImageEffects
 
 		parseGroup(g, svgE);
 
-		return gmpi::MP_OK;
-	}
-
-	int32_t filterImage(Bitmap& bitmap) override
-	{
 		return gmpi::MP_OK;
 	}
 
