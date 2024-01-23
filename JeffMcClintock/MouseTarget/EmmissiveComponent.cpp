@@ -242,13 +242,6 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 		initFilterKernal();
 	}
 
-	// call the normal drawing routine
-	//{
-	//	juce::Graphics g(*sourceImage);
-	//	g.fillAll();// juce::Colours::black);
-	//	paintEmmisive(g);
-	//}
-
 	// Apply glow filter.
 	const auto width = image.GetSize().width;
 	const auto height = image.GetSize().height;
@@ -268,7 +261,6 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 		const auto imageSize = image.GetSize();
 		const int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
 
-//		juce::Image::BitmapData bms(*sourceImage, juce::Image::BitmapData::ReadWriteMode::readOnly);
 		auto sourcePixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());// bms.data);
 
 		// Convert and copy render to linear brightness buffer.
@@ -277,10 +269,10 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 		int i = 0;
 		for (int y = 0; y < sourceHeight; ++y)
 		{
-			const int dest_y = y + KERNAL_SIZE;
+			const int dest_y = y /*+ KERNAL_SIZE*/;
 			for (int x = 0; x < sourceWidth; ++x)
 			{
-				const int dest_x = x + KERNAL_SIZE;
+				const int dest_x = x /*+ KERNAL_SIZE*/;
 				const int dest_index = dest_x + width * dest_y;
 				if (dest_index < pixels_linear.size())
 				{
@@ -318,13 +310,13 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 
 			for (int y = 0; y < sourceHeight; ++y)
 			{
-				auto dest_y = y + KERNAL_SIZE + off_y;
+				auto dest_y = y /*+ KERNAL_SIZE*/ + off_y;
 				if (dest_y < 0 || dest_y >= height)
 					continue;
 
 				for (int x = 0; x < sourceWidth; ++x)
 				{
-					auto dest_x = x + KERNAL_SIZE + off_x;
+					auto dest_x = x /*+ KERNAL_SIZE*/ + off_x;
 					if (dest_x < 0 || dest_x >= width)
 						continue;
 
@@ -334,56 +326,19 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 			}
 		}
 	}
+
+	pixels_linear[0] = rgb_f{ 1, 1, 1 };
+	pixels_linear.back() = rgb_f{1, 1, 1};
 #endif
 
 	// convert back to screen color space.
 	{
-		//juce::Image::BitmapData bmd_dest(*image, juce::Image::BitmapData::ReadWriteMode::writeOnly);
-
-		//const auto pixelsDest = image.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
-		//const int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
-
-
-		//auto destPixels = reinterpret_cast<rgba*>(bmd_dest.data);
-		auto destPixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());// bms.data);
+		auto destPixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());
 		for (int i = 0; i < totalPixels; ++i)
 		{
 			destPixels[i] = fastColorToSrgb3(pixels_linear[i]);
 		}
 	}
 
-	invalidated = false;
 	return gmpi::MP_OK;
 }
-
-#if 0
-void EmmissiveComponent::resized()
-{
-	// component size (DIPs)
-	const auto width = getLocalBounds().getWidth();
-	const auto height = getLocalBounds().getHeight();
-
-	assert(width > KERNAL_SIZE * 2 && height > KERNAL_SIZE * 2); // rember to use setBoundsAdj() NOT setBounds()
-
-	// TODO: DPI?
-	image = std::make_unique<juce::Image>(juce::Image::PixelFormat::ARGB, width, height, false);
-	sourceImage = std::make_unique<juce::Image>(juce::Image::PixelFormat::ARGB, width - KERNAL_SIZE * 2, height - KERNAL_SIZE * 2, false);
-
-	invalidated = true;
-}
-
-void EmmissiveComponent::setBoundsAdj(juce::Rectangle<int> r)
-{
-	setBounds(r.expanded(KERNAL_SIZE));
-}
-
-juce::Rectangle<int> EmmissiveComponent::getLocalBoundsAdj() const noexcept
-{
-	return getLocalBounds().reduced(KERNAL_SIZE).withZeroOrigin();
-}
-
-bool EmmissiveComponent::hitTest(int x, int y)
-{
-	return getLocalBounds().reduced(KERNAL_SIZE).contains(x, y);
-}
-#endif

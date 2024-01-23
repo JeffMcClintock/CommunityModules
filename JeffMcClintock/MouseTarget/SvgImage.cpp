@@ -544,9 +544,6 @@ class SvgImage final : public EmmissiveComponent
 		if (!svgE)
 			return gmpi::MP_FAIL;
 
-		svgSize.width  = static_cast<int>(ceilf(svgE->FloatAttribute("width")));
-		svgSize.height = static_cast<int>(ceilf(svgE->FloatAttribute("height")));
-
 		parseGroup(g, svgE);
 
 		return gmpi::MP_OK;
