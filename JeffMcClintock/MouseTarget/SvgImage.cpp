@@ -17,6 +17,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 // https://www.w3.org/TR/SVGTiny12/
 
 #include <span>
+#include <ranges>
+#include <charconv>
+#include <string_view>
 #include "mp_sdk_gui2.h"
 #include "unicode_conversion.h"
 #include "Drawing.h"
@@ -86,6 +89,7 @@ class SvgImage final : public EmmissiveComponent
 			state.fillSink.BeginFigure(p, FigureBegin::Filled);
 
 		state.first = state.last = p;
+		state.inFigure = true;
 	}
 
 	void path_lineTo(pathState& state, Point p)
@@ -152,11 +156,72 @@ class SvgImage final : public EmmissiveComponent
 		state.last = pt3;
 	}
 
-	void parseGroup(GmpiDrawing::Graphics& g, XMLElement* groupE)
+	GmpiDrawing::Matrix3x2 parseTransform(const char* transformS)
+	{
+		// transform="matrix(4.16667,0,0,4.16667,0,0)"
+		
+		auto openBracket = strchr(transformS, '(');
+		auto closeBracket = strrchr(transformS, ')');
+
+		if(!openBracket || !closeBracket || openBracket > closeBracket)
+			return Matrix3x2::Identity();
+
+		std::vector<float> args;
+		for (const auto word : std::views::split(std::string_view(openBracket + 1, closeBracket - openBracket - 1), ','))
+		{
+			float val;
+			std::from_chars(word.data(), word.data() + word.size(), val);
+			args.push_back(val);
+		}
+
+		if (strncmp(transformS, "matrix", 6) == 0)
+		{
+			if (args.size() == 6)
+				return Matrix3x2{ args[0], args[1], args[2], args[3], args[4], args[5] };
+		}
+		else if (strncmp(transformS, "translate", 9) == 0)
+		{
+			if(args.size() == 2)
+				return Matrix3x2::Translation(args[0], args[1]);
+		}
+		else if (strncmp(transformS, "scale", 5) == 0)
+		{
+			if (args.size() == 2)
+				return Matrix3x2::Scale(args[0], args[1]);
+		}
+		else if (strncmp(transformS, "rotate", 6) == 0)
+		{
+			if (args.size() == 1)
+				return Matrix3x2::Rotation(args[0]);
+		}
+		else if (strncmp(transformS, "skewX", 5) == 0)
+		{
+			if (args.size() == 1)
+				return Matrix3x2::Skew(args[0], 0);
+		}
+		else if (strncmp(transformS, "skewY", 5) == 0)
+		{
+			if (args.size() == 1)
+				return Matrix3x2::Skew(0, args[0]);
+		}
+
+		return Matrix3x2::Identity();
+	}
+
+	void parseGroup(GmpiDrawing::Graphics& g, XMLElement* groupE, GmpiDrawing::Matrix3x2 transform)
 	{
 		auto fillBrush = g.CreateSolidColorBrush(Color::Black);
 		auto strokeBrush = g.CreateSolidColorBrush(Color::Black);
-
+		
+		const auto transformS = groupE->Attribute("transform");
+		Matrix3x2 originalTransform;
+		if (transformS)
+		{
+			originalTransform = g.GetTransform();
+			transform = parseTransform(transformS) * transform;
+			g.SetTransform(transform);
+		}
+			
 		for (auto node = groupE->FirstChildElement(); node; node = node->NextSiblingElement())
 		{
 			auto c = node->ToElement();
@@ -221,7 +286,7 @@ class SvgImage final : public EmmissiveComponent
 
 			if (strcmp(c->Name(), "g") == 0) //group
 			{
-				parseGroup(g, c);
+				parseGroup(g, c, transform);
 			}
 
 			if (strcmp(c->Name(), "rect") == 0)
@@ -442,18 +507,22 @@ class SvgImage final : public EmmissiveComponent
 				}
 
 				if (state.strokeSink)
+				{
+					if(state.inFigure)
+						state.strokeSink.EndFigure();
+
 					state.strokeSink.Close();
+
+					g.DrawGeometry(strokePath, strokeBrush);
+				}
 				if (state.fillSink)
+				{
+					if (state.inFigure)
+						state.fillSink.EndFigure();
+
 					state.fillSink.Close();
 
-				if (state.fillSink)
-				{
 					g.FillGeometry(fillPath, fillBrush);
-				}
-
-				if (state.strokeSink)
-				{
-					g.DrawGeometry(strokePath, strokeBrush);
 				}
 			}
 			else if (strcmp(c->Name(), "circle") == 0)
@@ -533,6 +602,11 @@ class SvgImage final : public EmmissiveComponent
 				}
 			}
 		}
+
+		if (transformS)
+		{
+			g.SetTransform(originalTransform);
+		}
 	}
 
 	int32_t renderImage(GmpiDrawing_API::IMpDeviceContext* drawingContext) override
@@ -544,7 +618,8 @@ class SvgImage final : public EmmissiveComponent
 		if (!svgE)
 			return gmpi::MP_FAIL;
 
-		parseGroup(g, svgE);
+		auto transform = g.GetTransform();
+		parseGroup(g, svgE, transform);
 
 		return gmpi::MP_OK;
 	}

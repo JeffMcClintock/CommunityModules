@@ -326,9 +326,11 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 			}
 		}
 	}
-
+#ifdef _DEBUG
+	// test dots at top-left, bottom-right
 	pixels_linear[0] = rgb_f{ 1, 1, 1 };
 	pixels_linear.back() = rgb_f{1, 1, 1};
+#endif
 #endif
 
 	// convert back to screen color space.
