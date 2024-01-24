@@ -4,7 +4,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-float EmmissiveComponent::filter[KERNAL_SIZE][KERNAL_SIZE] = {}; //, EmmissiveComponent::KERNAL_SIZE* EmmissiveComponent::KERNAL_SIZE > EmmissiveComponent::filter = {};
+using namespace se_sdk;
+
+float EmmissiveComponent::filter[KERNAL_SIZE][KERNAL_SIZE] = {};
 
 struct rgba
 {
@@ -232,7 +234,6 @@ std::unique_ptr<juce::Image> EmmissiveComponent::renderEmmisiveImage(
 }
 #endif
 
-//void EmmissiveComponent::updateBitmap()
 int32_t EmmissiveComponent::filterImage(Bitmap& image)
 {
 	if (filter[0][0] == 0.f)
@@ -270,25 +271,18 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 				const int dest_index = y * width + x;
 				assert(dest_index < pixels_linear.size());
 				{
-					pixels_linear[dest_index].r = se_sdk::FastGamma::sRGB_to_float(sourcePixels[i].r);
-					pixels_linear[dest_index].g = se_sdk::FastGamma::sRGB_to_float(sourcePixels[i].g);
-					pixels_linear[dest_index].b = se_sdk::FastGamma::sRGB_to_float(sourcePixels[i].b);
+					const auto r = FastGamma::sRGB_to_float(sourcePixels[i].r);
+					const auto g = FastGamma::sRGB_to_float(sourcePixels[i].g);
+					const auto b = FastGamma::sRGB_to_float(sourcePixels[i].b);
 
 					// copy only emmissive (bright) pixels to emissive buffer
-					if (
-						pixels_linear[dest_index].r > threshold ||
-						pixels_linear[dest_index].g > threshold ||
-						pixels_linear[dest_index].b > threshold
-						)
-					{
-						pixels_emmisive[j].r = (std::max)(0.f, pixels_linear[dest_index].r - threshold) * 10.0f;	// take brightness
-						pixels_emmisive[j].g = (std::max)(0.f, pixels_linear[dest_index].g - threshold) * 10.0f;
-						pixels_emmisive[j].b = (std::max)(0.f, pixels_linear[dest_index].b - threshold) * 10.0f;
+					pixels_emmisive[j].r = (std::max)(0.f, r - threshold) * 10.0f;	// take brightness
+					pixels_emmisive[j].g = (std::max)(0.f, g - threshold) * 10.0f;
+					pixels_emmisive[j].b = (std::max)(0.f, b - threshold) * 10.0f;
 
-						pixels_linear[dest_index].r = (std::min)(threshold, pixels_linear[dest_index].r);
-						pixels_linear[dest_index].g = (std::min)(threshold, pixels_linear[dest_index].g);
-						pixels_linear[dest_index].b = (std::min)(threshold, pixels_linear[dest_index].b);
-					}
+					pixels_linear[dest_index].r = (std::min)(threshold, r);
+					pixels_linear[dest_index].g = (std::min)(threshold, g);
+					pixels_linear[dest_index].b = (std::min)(threshold, b);
 				}
 
 				++i;
@@ -336,7 +330,7 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 	pixels_linear.back() = rgb_f{1, 1, 1};
 #endif
 
-	// convert back to screen color space.
+	// convert back to screen color space. retaining alpha on the 'solid' parts.
 	{
 		auto destPixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());
 		for (int i = 0; i < totalDestPixels; ++i)

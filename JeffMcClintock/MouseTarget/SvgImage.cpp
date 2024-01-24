@@ -167,12 +167,29 @@ class SvgImage final : public EmmissiveComponent
 			return Matrix3x2::Identity();
 
 		std::vector<float> args;
-		for (const auto word : std::views::split(std::string_view(openBracket + 1, closeBracket - openBracket - 1), ','))
+
+#if 0 // Apple CLANG 14 is not up to date with std::views.
+		for (const auto& word : std::views::split(std::string_view(openBracket + 1, closeBracket - openBracket - 1), ','))
 		{
 			float val;
 			std::from_chars(word.data(), word.data() + word.size(), val);
 			args.push_back(val);
 		}
+#else
+		{
+			auto start = openBracket;
+
+			while (start != closeBracket) {
+				const auto finish = std::find(++start, closeBracket, ',');
+
+				float val;
+				std::from_chars(start, finish, val);
+				args.push_back(val);
+
+				start = finish;
+			}
+		}
+#endif
 
 		if (strncmp(transformS, "matrix", 6) == 0)
 		{
@@ -635,7 +652,7 @@ public:
 		initializePin(pinHd, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
 	}
 
-	int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize)
+	int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize) override
 	{
 		*returnDesiredSize = svgSize;
 		return gmpi::MP_OK;
