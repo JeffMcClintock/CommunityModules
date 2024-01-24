@@ -1,17 +1,18 @@
 #include <math.h>
 #include <algorithm>
 #include <tuple>
-
-#include "../se_sdk3/mp_sdk_audio.h"
+#include "mp_sdk_audio.h"
 
 // 0v = 0.001s, 10V = 10s
 float VoltageToTime(float v) { return powf(10.0f, ((v) * 0.4f) - 3.0f); }
 
 using namespace gmpi;
 
-std::tuple<double, double, double> CalculateCurve(const double level_, const double sampleRate, double rate, const double target, const double curveAmmount)
+// [legalLow, legalHi, curveRate, CurveTarget]
+std::tuple<double, double, double, double> CalculateCurve(const double level_, const double sampleRate, double rate, const double target, const double curveAmmount)
 {
 	double legalLow{};
+	double legalHi{1.0f};
 	double curveRate{};
 
 	rate = (std::min)(2.0, rate);
@@ -25,7 +26,7 @@ std::tuple<double, double, double> CalculateCurve(const double level_, const dou
 	{
 		// jump to next_segment
 		legalLow = level_ + 1.0;
-		return { legalLow , 0.0 , 0.0 };
+		return { legalLow , legalHi, 0.0 , 0.0 };
 	}
 
 	// By using more or less of the curve we control straight/curved mix.
@@ -64,7 +65,7 @@ std::tuple<double, double, double> CalculateCurve(const double level_, const dou
 	}
 	else
 	{
-		legalLow = 0.0;
+		legalHi = target;
 	}
 
 	if (curveAmmount >= 0) // normal curve.
@@ -80,12 +81,13 @@ std::tuple<double, double, double> CalculateCurve(const double level_, const dou
 		CurveTarget = level_ - CurveTarget; // no, not instantaneous level, as subject to modulation, and other weirdness.
 	}
 
-	return { legalLow, curveRate, CurveTarget };
+	return { legalLow, legalHi, curveRate, CurveTarget };
 }
 
-std::tuple<double, double, double> CalculateSteadyState(const double target)
+// [legalLow, legalHi, curveRate, CurveTarget]
+std::tuple<double, double, double, double> CalculateSteadyState(const double target)
 {
-	return { target - 1.0, 0.0, 0.0 };
+	return { target - 1.0, 1.1f, 0.0, 0.0 };
 }
 
 class Adsr : public MpBase2
@@ -107,6 +109,7 @@ class Adsr : public MpBase2
 	double target_ = {};
 	double CurveTarget_ = {};
 	double legalLow = {};
+	double legalHi = 1.0f;
 	int cur_segment = -1;
 
 public:
@@ -127,13 +130,12 @@ public:
 
 	void subProcess( int sampleFrames )
 	{
-		const double peakAdsrLevel = 1.0;
 		auto out = getBuffer(pinSignalOut);
 
 		for (int s = 0; s < sampleFrames; ++s)
 		{
 			level_ += curveRate_ * (CurveTarget_ - level_);
-			if (level_ < legalLow || level_ > peakAdsrLevel)
+			if (level_ < legalLow || level_ > legalHi)
 			{
 				level_ = target_; // undo overshoot.
 
@@ -181,7 +183,7 @@ public:
 		target_ = target;
 		pinSignalOut.setStreaming(true);
 
-		std::tie(legalLow, curveRate_, CurveTarget_) = CalculateCurve(level_, getSampleRate(), rate, target, curveAmmount);
+		std::tie(legalLow, legalHi, curveRate_, CurveTarget_) = CalculateCurve(level_, getSampleRate(), rate, target, curveAmmount);
 	}
 
 	void calcSteadyState(double target)
@@ -189,7 +191,7 @@ public:
 		target_ = target;
 		pinSignalOut.setStreaming(false);
 
-		std::tie(legalLow, curveRate_, CurveTarget_) = CalculateSteadyState(target);
+		std::tie(legalLow, legalHi, curveRate_, CurveTarget_) = CalculateSteadyState(target);
 	}
 
 	void onSetPins(void) override
@@ -228,7 +230,7 @@ public:
 		// changing sustain level while in sustain segment, reverts to decay stage.
 		if (pinSustain.isUpdated() && cur_segment == 2)
 		{
-			cur_segment = 1;
+			cur_segment = 0;
 			next_segment();
 		}
 	}
