@@ -168,7 +168,7 @@ class SvgImage final : public EmmissiveComponent
 
 		std::vector<float> args;
 
-#if 0 // Apple CLANG 14 is not up to date with std::views.
+#if 0 // Apple CLANG 14 is not up to date with std::views nor std::from_chars.
 		for (const auto& word : std::views::split(std::string_view(openBracket + 1, closeBracket - openBracket - 1), ','))
 		{
 			float val;
@@ -181,10 +181,7 @@ class SvgImage final : public EmmissiveComponent
 
 			while (start != closeBracket) {
 				const auto finish = std::find(++start, closeBracket, ',');
-
-				float val;
-				std::from_chars(start, finish, val);
-				args.push_back(val);
+				args.push_back((float) strtod(start, nullptr));
 
 				start = finish;
 			}
