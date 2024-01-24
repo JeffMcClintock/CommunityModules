@@ -219,13 +219,21 @@ public:
         case gmpi::midi_2_0::NoteOn:
         {
             const auto note = gmpi::midi_2_0::decodeNote(msg);
-            _synth->hdNoteOn(delta, note.noteNumber, note.velocity);
+
+            constexpr float preventRoundingDown = 0.01f / 127.0f; // slightly increase velocity to compensate for crude rounding down in SFIZZ
+            const float massagedVelocity = (std::min)( 1.0f, note.velocity + preventRoundingDown);
+
+            _synth->hdNoteOn(delta, note.noteNumber, massagedVelocity);
         } break;
 
         case gmpi::midi_2_0::NoteOff:
         {
             const auto note = gmpi::midi_2_0::decodeNote(msg);
-            _synth->hdNoteOff(delta, note.noteNumber, note.velocity);
+
+            constexpr float preventRoundingDown = 0.01f / 127.0f; // slightly increase velocity to compensate for crude rounding down in SFIZZ
+            const float massagedVelocity = (std::min)(1.0f, note.velocity + preventRoundingDown);
+
+            _synth->hdNoteOff(delta, note.noteNumber, massagedVelocity);
         } break;
 
         case gmpi::midi_2_0::PolyAfterTouch: {
