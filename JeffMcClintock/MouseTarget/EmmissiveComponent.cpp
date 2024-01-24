@@ -235,8 +235,6 @@ std::unique_ptr<juce::Image> EmmissiveComponent::renderEmmisiveImage(
 //void EmmissiveComponent::updateBitmap()
 int32_t EmmissiveComponent::filterImage(Bitmap& image)
 {
-//	return 0;
-
 	if (filter[0][0] == 0.f)
 	{
 		initFilterKernal();
@@ -245,36 +243,32 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 	// Apply glow filter.
 	const auto width = image.GetSize().width;
 	const auto height = image.GetSize().height;
-	const auto totalPixels = width * height;
+	const auto border = calcExtraBorderPixels();
+	const auto totalSourcePixels = (width - 2 * border) * (height - 2 * border);
+	const auto totalDestPixels = width * height;
 
-	std::vector<rgb_f> pixels_linear;
-	pixels_linear.assign(totalPixels, {});
-
-	const auto sourceWidth = width; //todo smaller source area  sourceImage.getWidth();
-	const auto sourceHeight = height; // sourceImage.getHeight();
-	const auto totalPixelsSource = sourceWidth * sourceHeight;
-	std::vector<rgb_f> pixels_emmisive;
-	pixels_emmisive.assign(totalPixelsSource, {});
+	std::vector<rgb_f> pixels_linear(totalDestPixels, rgb_f{});
+	std::vector<rgb_f> pixels_emmisive(totalSourcePixels, rgb_f{});
 
 	auto pixelsSource = image.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 	{
 		const auto imageSize = image.GetSize();
 		const int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
 
-		auto sourcePixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());// bms.data);
+		auto sourcePixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());
 
 		// Convert and copy render to linear brightness buffer.
 		constexpr float threshold = 0.9f;
 
-		int i = 0;
-		for (int y = 0; y < sourceHeight; ++y)
+		for (int y = border; y < height - border; ++y)
 		{
-			const int dest_y = y /*+ KERNAL_SIZE*/;
-			for (int x = 0; x < sourceWidth; ++x)
+			const int dest_y = y - border;
+			int i = y * width + border;
+			int j = (y - border) * (width - 2 * border);
+			for (int x = border; x < width - border; ++x)
 			{
-				const int dest_x = x /*+ KERNAL_SIZE*/;
-				const int dest_index = dest_x + width * dest_y;
-				if (dest_index < pixels_linear.size())
+				const int dest_index = y * width + x;
+				assert(dest_index < pixels_linear.size());
 				{
 					pixels_linear[dest_index].r = se_sdk::FastGamma::sRGB_to_float(sourcePixels[i].r);
 					pixels_linear[dest_index].g = se_sdk::FastGamma::sRGB_to_float(sourcePixels[i].g);
@@ -287,58 +281,69 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 						pixels_linear[dest_index].b > threshold
 						)
 					{
-						pixels_emmisive[i] = pixels_linear[dest_index];	// take brightness
+						pixels_emmisive[j].r = (std::max)(0.f, pixels_linear[dest_index].r - threshold) * 10.0f;	// take brightness
+						pixels_emmisive[j].g = (std::max)(0.f, pixels_linear[dest_index].g - threshold) * 10.0f;
+						pixels_emmisive[j].b = (std::max)(0.f, pixels_linear[dest_index].b - threshold) * 10.0f;
+
+						pixels_linear[dest_index].r = (std::min)(threshold, pixels_linear[dest_index].r);
+						pixels_linear[dest_index].g = (std::min)(threshold, pixels_linear[dest_index].g);
+						pixels_linear[dest_index].b = (std::min)(threshold, pixels_linear[dest_index].b);
 					}
 				}
 
 				++i;
+				++j;
 			}
 		}
 	}
-#if 1
+
 	// blur emmisive pixels
-// TODO, don't need to blur entire source are, only the reduced rectangle that has stuff painted on it
-	for (int off_x = -KERNAL_SIZE + 1; off_x < KERNAL_SIZE; ++off_x)
+	const auto sourceWidth = width - 2 * border;
+	const auto sourceHeight = height - 2 * border;
+
+	for (int sourceY = 0; sourceY < sourceHeight; ++sourceY)
 	{
-		for (int off_y = -KERNAL_SIZE + 1; off_y < KERNAL_SIZE; ++off_y)
+		for (int sourceX = 0; sourceX < sourceWidth; ++sourceX)
 		{
-			// original pixel is already lit by itself
-			if (off_y == 0 && off_x == 0)
+			auto sourcePixel = pixels_emmisive[sourceX + sourceY * sourceWidth];
+			
+			// skip blank pixels
+			if(sourcePixel.r == 0.0f && sourcePixel.g == 0.0f && sourcePixel.b == 0.0f)
 				continue;
 
-			const float intensity = filter[abs(off_x)][abs(off_y)];
-
-			for (int y = 0; y < sourceHeight; ++y)
+			for (int off_x = -KERNAL_SIZE + 1; off_x < KERNAL_SIZE; ++off_x)
 			{
-				auto dest_y = y /*+ KERNAL_SIZE*/ + off_y;
-				if (dest_y < 0 || dest_y >= height)
-					continue;
-
-				for (int x = 0; x < sourceWidth; ++x)
+				for (int off_y = -KERNAL_SIZE + 1; off_y < KERNAL_SIZE; ++off_y)
 				{
-					auto dest_x = x /*+ KERNAL_SIZE*/ + off_x;
-					if (dest_x < 0 || dest_x >= width)
-						continue;
+					const auto x = sourceX + border + off_x;
+					const auto y = sourceY + border + off_y;
 
-					const int index_linear = dest_x + dest_y * width;
-					pixels_linear[index_linear] = pixels_linear[index_linear] + pixels_emmisive[x + y * sourceWidth] * intensity;
+					assert(x >= 0 && x < width && y >= 0 && y < height);
+
+					const auto& intensity = filter[abs(off_x)][abs(off_y)];
+
+					auto& destPixel = pixels_linear[x + y * width];
+
+					destPixel = destPixel + sourcePixel * intensity;
 				}
 			}
 		}
 	}
+
 #ifdef _DEBUG
 	// test dots at top-left, bottom-right
 	pixels_linear[0] = rgb_f{ 1, 1, 1 };
 	pixels_linear.back() = rgb_f{1, 1, 1};
 #endif
-#endif
 
 	// convert back to screen color space.
 	{
 		auto destPixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());
-		for (int i = 0; i < totalPixels; ++i)
+		for (int i = 0; i < totalDestPixels; ++i)
 		{
+			const auto a = destPixels[i].a;
 			destPixels[i] = fastColorToSrgb3(pixels_linear[i]);
+			destPixels[i].a = a;
 		}
 	}
 

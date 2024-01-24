@@ -119,11 +119,14 @@ public:
 
 	void redraw()
 	{
-		invalidateRect();
+		GmpiDrawing_API::MP1_RECT clipRect;
+		getClipArea(&clipRect);
+		invalidateRect(&clipRect);
 	}
+
 	void rerender()
 	{
 		bitmap.setNull();
-		invalidateRect();
+		redraw();
 	}
 };

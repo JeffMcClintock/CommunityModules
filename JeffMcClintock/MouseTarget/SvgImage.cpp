@@ -628,8 +628,8 @@ public:
 	SvgImage()
 	{
 		initializePin(pinSvgFilename, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::onSetTextVal));
-		initializePin(pinFillOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
-		initializePin(pinStrokeOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
+		initializePin(pinFillOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
+		initializePin(pinStrokeOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
 		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
 		initializePin(pinVisible, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
 		initializePin(pinHd, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));

@@ -15,11 +15,6 @@ class EmmissiveComponent : public WithImageEffects
 public:
     EmmissiveComponent() {}
 
-    int32_t calcExtraBorderPixels() override { return getBorderSize(); }
+    int32_t calcExtraBorderPixels() override { return KERNAL_SIZE; }
     int32_t filterImage(Bitmap& bitmap) override;
-
-    static int getBorderSize()
-    {
-        return KERNAL_SIZE;
-    }
 };

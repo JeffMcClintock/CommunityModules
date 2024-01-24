@@ -17,6 +17,15 @@
 			<Pin name="Out" datatype="blob" class="SE::Color" direction="out"/>
 		</GUI>
 	</Plugin>
+	<Plugin id="SE Floats to Color" name="Floats to Color" category="Experimental/Sub-Controls/Conversion">
+		<GUI>
+			<Pin name="R" datatype="float" default="1"/>
+			<Pin name="G" datatype="float" default="1"/>
+			<Pin name="B" datatype="float" default="1"/>
+			<Pin name="A" datatype="float" default="1"/>
+			<Pin name="Color" datatype="blob" direction="out"/>
+		</GUI>
+	</Plugin>
 	<Plugin id="SE Hex to Color" name="Hex to Color" category="Experimental/Sub-Controls/Conversion">
 		<GUI>
 			<Pin name="Hex Color" datatype="string" default="ffff00"/>

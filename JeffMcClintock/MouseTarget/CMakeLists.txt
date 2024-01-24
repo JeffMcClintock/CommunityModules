@@ -13,6 +13,7 @@ build_gmpi_plugin(
         Image4Gui.cpp
         LabelGui.cpp
         ColorSwitchGui.cpp
+        FloatsToColorGui.cpp
         HexToColorGui.cpp
         ColorLagGui.cpp
         SvgImage.cpp
