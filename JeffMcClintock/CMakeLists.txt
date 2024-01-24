@@ -14,7 +14,7 @@ add_subdirectory(AudioPlayer)
 add_subdirectory(RepaintDiag)
 add_subdirectory(Dent)
 add_subdirectory(MouseTarget)
-
+add_subdirectory("OverSampling Detect")
 # add_subdirectory(WaveformScroller)
 # sample player 3 has it's own independant cmake: 'add_subdirectory(SamplePlayer3)
 
