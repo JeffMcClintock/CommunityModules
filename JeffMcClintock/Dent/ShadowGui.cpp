@@ -56,7 +56,7 @@ public:
 	{
 		Graphics g(drawingContext);
 
-		auto r = getClientRect();
+		auto r = getRect();
 
 		const int radius = (std::min)(pinCornerRadius.getValue(), (std::min)(r.getWidth(), r.getHeight()) / 2);
 
@@ -130,6 +130,7 @@ public:
 		const int blurRadius = pinBlurRadius * (pinHd ? 2 : 1);
 
 		// blur the mask.
+		const auto border = calcExtraBorderPixels();
 		auto imageSize = bitmap.GetSize();
 		auto pixelsSource = bitmap.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
@@ -142,11 +143,12 @@ public:
 		std::vector<float> linearImageOut_pos(linearImageOut.size(), 0.0f);
 
 		// Copy the image intensity to a linear float format
-		for (int y = 0; y < imageSize.height; ++y)
+		for (int y = border; y < imageSize.height - border; ++y)
 		{
-			for (int x = 0; x < imageSize.width; ++x)
+			int32_t* source = sourcePixels + y * imageSize.width + border;
+			for (int x = border; x < imageSize.width - border; ++x)
 			{
-				const auto intensity = se_sdk::FastGamma::sRGB_to_float(*sourcePixels++ & 0xff);
+				const auto intensity = se_sdk::FastGamma::sRGB_to_float(*source++ & 0xff);
 				linearImageOut[y * imageSize.width + x] = 1.0f - intensity;
 			}
 		}
@@ -280,18 +282,25 @@ public:
 		return gmpi::MP_OK;
 	}
 
-	Rect getClientRect()
+	int32_t calcExtraBorderPixels() override
 	{
-		auto r = getRect();
-
-		float boarder = 24.f; // 1 + pinBlurRadius + (std::max)(abs(pinOffsetX.getValue()), abs(pinOffsetY.getValue()));
-		//if(pinHd)
-		//	boarder *= 2.0f;
-
-		r.Deflate(boarder);
-
-		return r;
+		const int maxOffset = (std::max)(abs(pinOffsetX.getValue()), abs(pinOffsetY.getValue()));
+		const int blurRadius = pinBlurRadius * (pinHd ? 2 : 1);
+		return maxOffset + blurRadius + 1;
 	}
+
+	//Rect getClientRect()
+	//{
+	//	auto r = getRect();
+
+	//	float boarder = 24.f; // 1 + pinBlurRadius + (std::max)(abs(pinOffsetX.getValue()), abs(pinOffsetY.getValue()));
+	//	//if(pinHd)
+	//	//	boarder *= 2.0f;
+
+	//	r.Deflate(boarder);
+
+	//	return r;
+	//}
 };
 
 namespace
