@@ -125,6 +125,52 @@ public:
 		return gmpi::MP_OK;
 	}
 
+	template<bool hasOuter, bool hasInner, bool subtractive>
+	void mergeImages(
+		int32_t* sourcePixels,
+		std::vector<float>& linearImageOut_neg,
+		std::vector<float>& linearImageOut_pos,
+		std::vector<float>& linearImageOut, float brightness
+	)
+	{
+		for (int i = 0; i < linearImageOut.size(); ++i)
+		{
+			const auto blend = linearImageOut[i];
+			float intensity{};
+			if constexpr (hasOuter && hasInner)
+			{
+				const auto intensityA = (std::min)(1.0f, linearImageOut_neg[i]);
+				const auto intensityB = (std::min)(1.0f, linearImageOut_pos[i]);
+				intensity = (intensityA + (intensityB - intensityA) * blend);
+			}
+			else if constexpr (hasOuter)
+			{
+				const auto intensityA = (std::min)(1.0f, linearImageOut_neg[i]);
+				intensity = intensityA * (1.0f - blend);
+			}
+			else if constexpr (hasInner)
+			{
+				const auto intensityB = (std::min)(1.0f, linearImageOut_pos[i]);
+				intensity = intensityB * blend;
+			}
+
+			int32_t pixelVal{};
+			if constexpr (subtractive) // shadow - subtractive
+			{
+				// black with varying alpha
+				pixelVal = se_sdk::FastGamma::fastNormalisedToPixel(brightness * intensity) << 24;
+			}
+			else // glow - additive
+			{
+				// varying brightness white with zero alpha
+				const auto bits = se_sdk::FastGamma::float_to_sRGB(brightness * intensity);
+				pixelVal = bits | (bits << 8) | (bits << 16);
+			}
+
+			*sourcePixels++ = pixelVal;
+		}
+	}
+
 	int32_t filterImage(Bitmap& bitmap) override
 	{
 		const int blurRadius = pinBlurRadius * (pinHd ? 2 : 1);
@@ -173,112 +219,111 @@ public:
 		const int offsetX = pinOffsetX * (pinHd ? 2 : 1);
 		const int offsetY = pinOffsetY * (pinHd ? 2 : 1);
 
-		// blur vert
-		for (int y = 0; y < imageSize.height; ++y)
+		if (pinOuterShadow)
 		{
-			for (int x = 0; x < imageSize.width; ++x)
+			// blur vert
+			for (int y = 0; y < imageSize.height; ++y)
 			{
-				float sum{};
-				int i{};
-				for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+				for (int x = 0; x < imageSize.width; ++x)
 				{
-					const auto y2 = std::clamp(y + dy - offsetY, 0, (int)imageSize.height - 1);
-					sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
-				}
+					float sum{};
+					int i{};
+					for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+					{
+						const auto y2 = std::clamp(y + dy - offsetY, 0, (int)imageSize.height - 1);
+						sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+					}
 
-				linearImageOut_temp[y * imageSize.width + x] = sum;
+					linearImageOut_temp[y * imageSize.width + x] = sum;
+				}
+			}
+
+			// blur horizontal. linearImageOut2 -> linearImageOut
+			for (int y = 0; y < imageSize.height; ++y)
+			{
+				for (int x = 0; x < imageSize.width; ++x)
+				{
+					float sum{};
+					int i{};
+					for (int dx = -blurRadius; dx <= blurRadius; ++dx)
+					{
+						const auto x2 = std::clamp(x + dx - offsetX, 0, (int)imageSize.width - 1);
+						sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
+					}
+
+					linearImageOut_neg[y * imageSize.width + x] = sum;
+				}
 			}
 		}
 
-		// blur horizontal. linearImageOut2 -> linearImageOut
-		for (int y = 0; y < imageSize.height; ++y)
+		if(pinInnerShadow)
 		{
-			for (int x = 0; x < imageSize.width; ++x)
+			// blur vert, opposite direction
+			for (int y = 0; y < imageSize.height; ++y)
 			{
-				float sum{};
-				int i{};
-				for (int dx = -blurRadius; dx <= blurRadius; ++dx)
+				for (int x = 0; x < imageSize.width; ++x)
 				{
-					const auto x2 = std::clamp(x + dx - offsetX, 0, (int)imageSize.width - 1);
-					sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
-				}
+					float sum{};
+					int i{};
+					for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+					{
+						const auto y2 = std::clamp(y + dy + offsetY, 0, (int)imageSize.height - 1);
+						sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+					}
 
-				linearImageOut_neg[y * imageSize.width + x] = sum;
+					linearImageOut_temp[y * imageSize.width + x] = sum;
+				}
 			}
-		}
 
-		// blur vert, opposite direction
-		for (int y = 0; y < imageSize.height; ++y)
-		{
-			for (int x = 0; x < imageSize.width; ++x)
+			// blur horizontal. opposit direction
+			for (int y = 0; y < imageSize.height; ++y)
 			{
-				float sum{};
-				int i{};
-				for (int dy = -blurRadius; dy <= blurRadius; ++dy)
+				for (int x = 0; x < imageSize.width; ++x)
 				{
-					const auto y2 = std::clamp(y + dy + offsetY, 0, (int)imageSize.height - 1);
-					sum += linearImageOut[y2 * imageSize.width + x] * filter[i++];
+					float sum{};
+					int i{};
+					for (int dx = -blurRadius; dx <= blurRadius; ++dx)
+					{
+						const auto x2 = std::clamp(x + dx + offsetX, 0, (int)imageSize.width - 1);
+						sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
+					}
+
+					linearImageOut_pos[y * imageSize.width + x] = (1.0f - sum);
 				}
-
-				linearImageOut_temp[y * imageSize.width + x] = sum;
-			}
-		}
-
-		// blur horizontal. opposit direction
-		for (int y = 0; y < imageSize.height; ++y)
-		{
-			for (int x = 0; x < imageSize.width; ++x)
-			{
-				float sum{};
-				int i{};
-				for (int dx = -blurRadius; dx <= blurRadius; ++dx)
-				{
-					const auto x2 = std::clamp(x + dx + offsetX, 0, (int)imageSize.width - 1);
-					sum += linearImageOut_temp[y * imageSize.width + x2] * filter[i++];
-				}
-
-				linearImageOut_pos[y * imageSize.width + x] = sum;
 			}
 		}
 
 		{
 			const bool subtractive = pinIntensity < 0.0f;
 			const float brightness = std::clamp(fabs(pinIntensity.getValue()), 0.0f, 1.0f);
-			const float innerEnable = pinInnerShadow.getValue() ? 1.0f : 0.0f;
-			const float outerEnable = pinOuterShadow.getValue() ? 1.0f : 0.0f;
-
 			int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();
 
-			for (int y = 0; y < imageSize.height; ++y)
+			if (pinInnerShadow && pinOuterShadow)
 			{
-				for (int x = 0; x < imageSize.width; ++x)
-				{
-					const auto intensityA = outerEnable * (std::min)(1.0f, linearImageOut_neg[y * imageSize.width + x]);
-					const auto intensityB = innerEnable * (1.0f - (std::min)(1.0f, linearImageOut_pos[y * imageSize.width + x]));
-
-					const auto bitsA = se_sdk::FastGamma::float_to_sRGB(intensityA);
-					const auto bitsB = se_sdk::FastGamma::float_to_sRGB(intensityB);
-
-					const auto blend = linearImageOut[y * imageSize.width + x];
-					const auto intensity = (intensityA + (intensityB - intensityA) * blend);
-
-					int32_t pixelVal{};
-					if (subtractive) // shadow - subtractive
-					{
-						// black with varying alpha
-						pixelVal = se_sdk::FastGamma::fastNormalisedToPixel(brightness * intensity) << 24;
-					}
-					else // glow - additive
-					{
-						// varying brightness white with zero alpha
-						const auto bits = se_sdk::FastGamma::float_to_sRGB(brightness * intensity);
-						pixelVal = bits | (bits << 8) | (bits << 16);
-					}
-
-					*sourcePixels++ = pixelVal;
-				}
+				// both
+				if (subtractive)
+					mergeImages<true, true, true>(sourcePixels, linearImageOut_neg, linearImageOut_pos, linearImageOut, brightness);
+				else
+					mergeImages<true, true, false>(sourcePixels, linearImageOut_neg, linearImageOut_pos, linearImageOut, brightness);
+			}
+			else if(pinInnerShadow)
+			{
+				// only innner
+				if (subtractive)
+					mergeImages<false, true, true>(sourcePixels, linearImageOut_neg, linearImageOut_pos, linearImageOut, brightness);
+				else
+					mergeImages<false, true, false>(sourcePixels, linearImageOut_neg, linearImageOut_pos, linearImageOut, brightness);
+			}
+			else if (pinOuterShadow)
+			{
+				// only outer
+				if (subtractive)
+					mergeImages<true, false, true>(sourcePixels, linearImageOut_neg, linearImageOut_pos, linearImageOut, brightness);
+				else
+					mergeImages<true, false, false>(sourcePixels, linearImageOut_neg, linearImageOut_pos, linearImageOut, brightness);
 			}
 		}
+
 		return gmpi::MP_OK;
 	}
 
@@ -288,19 +333,6 @@ public:
 		const int blurRadius = pinBlurRadius * (pinHd ? 2 : 1);
 		return maxOffset + blurRadius + 1;
 	}
-
-	//Rect getClientRect()
-	//{
-	//	auto r = getRect();
-
-	//	float boarder = 24.f; // 1 + pinBlurRadius + (std::max)(abs(pinOffsetX.getValue()), abs(pinOffsetY.getValue()));
-	//	//if(pinHd)
-	//	//	boarder *= 2.0f;
-
-	//	r.Deflate(boarder);
-
-	//	return r;
-	//}
 };
 
 namespace
