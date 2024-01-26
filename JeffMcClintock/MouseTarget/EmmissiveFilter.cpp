@@ -1,12 +1,13 @@
-#include "EmmissiveComponent.h"
+#include "EmmissiveFilter.h"
 #include "../shared/fast_gamma.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 
 using namespace se_sdk;
+using namespace GmpiDrawing;
 
-float EmmissiveComponent::filter[KERNAL_SIZE][KERNAL_SIZE] = {};
+float EmmissiveFilter::filter[KERNAL_SIZE][KERNAL_SIZE] = {};
 
 struct rgba
 {
@@ -82,7 +83,7 @@ inline rgba fastColorToSrgb3(const rgb_f& graphPixel)
 	return pixelVal;
 }
 
-void EmmissiveComponent::initFilterKernal()
+void EmmissiveFilter::initFilterKernal()
 {
 	// TODO: Might need to compensate for DPI on distance calulation.
 
@@ -151,7 +152,7 @@ void EmmissiveComponent::initFilterKernal()
 }
 #endif
 
-int32_t EmmissiveComponent::filterImage(Bitmap& image)
+int32_t EmmissiveFilter::filterImage(Bitmap& image, float intensity)
 {
 	if (filter[0][0] == 0.f)
 	{
@@ -176,7 +177,9 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 		auto sourcePixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());
 
 		// Convert and copy render to linear brightness buffer.
-		constexpr float threshold = 0.9f;
+#if 0 // pixel brightness determins ammount of glow
+		constexpr float threshold = 0.5f;
+		constexpr float invthreshold = 1.0f / threshold;
 
 		for (int y = border; y < height - border; ++y)
 		{
@@ -193,9 +196,9 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 					const auto b = FastGamma::sRGB_to_float(sourcePixels[i].b);
 
 					// copy only emmissive (bright) pixels to emissive buffer
-					pixels_emmisive[j].r = (std::max)(0.f, r - threshold) * 10.0f;	// take brightness
-					pixels_emmisive[j].g = (std::max)(0.f, g - threshold) * 10.0f;
-					pixels_emmisive[j].b = (std::max)(0.f, b - threshold) * 10.0f;
+					pixels_emmisive[j].r = (std::max)(0.f, r - threshold) * invthreshold;	// take brightness
+					pixels_emmisive[j].g = (std::max)(0.f, g - threshold) * invthreshold;
+					pixels_emmisive[j].b = (std::max)(0.f, b - threshold) * invthreshold;
 
 					pixels_linear[dest_index].r = (std::min)(threshold, r);
 					pixels_linear[dest_index].g = (std::min)(threshold, g);
@@ -206,9 +209,37 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 				++j;
 			}
 		}
+#else // all pixels glow, intensity pin determins how much
+
+		for (int y = border; y < height - border; ++y)
+		{
+			const int dest_y = y - border;
+			int i = y * width + border;
+			int j = (y - border) * (width - 2 * border);
+			for (int x = border; x < width - border; ++x)
+			{
+				const auto r = FastGamma::sRGB_to_float(sourcePixels[i].r);
+				const auto g = FastGamma::sRGB_to_float(sourcePixels[i].g);
+				const auto b = FastGamma::sRGB_to_float(sourcePixels[i].b);
+
+				//const int dest_index = y * width + x;
+				//pixels_linear[dest_index].r = 0;//r;
+				//pixels_linear[dest_index].g = 0;//g;
+				//pixels_linear[dest_index].b = 0;//b;
+
+				// pixels to emissive buffer
+				pixels_emmisive[j].r = r * intensity;
+				pixels_emmisive[j].g = g * intensity;
+				pixels_emmisive[j].b = b * intensity;
+
+				++i;
+				++j;
+			}
+		}
+#endif
 	}
 
-	// blur emmisive pixels
+	// convolve emmisive pixels
 	const auto sourceWidth = width - 2 * border;
 	const auto sourceHeight = height - 2 * border;
 
@@ -222,9 +253,9 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 			if(sourcePixel.r == 0.0f && sourcePixel.g == 0.0f && sourcePixel.b == 0.0f)
 				continue;
 
-			for (int off_x = -KERNAL_SIZE + 1; off_x < KERNAL_SIZE; ++off_x)
+			for (int off_y = -KERNAL_SIZE + 1; off_y < KERNAL_SIZE; ++off_y)
 			{
-				for (int off_y = -KERNAL_SIZE + 1; off_y < KERNAL_SIZE; ++off_y)
+				for (int off_x = -KERNAL_SIZE + 1; off_x < KERNAL_SIZE; ++off_x)
 				{
 					const auto x = sourceX + border + off_x;
 					const auto y = sourceY + border + off_y;
@@ -252,9 +283,9 @@ int32_t EmmissiveComponent::filterImage(Bitmap& image)
 		auto destPixels = reinterpret_cast<rgba*>(pixelsSource.getAddress());
 		for (int i = 0; i < totalDestPixels; ++i)
 		{
-			const auto a = destPixels[i].a;
+//			const auto a = destPixels[i].a;
 			destPixels[i] = fastColorToSrgb3(pixels_linear[i]);
-			destPixels[i].a = a;
+//			destPixels[i].a = a;
 		}
 	}
 

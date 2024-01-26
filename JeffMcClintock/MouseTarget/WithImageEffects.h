@@ -58,6 +58,8 @@ public:
 				2 * borderPixels + static_cast<int32_t>(r.getHeight() * scale)
 			};
 
+//			_RPT1(_CRT_WARN, "rendering with border %d\n", borderPixels);
+
 			GmpiDrawing::BitmapRenderTarget g_mask;
 			graphics2->CreateBitmapRenderTarget(totalSize, true, (GmpiDrawing_API::IMpBitmapRenderTarget**)g_mask.asIMpUnknownPtr());
 
@@ -108,7 +110,7 @@ public:
 
 	int32_t MP_STDCALL getClipArea(GmpiDrawing_API::MP1_RECT* returnRect) override
 	{
-		auto extraDips = calcExtraBorderPixels() / (pinHd ? 2 : 1);
+		const auto extraDips = calcExtraBorderPixels() / (pinHd ? 2 : 1);
 
 		auto r = getRect();
 		r.Inflate(extraDips);

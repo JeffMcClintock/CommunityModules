@@ -24,14 +24,17 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "unicode_conversion.h"
 #include "Drawing.h"
 #include "./tinyXml2/tinyxml2.h"
-#include "EmmissiveComponent.h"
+#include "WithImageEffects.h"
+#include "EmmissiveFilter.h"
+#include "ShadowFilter.h"
 
 using namespace gmpi;
 using namespace tinyxml2;
 using namespace GmpiDrawing;
 
-class SvgImage final : public EmmissiveComponent
+class SvgImage : public WithImageEffects
 {
+protected:
 	StringGuiPin pinSvgFilename;
 	BlobGuiPin pinFillOverride;
 	BlobGuiPin pinStrokeOverride;
@@ -39,6 +42,7 @@ class SvgImage final : public EmmissiveComponent
 	GmpiDrawing_API::MP1_SIZE svgSize{};
 	tinyxml2::XMLDocument doc;
 
+public:
 	void onSetTextVal()
 	{
 		auto imageFileName = JmUnicodeConversions::WStringToUtf8(pinSvgFilename);
@@ -55,11 +59,6 @@ class SvgImage final : public EmmissiveComponent
 
 		svgSize.width = static_cast<int>(ceilf(svgE->FloatAttribute("width")));
 		svgSize.height = static_cast<int>(ceilf(svgE->FloatAttribute("height")));
-	}
-
-	void redraw()
-	{
-		invalidateRect();
 	}
 
 	struct pathState
@@ -641,12 +640,13 @@ class SvgImage final : public EmmissiveComponent
 public:
 	SvgImage()
 	{
-		initializePin(pinSvgFilename, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::onSetTextVal));
-		initializePin(pinFillOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
-		initializePin(pinStrokeOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
-		initializePin(pinIntensity, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
-		initializePin(pinVisible, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::redraw));
-		initializePin(pinHd, static_cast<MpGuiBaseMemberPtr2>(&SvgImage::rerender));
+	}
+
+	int32_t calcExtraBorderPixels() override { return 0; }
+
+	int32_t filterImage(Bitmap& bitmap) override
+	{
+		return gmpi::MP_OK;
 	}
 
 	int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize) override
@@ -656,7 +656,90 @@ public:
 	}
 };
 
+class SvgImageGlow final : public SvgImage
+{
+	EmmissiveFilter filter;
+
+	IntGuiPin pinBlurRadius;
+	IntGuiPin pinOffsetX;
+	IntGuiPin pinOffsetY;
+	BoolGuiPin pinInnerShadow;
+	BoolGuiPin pinOuterShadow;
+
+public:
+	SvgImageGlow()
+	{
+		initializePin(pinSvgFilename,    static_cast<MpGuiBaseMemberPtr2>(&SvgImageGlow::onSetTextVal));
+		initializePin(pinFillOverride,   static_cast<MpGuiBaseMemberPtr2>(&SvgImageGlow::rerender));
+		initializePin(pinStrokeOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImageGlow::rerender));
+		initializePin(pinIntensity,      static_cast<MpGuiBaseMemberPtr2>(&SvgImageGlow::rerender));
+		initializePin(pinVisible,        static_cast<MpGuiBaseMemberPtr2>(&SvgImageGlow::redraw));
+		initializePin(pinHd,             static_cast<MpGuiBaseMemberPtr2>(&SvgImageGlow::rerender));
+	}
+
+	int32_t calcExtraBorderPixels() override { return filter.calcExtraBorderPixels(); }
+
+	int32_t filterImage(Bitmap& bitmap) override
+	{
+		return filter.filterImage(bitmap, pinIntensity);
+	}
+};
+
 namespace
 {
-	auto r = Register<SvgImage>::withId(L"SE SVG Image");
+	auto r = Register<SvgImageGlow>::withId(L"SE SVG Image(glow)");
 }
+
+class SvgImageShadow final : public SvgImage
+{
+	ShadowFilter filter;
+
+	IntGuiPin pinBlurRadius;
+	IntGuiPin pinOffsetX;
+	IntGuiPin pinOffsetY;
+	BoolGuiPin pinInnerShadow;
+	BoolGuiPin pinOuterShadow;
+
+public:
+	SvgImageShadow()
+	{
+		initializePin(pinSvgFilename,    static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::onSetTextVal));
+		initializePin(pinFillOverride,   static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+		initializePin(pinStrokeOverride, static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+
+		initializePin(pinBlurRadius,     static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+		initializePin(pinIntensity,      static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+		initializePin(pinOffsetX,        static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+		initializePin(pinOffsetY,        static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+		initializePin(pinInnerShadow,    static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+		initializePin(pinOuterShadow,    static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+		initializePin(pinVisible,        static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::redraw));
+		initializePin(pinHd,             static_cast<MpGuiBaseMemberPtr2>(&SvgImageShadow::rerender));
+	}
+
+	int32_t calcExtraBorderPixels() override
+	{
+//		_RPT1(0, "calcExtraBorderPixels %d\n", filter.calcExtraBorderPixels(pinOffsetX.getValue(), pinOffsetY.getValue(), pinBlurRadius.getValue(), pinHd.getValue()));
+		return filter.calcExtraBorderPixels(pinOffsetX.getValue(), pinOffsetY.getValue(), pinBlurRadius.getValue(), pinHd.getValue());
+	}
+
+	int32_t filterImage(Bitmap& bitmap) override
+	{
+		return filter.filterImage(
+			bitmap,
+			pinIntensity,
+			pinOffsetX,
+			pinOffsetY,
+			pinBlurRadius,
+			pinOuterShadow,
+			pinInnerShadow,
+			pinHd
+		);
+	}
+};
+
+namespace
+{
+	auto r2 = Register<SvgImageShadow>::withId(L"SE SVG Image(shadow)");
+}
+

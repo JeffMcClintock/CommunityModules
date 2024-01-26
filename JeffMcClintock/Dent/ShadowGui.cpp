@@ -153,17 +153,18 @@ public:
 				const auto intensityB = (std::min)(1.0f, linearImageOut_pos[i]);
 				intensity = intensityB * blend;
 			}
+			intensity *= brightness;
 
 			int32_t pixelVal{};
 			if constexpr (subtractive) // shadow - subtractive
 			{
 				// black with varying alpha
-				pixelVal = se_sdk::FastGamma::fastNormalisedToPixel(brightness * intensity) << 24;
+				pixelVal = intensity == 0.0f ? 0 : se_sdk::FastGamma::fastNormalisedToPixel(intensity) << 24;
 			}
 			else // glow - additive
 			{
 				// varying brightness white with zero alpha
-				const auto bits = se_sdk::FastGamma::float_to_sRGB(brightness * intensity);
+				const auto bits = intensity == 0.0f ? 0 : se_sdk::FastGamma::float_to_sRGB(intensity);
 				pixelVal = bits | (bits << 8) | (bits << 16);
 			}
 

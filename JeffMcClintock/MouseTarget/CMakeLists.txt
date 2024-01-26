@@ -18,8 +18,10 @@ build_gmpi_plugin(
         ColorLagGui.cpp
         SvgImage.cpp
         WithImageEffects.h
-        EmmissiveComponent.h
-        EmmissiveComponent.cpp
+        EmmissiveFilter.h
+        EmmissiveFilter.cpp
+        ShadowFilter.h
+        ShadowFilter.cpp
         tinyxml2/tinyxml2.h
         tinyxml2/tinyxml2.cpp
         ${se_shared_folder}/skinBitmap.h
