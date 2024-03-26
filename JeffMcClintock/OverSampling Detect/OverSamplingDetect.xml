@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PluginList>
-    <Plugin id="SE OverSampling Detect" name="OverSampling Detect" alwaysExport="true" category="Conversion" helpUrl="converters.htm">
+    <Plugin id="SE OverSampling Detect" name="OverSampling Detect" category="Diagnostic">
         <Audio>
             <Pin name="Int Val" datatype="int" hostConnect="Oversampling/Rate"/>
             <Pin name="Bool Val" datatype="bool" direction="out"/>
