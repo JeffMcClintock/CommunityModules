@@ -47,7 +47,12 @@ public:
 	{
 		auto imageFileName = JmUnicodeConversions::WStringToUtf8(pinSvgFilename);
 
-		doc.LoadFile(imageFileName.c_str());
+		gmpi_sdk::MpString fullUri;
+		const auto res = getHost()->RegisterResourceUri(imageFileName.c_str(), "Image", &fullUri);
+		if(res != gmpi::MP_OK)
+			return;
+
+		doc.LoadFile(fullUri.c_str());
 
 		if (doc.Error())
 			return;
