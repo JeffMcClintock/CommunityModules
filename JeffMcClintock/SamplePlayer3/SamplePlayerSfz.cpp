@@ -11,8 +11,9 @@ using namespace gmpi;
 
 class SamplePlayerSfz : public MpBase2
 {
-	MidiInPin pinMIDIIn;
-	StringInPin pinFilename;
+    BoolInPin pinPower;
+    MidiInPin pinMIDIIn;
+    StringInPin pinFilename;
 	IntInPin pinVoiceCount;
     IntInPin pinOversampling;
     AudioOutPin pinOutputLeft;
@@ -43,8 +44,9 @@ public:
             }
         )
     {
-		initializePin( pinMIDIIn );
-		initializePin( pinFilename );
+        initializePin(pinPower);
+        initializePin(pinMIDIIn);
+        initializePin( pinFilename );
 		initializePin( pinVoiceCount );
 		initializePin( pinOutputLeft );
         initializePin(pinOutputRight);
@@ -97,6 +99,8 @@ public:
     void MP_STDCALL process(int32_t sampleFrames, const gmpi::MpEvent* events) override
     {
         std::unique_lock<std::mutex> lock(_processMutex, std::try_to_lock);
+
+        const bool is_bypassed = !pinPower.getValue() || !lock.owns_lock();
 
         // handle events
 #if defined(_DEBUG)
@@ -156,7 +160,7 @@ public:
                 if (e->eventType == EVENT_MIDI)
                 {
                     // avoid sending MIDI messages to the synth while it is being reloaded. (crash)
-                    if (lock.owns_lock())
+                    if (!is_bypassed)
                     {
                         if (e->extraData == 0) // short msg
                         {
@@ -197,13 +201,15 @@ public:
             getBuffer(pinOutputRight)
         };
 
-        if (!lock.owns_lock()) {
+        if (is_bypassed)
+        {
             for (unsigned c = 0; c < numChannels; ++c)
                 std::memset(outputs[c], 0, sampleFrames * sizeof(float));
-            return;
         }
-
-        _synth->renderBlock(outputs, sampleFrames, numChannels / 2);
+		else
+        {
+            _synth->renderBlock(outputs, sampleFrames, numChannels / 2);
+        }
     }
 
     void onMidi2Message(const midi::message_view msg, int delta)
@@ -295,11 +301,11 @@ public:
         }
 
 		// Set sleep mode (optional).
-		setSleep(false);
+		//setSleep(false);
 
 		// Set state of output audio pins.
-		pinOutputLeft.setStreaming(true);
-		pinOutputRight.setStreaming(true);
+		pinOutputLeft.setStreaming(pinPower.getValue());
+		pinOutputRight.setStreaming(pinPower.getValue());
 	}
 };
 

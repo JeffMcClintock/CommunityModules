@@ -83,7 +83,8 @@ ${sdk_folder}/mp_sdk_audio.cpp
 )
 set(srcs
 module.rc
-SamplePlayerSfz.cpp
+${PROJECT_NAME}.xml
+${PROJECT_NAME}.cpp
 )
 
 include_directories(

@@ -2,12 +2,13 @@
 <PluginList>
   <Plugin id="My Sample Player - SFZ" name="Sample Player - SFZ" category="Waveform">
     <Audio>
-      <Pin name="MIDI In" datatype="midi" />
-      <Pin name="Filename" datatype="string"  isFilename="true" metadata="sfz" />
-      <Pin name="Voice Count" datatype="int" default="64" />
-      <Pin name="Output L" datatype="float" rate="audio" direction="out" />
-      <Pin name="Output R" datatype="float" rate="audio" direction="out" />
-      <Pin name="Process Mode" datatype="int" private="true" hostConnect="Processor/OfflineRenderMode" />
+        <Pin name="Power" datatype="bool" default="1" />
+        <Pin name="MIDI In" datatype="midi" />
+        <Pin name="Filename" datatype="string"  isFilename="true" metadata="sfz" />
+        <Pin name="Voice Count" datatype="int" default="64" />
+        <Pin name="Output L" datatype="float" rate="audio" direction="out" />
+        <Pin name="Output R" datatype="float" rate="audio" direction="out" />
+        <Pin name="Process Mode" datatype="int" private="true" hostConnect="Processor/OfflineRenderMode" />
 	</Audio>
   </Plugin>
 </PluginList>
