@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PluginList>
+    <Plugin id="SE IDE Print Value" name="IDE Print Value" category="Diagnostic">
+        <Audio>
+			<Pin name="Input" datatype="float" rate="audio"/>
+			<Pin name="Name" datatype="string" />
+		</Audio>
+    </Plugin>
+</PluginList>
