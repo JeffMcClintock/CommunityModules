@@ -250,11 +250,11 @@ void ProcessorWrapper::onMidiMessage(int pin, int timeDelta, const unsigned char
 			const float normalized = *(float*)&m2->value;
 			addParameterEvent(timeDelta, paramId, normalized);
 
-#if 0 // def SE_TARGET_SEM
+#if 1 // def SE_TARGET_SEM
 			// Also send parameter to Controller
-			if (controller_)
+			if (controller)
 			{
-				controller_->UnsafeAddParameterChangeFromProcessor(paramId, normalized);
+				controller->setParameterFromProcessorUnsafe(paramId, normalized);
 			}
 #endif
 		}

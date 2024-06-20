@@ -249,7 +249,7 @@ public:
 			{
 //				parameterEvents.clear();
 
-				if (controller && controller->parameters_dirty)
+				if (controller && controller->parameters_dirty.exchange(false, std::memory_order_release))
 				{
 					for (auto& p : controller->parametersToProcessor)
 					{

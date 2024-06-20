@@ -229,6 +229,7 @@
     <ClCompile Include="AaVstWrapperDiagGui.cpp" />
     <ClCompile Include="ControllerWrapper.cpp" />
     <ClCompile Include="EditButtonGui.cpp" />
+    <ClCompile Include="my_input_stream.cpp" />
     <ClCompile Include="ProcessorWrapper.cpp" />
     <ClCompile Include="VstFactory.cpp" />
     <ClCompile Include="VstwrapperfailGui.cpp" />
@@ -259,7 +260,11 @@
     <ClInclude Include="AaVstWrapperDiagGui.h" />
     <ClInclude Include="ControllerWrapper.h" />
     <ClInclude Include="EditButtonGui.h" />
+    <ClInclude Include="lock_free_fifo.h" />
     <ClInclude Include="myPluginProvider.h" />
+    <ClInclude Include="my_input_stream.h" />
+    <ClInclude Include="my_msg_que_input_stream.h" />
+    <ClInclude Include="my_msg_que_output_stream.h" />
     <ClInclude Include="ProcessorWrapper.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="VstFactory.h" />

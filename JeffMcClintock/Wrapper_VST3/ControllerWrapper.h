@@ -5,6 +5,7 @@
 #include "../se_sdk3/mp_sdk_common.h" 
 #include "../se_sdk3/TimerManager.h"
 #include "WindowManager.h"
+#include "lock_free_fifo.h"
 
 namespace VST3
 {
@@ -42,7 +43,9 @@ protected:
 	// we need a way of informing SE processor when plugin is unloaded.
 	// we do so by nulling it's pointers to the VST3s processor.
 	Steinberg::Vst::IComponent** processor_component_ptr = {};
-//	Steinberg::Vst::IAudioProcessor** processor_vstEffect__ptr = {};
+	lock_free_fifo m_message_que_dsp_to_ui;
+
+	void serviceQueue();
 
 public:
 	std::atomic<bool> parameters_dirty;
@@ -62,15 +65,9 @@ public:
 
 	ControllerWrapper(const wchar_t* filename, const std::string& uuid);
 	~ControllerWrapper();
-/*
-	Steinberg::Vst::IAudioProcessor* getProcessor() const
-	{
-		if (processor_vstEffect__ptr)
-			return *processor_vstEffect__ptr;
+	
+	void setParameterFromProcessorUnsafe(uint32_t paramId, double valueNormalized);
 
-		return {};
-	}
-*/
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 	virtual int32_t MP_STDCALL setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size) override;
 	virtual int32_t MP_STDCALL preSaveState() override;

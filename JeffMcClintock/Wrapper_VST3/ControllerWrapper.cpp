@@ -2,7 +2,8 @@
 #include "unicode_conversion.h"
 #include "myPluginProvider.h"
 #include "./MyViewStream.h"
-
+#include "my_msg_que_output_stream.h"
+#include "my_msg_que_input_stream.h"
 #if !defined(SE_TARGET_WAVES)
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
@@ -40,9 +41,10 @@ public:
 };
 
 ControllerWrapper::ControllerWrapper(const wchar_t* filename, const std::string& uuid) :
- filename_(filename)
-, shellPluginId_(uuid)
-, handle_(0)
+	filename_(filename)
+	, shellPluginId_(uuid)
+	, handle_(0)
+	, m_message_que_dsp_to_ui(4000)
 {
 	componentHandler = std::make_unique<VstComponentHandler>();
 	componentHandler->controller_ = this;
@@ -67,9 +69,58 @@ ControllerWrapper::~ControllerWrapper()
 	plugin->terminatePlugin();
 }
 
+// A MIDI message has arrived from the host to set a parameter. Event has already been scheduled on Processor. Need to update Editor.
+void ControllerWrapper::setParameterFromProcessorUnsafe(uint32_t paramId, double valueNormalized)
+{
+	const int32_t messageSize = sizeof(int32_t) + static_cast<int32_t>(sizeof(valueNormalized));
+
+	my_msg_que_output_stream strm(&m_message_que_dsp_to_ui, paramId, "ppc");
+	strm << messageSize;
+	strm << paramId;
+	strm << valueNormalized;
+//	strm << static_cast<int32_t>(sizeof(valueNormalized));
+	//strm.Write(
+	//	&valueNormalized,
+	//	static_cast<int32_t>(sizeof(valueNormalized))
+	//);
+
+	strm.Send();
+}
+
+void ControllerWrapper::serviceQueue()
+{
+	while (m_message_que_dsp_to_ui.readyBytes() > 0)
+	{
+		int32_t paramHandle;
+		int32_t recievingMessageId;
+		int32_t recievingMessageLength;
+
+		my_msg_que_input_stream strm(&m_message_que_dsp_to_ui);
+		strm >> paramHandle;
+		strm >> recievingMessageId;
+		strm >> recievingMessageLength;
+
+		assert(recievingMessageId != 0);
+		assert(recievingMessageLength >= 0);
+
+		assert(recievingMessageId == my_msg_que_output_stream::id_to_long("ppc"));
+		{
+			int32_t paramId;
+			double valueNormalized;
+
+			strm >> paramId;
+			strm >> valueNormalized;
+
+			// broadcast to Editor
+			plugin->controller->setParamNormalized(paramId, valueNormalized);
+		}
+	}
+}
+
+// setting state of wrapper, which will pass on the state to the VST3 plugin
 int32_t ControllerWrapper::setParameter(int32_t parameterHandle, int32_t fieldId, int32_t /*voice*/, const void* data, int32_t size)
 {
-	// Avoid altering plugin state until we can determin if we are restoring a saved preset, or keeping init preset.
+	// Avoid altering plugin state until we can determine if we are restoring a saved preset, or keeping init preset.
 	if(!isOpen)
 		return MP_OK;
 
@@ -236,6 +287,7 @@ int32_t ControllerWrapper::open()
 		}
 	}
 
+	StartTimer(20);
 	return MP_OK;
 }
 
@@ -326,13 +378,15 @@ void ControllerWrapper::OpenGui()
 
 bool ControllerWrapper::OnTimer()
 {
+	serviceQueue();
+
 	if( stateDirty )
 	{
 		preSaveState();
 		
 		stateDirty = false;
 	}
-	return false;
+	return true;
 }
 
 tresult VstComponentHandler::beginEdit(ParamID paramId)
