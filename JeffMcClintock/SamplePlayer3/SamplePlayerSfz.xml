@@ -9,6 +9,7 @@
         <Pin name="Output L" datatype="float" rate="audio" direction="out" />
         <Pin name="Output R" datatype="float" rate="audio" direction="out" />
         <Pin name="Process Mode" datatype="int" private="true" hostConnect="Processor/OfflineRenderMode" />
+		<Pin name="Loaded" datatype="bool" direction="out" />
 	</Audio>
   </Plugin>
 </PluginList>

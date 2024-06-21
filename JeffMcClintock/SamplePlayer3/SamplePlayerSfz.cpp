@@ -19,7 +19,8 @@ class SamplePlayerSfz : public MpBase2
     AudioOutPin pinOutputLeft;
 	AudioOutPin pinOutputRight;
     IntInPin pinProcessMode;
-
+    BoolOutPin pinLoaded;
+    
     // synth state. acquire processMutex before accessing
     std::unique_ptr<sfz::Sfizz> _synth;
 
@@ -33,7 +34,8 @@ class SamplePlayerSfz : public MpBase2
     gmpi::midi_2_0::MidiConverter2 midiConverter;
     std::string loadFilename;
     std::atomic<bool> loadNewZfzFlag;
-
+    std::atomic<bool> isLoading;
+    
 public:
 	SamplePlayerSfz() :
         midiConverter(
@@ -50,8 +52,9 @@ public:
 		initializePin( pinVoiceCount );
 		initializePin( pinOutputLeft );
         initializePin(pinOutputRight);
-        initializePin(pinProcessMode);      
-	}
+        initializePin(pinProcessMode);
+        initializePin(pinLoaded);
+    }
 
     ~SamplePlayerSfz()
     {
@@ -79,6 +82,10 @@ public:
         {
             std::unique_lock<std::mutex> lock(_processMutex);
             _synth->loadSfzFile(loadFilename);
+#ifdef _DEBUG
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+#endif
+            isLoading = false;
         }
     }
 
@@ -101,6 +108,11 @@ public:
         std::unique_lock<std::mutex> lock(_processMutex, std::try_to_lock);
 
         const bool is_bypassed = !pinPower.getValue() || !lock.owns_lock();
+
+        if (!pinLoaded.getValue() && !isLoading)
+        {
+            pinLoaded.setValue(true, getBlockPosition());
+        }
 
         // handle events
 #if defined(_DEBUG)
@@ -285,6 +297,8 @@ public:
             }
             else
             {
+				isLoading = true;
+                pinLoaded = false;
                 loadNewZfzFlag.store(true);
             }
         }
