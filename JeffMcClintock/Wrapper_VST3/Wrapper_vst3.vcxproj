@@ -204,6 +204,7 @@
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fdebug.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fobject.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fstring.cpp" />
+    <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\updatehandler.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\thread\source\flock.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\pluginterfaces\base\coreiids.cpp" />
     <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\pluginterfaces\base\funknown.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fdebug.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fobject.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\fstring.h" />
+    <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\updatehandler.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\pluginterfaces\base\funknown.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\samples\vst-hosting\editorhost\source\platform\win32\window.h" />
     <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\public.sdk\source\vst\hosting\connectionproxy.h" />

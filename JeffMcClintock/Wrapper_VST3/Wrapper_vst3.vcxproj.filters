@@ -87,6 +87,9 @@
     </ClCompile>
     <ClCompile Include="WindowManager.cpp" />
     <ClCompile Include="my_input_stream.cpp" />
+    <ClCompile Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\updatehandler.cpp">
+      <Filter>VST3_SDK</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -167,6 +170,9 @@
     <ClInclude Include="my_input_stream.h" />
     <ClInclude Include="my_msg_que_input_stream.h" />
     <ClInclude Include="my_msg_que_output_stream.h" />
+    <ClInclude Include="..\..\..\SE15\SDKs\VST3_SDK\base\source\updatehandler.h">
+      <Filter>VST3_SDK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Wrapper_vst3.xml" />
