@@ -22,5 +22,5 @@ gmpi_plugin(
         ${PROJECT_NAME}.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/_deps/choc-src)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/_deps/gmpi-src/Core)
+target_include_directories(${PROJECT_NAME} PRIVATE ${choc_SOURCE_DIR})
+#target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/_deps/gmpi-src/Core)

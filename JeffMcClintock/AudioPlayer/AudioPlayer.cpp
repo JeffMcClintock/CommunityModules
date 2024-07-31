@@ -13,7 +13,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
-#include "AudioPlugin.h"
+#include "Core/Processor.h"
 #include "../Extensions/EmbeddedFile.h"
 #include "../Extensions/EmbeddedFileHelper.h"
 #include "../shared/xp_simd.h"
@@ -27,7 +27,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 using namespace gmpi;
 
-class AudioPlayer final : public AudioPlugin
+class AudioPlayer final : public Processor
 {
 	BoolInPin pinGate;
 	AudioOutPin pinLeftOut;
@@ -51,10 +51,10 @@ class AudioPlayer final : public AudioPlugin
 public:
 	AudioPlayer()
 	{
-		initializePin( pinFileName );
-		initializePin( pinGate );
-		initializePin( pinLeftOut );
-		initializePin( pinRightOut );
+		init( pinFileName );
+		init( pinGate );
+		init( pinLeftOut );
+		init( pinRightOut );
 	}
 
 	void subProcess( int sampleFrames )
@@ -117,7 +117,7 @@ public:
 	ReturnCode open(IUnknown* phost) override
 	{
 		coefs = calcSincInterpolatorCoefs();
-		return AudioPlugin::open(phost);
+		return Processor::open(phost);
 	}
 
 	void onSetPins() override
