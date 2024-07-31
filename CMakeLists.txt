@@ -40,10 +40,12 @@ set(se_shared_folder
 set(sdk_folder ${se_sdk_folder})
 
 set(gmpi_sdk_folder
-    ${CMAKE_BINARY_DIR}/_deps/gmpi-src/Core
+    ${gmpi_SOURCE_DIR}
     )
 	
 include_directories(
+    ${gmpi_sdk_folder}
+    ${gmpi_sdk_folder}/Core
     se_sdk3
     shared
     )
@@ -60,7 +62,7 @@ if (MSVC)
 endif()
 
 include(plugin_helper.cmake)
-include(${CMAKE_BINARY_DIR}/_deps/gmpi-src/gmpi_plugin.cmake)
+include(${gmpi_SOURCE_DIR}/gmpi_plugin.cmake)
 
 add_subdirectory(Bruno_Bordi)
 add_subdirectory(JeffMcClintock)
