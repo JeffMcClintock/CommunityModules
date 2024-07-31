@@ -9,23 +9,17 @@ float VoltageToTime(float v) { return powf(10.0f, ((v) * 0.4f) - 3.0f); }
 using namespace gmpi;
 
 // [legalLow, legalHi, curveRate, CurveTarget]
-std::tuple<double, double, double, double> CalculateCurve(const double level_, const double sampleRate, double rate, const double target, const double curveAmmount)
+std::tuple<double, double, double, double> CalculateCurve(const double startLevel, const double sampleRate, double rate, const double target, const double curveAmmount)
 {
-	double legalLow{};
-	double legalHi{1.0f};
-	double curveRate{};
-
-	rate = (std::min)(2.0, rate);
-
-	double deltaY = target - level_;
-
-	deltaY = fabs(deltaY);
+	double deltaY = fabs(target - startLevel);
 
 	const double deltaYMin{ 0.000001f };
+	double legalLow{};
+	double legalHi{1.0f};
 	if (deltaY < deltaYMin)
 	{
 		// jump to next_segment
-		legalLow = level_ + 1.0;
+		legalLow = startLevel + 1.0;
 		return { legalLow , legalHi, 0.0 , 0.0 };
 	}
 
@@ -36,10 +30,12 @@ std::tuple<double, double, double, double> CalculateCurve(const double level_, c
 	const double timeConstantsMin{ 0.001f };
 	timeConstants = (std::max)(timeConstants, timeConstantsMin); // Prevent divide-by-zero.
 
+	rate = (std::min)(2.0, rate);
 	double deltaT = deltaY * sampleRate * VoltageToTime(rate * 10.f);
 	deltaT = (std::max)(deltaT, 1.0); // prevent divide-by-zero.
 
 	double stepSize = timeConstants / deltaT;
+	double curveRate{};
 	if (curveAmmount > 0.0)
 	{
 		// first step.
@@ -58,7 +54,7 @@ std::tuple<double, double, double, double> CalculateCurve(const double level_, c
 	CurveTarget -= deltaY; // relative to end-level.
 	assert(CurveTarget > 0.0);
 
-	if (target <= level_)
+	if (target <= startLevel)
 	{
 		legalLow = target;
 		CurveTarget = -CurveTarget;
@@ -78,7 +74,7 @@ std::tuple<double, double, double, double> CalculateCurve(const double level_, c
 		curveRate = -curveRate;
 
 		// make target relative to segment start level.
-		CurveTarget = level_ - CurveTarget; // no, not instantaneous level, as subject to modulation, and other weirdness.
+		CurveTarget = startLevel - CurveTarget; // no, not instantaneous level, as subject to modulation, and other weirdness.
 	}
 
 	return { legalLow, legalHi, curveRate, CurveTarget };
@@ -106,6 +102,7 @@ class Adsr : public MpBase2
 
 	double level_ = {};
 	double curveRate_ = {};
+	double startLevel{};
 	double target_ = {};
 	double CurveTarget_ = {};
 	double legalLow = {};
@@ -150,17 +147,24 @@ public:
 	void next_segment() // Called when envelope section ends
 	{
 		++cur_segment;
+		startLevel = level_;
+
+		calcRate();
+	}
+
+	void calcRate()
+	{
 		const double endLevel = 0.0;
 		const double attackPeakLevel = 1.0;
 
 		switch (cur_segment)
 		{
 		case 0:
-			calcCurve(pinAttack, pinAttackCurve, attackPeakLevel);
+			calcCurve(pinAttack, pinAttackCurve, startLevel, attackPeakLevel);
 			break;
 
 		case 1:
-			calcCurve(pinDecay, pinDecayCurve, pinSustain);
+			calcCurve(pinDecay, pinDecayCurve, startLevel, pinSustain);
 			break;
 
 		case 2:
@@ -168,7 +172,7 @@ public:
 			break;
 
 		case 3:
-			calcCurve(pinRelease, pinReleaseCurve, endLevel);
+			calcCurve(pinRelease, pinReleaseCurve, startLevel, endLevel);
 			break;
 
 		default:
@@ -178,12 +182,12 @@ public:
 		};
 	}
 
-	void calcCurve(double rate, double curveAmmount, double target)
+	void calcCurve(double rate, double curveAmmount, double startLevel, double target)
 	{
 		target_ = target;
 		pinSignalOut.setStreaming(true);
 
-		std::tie(legalLow, legalHi, curveRate_, CurveTarget_) = CalculateCurve(level_, getSampleRate(), rate, target, curveAmmount);
+		std::tie(legalLow, legalHi, curveRate_, CurveTarget_) = CalculateCurve(startLevel, getSampleRate(), rate, target, curveAmmount);
 	}
 
 	void calcSteadyState(double target)
@@ -232,6 +236,12 @@ public:
 		{
 			cur_segment = 0;
 			next_segment();
+		}
+
+		if(pinAttack.isUpdated() || pinDecay.isUpdated() || pinSustain.isUpdated() || pinRelease.isUpdated() ||
+			pinAttackCurve.isUpdated() || pinDecayCurve.isUpdated() || pinReleaseCurve.isUpdated())
+		{
+			calcRate();
 		}
 	}
 };

@@ -51,7 +51,10 @@ public:
 		{
 			lastValue = pinInput1.getValue();
 			// Output to console.
+#ifdef _WIN32
 			_RPTWN(0, L"%s streaming[%d] val %f\n", pinName.getValue().c_str(), (int)pinInput1.isStreaming(), pinInput1.getValue());
+#else
+#endif
 		}
 
 		// Set processing method.
