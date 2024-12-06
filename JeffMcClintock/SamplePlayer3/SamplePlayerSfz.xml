@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <PluginList>
-  <Plugin id="My Sample Player - SFZ" name="Sample Player - SFZ" category="Waveform">
+  <Plugin id="My Sample Player - SFZ" name="Sample Player - SFZ" category="Waveform" helpUrl="https://synthedit.com/help/sample-player-sfz">
     <Audio>
         <Pin name="Power" datatype="bool" default="1" />
         <Pin name="MIDI In" datatype="midi" />

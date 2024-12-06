@@ -89,6 +89,9 @@ public:
 		initializePin(pinSignalOut);
 	}
 
+	// It typically accepts 0 – 10 volts, where 10 volts is I think 26 bits and 0 volts is 1 bit. The input is mapped to a curve that is skewed toward the lower bit-sizes.
+	// So it works very much like the quantizer, and it runs at the current sample - rate with no sample - rate reduction.
+
 	void subProcess(int sampleFrames)
 	{
 		// get pointers to in/output buffers.
