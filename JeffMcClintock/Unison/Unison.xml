@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PluginList>
+    <Plugin id="My Unison" name="Unison" category="MIDI">
+        <Audio>
+            <Pin name="MIDI In" datatype="midi"/>
+            <Pin name="MIDI Out" datatype="midi" direction="out"/>
+            <Pin name="Channel Lo" datatype="enum" default="1" metadata="range 1,16"/>
+            <Pin name="Channel Hi" datatype="enum" default="16" metadata="range 1,16"/>
+            <Pin name="Note Lo" datatype="enum" metadata="range 0,127"/>
+            <Pin name="Note Hi" datatype="enum" default="127" metadata="range 0,127"/>
+            <Pin name="Velocity Lo" datatype="enum" metadata="range 0,127"/>
+            <Pin name="Velocity Hi" datatype="enum" default="127" metadata="range 0,127"/>
+            <Pin name="Program Change" datatype="enum" default="1" metadata="Off,On"/>
+            <Pin name="MIDI Excluded" datatype="midi" direction="out"/>
+        </Audio>
+    </Plugin>
+</PluginList>
