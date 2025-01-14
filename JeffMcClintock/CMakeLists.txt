@@ -18,9 +18,11 @@ add_subdirectory(MouseTarget)
 add_subdirectory("OverSampling Detect")
 add_subdirectory("Environment Detect")
 add_subdirectory("IDE Print Value")
+add_subdirectory("Unison")
+add_subdirectory("test")
 
 # add_subdirectory(WaveformScroller)
-# sample player 3 has it's own independant cmake: 'add_subdirectory(SamplePlayer3)
+# sample player 3 has it's own independant cmake: add_subdirectory(SamplePlayer3)
 
 if(WIN32)
 	add_subdirectory(Wrapper_VST2)

@@ -66,4 +66,3 @@ include(${gmpi_SOURCE_DIR}/gmpi_plugin.cmake)
 
 add_subdirectory(Bruno_Bordi)
 add_subdirectory(JeffMcClintock)
-# empty add_subdirectory(RJ)
