@@ -15,6 +15,9 @@
 #include <iomanip>
 #endif
 
+#define VST3_USE_MIDI_EXTENSION 0
+// #include "ivstmidi2extension.h"
+
 using namespace std;
 using namespace gmpi;
 using namespace GmpiMidi;
@@ -276,6 +279,15 @@ void ProcessorWrapper::onMidi2Message(const midi::message_view msg, int timeDelt
 	const int unusedType = 666;
 	m.type = unusedType;
 
+#if	VST3_USE_MIDI_EXTENSION
+
+	m.type = vst3_ext_midi::UMPEvent::kType;
+	auto& midi2event = *reinterpret_cast<vst3_ext_midi::UMPEvent*>(&m.noteOn);
+
+	memcpy(&midi2event.words, msg.begin(), msg.size());
+
+#else // convert to VST3 note events
+
 	switch (header.status)
 	{
 
@@ -317,6 +329,7 @@ void ProcessorWrapper::onMidi2Message(const midi::message_view msg, int timeDelt
 	default:
 		break;
 	};
+#endif
 
 	if(m.type != unusedType)
 	{
