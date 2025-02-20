@@ -18,6 +18,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 using namespace gmpi;
 using namespace GmpiDrawing;
 
+SE_DECLARE_INIT_STATIC_FILE(RepaintDiag);
+
+
 class RepaintDiagGui final : public gmpi_gui::MpGuiGfxBase
 {
 public:
