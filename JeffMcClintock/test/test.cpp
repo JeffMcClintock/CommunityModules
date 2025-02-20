@@ -2,6 +2,8 @@
 //#define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch_all.hpp>
 
+// https://github.com/JohnnyHendriks/TestAdapter_Catch2/blob/main/Docs/Walkthrough-vs2019.md
+
 int factorial(int x)
 {
 	return x <= 1 ? 1 : x * factorial(x - 1);

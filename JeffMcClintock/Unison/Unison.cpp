@@ -17,13 +17,144 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 using namespace gmpi;
 
-class MidiNoteTracker
+struct keyInfo
 {
-public:
+//	int MidiKeyNumber = 0;
+	float pitch = 0; // semitones
+	bool held = false;
+	int64_t noteSequence = -1;
+};
+
+struct outkeysInfo
+{
+	int64_t noteSequence = -1;
+//	int inputKeyNumber = -1;
+};
+
+struct MidiUnison
+{
+	inline static const int keyCount = 128;
+	inline static const int channelCount = 128;
+
+	keyInfo noteIds[channelCount][keyCount];
+
+	std::function<void(midi::message_view)> sendMidi = [](midi::message_view) {};
+
+	int64_t noteSequence = 0;
+	int unisonCount = 1;
+
+	outkeysInfo outNotes[channelCount][keyCount];
 
 	void onMidiMessage(midi::message_view msg)
 	{
 		auto header = midi_2_0::decodeHeader(msg);
+
+		if (header.messageType != gmpi::midi_2_0::ChannelVoice64)
+			return;
+
+		bool sendThrough = true;
+
+		switch (header.status)
+		{
+		case gmpi::midi_2_0::ControlChange:
+		{
+			const auto controller = gmpi::midi_2_0::decodeController(msg);
+//			const auto unified_controller_id = (ControllerType::CC << 24) | controller.type;
+		}
+		break;
+
+		case gmpi::midi_2_0::NoteOn:
+		{
+			sendThrough = false;
+			const auto note = gmpi::midi_2_0::decodeNote(msg);
+
+			auto& info = noteIds[header.channel][note.noteNumber];
+
+			if (!info.held)
+			{
+				info.held = true;
+				info.noteSequence = noteSequence++;
+
+				// _RPTN(0, "PM Note-on %d\n", note.noteNumber);
+				if (gmpi::midi_2_0::attribute_type::Pitch == note.attributeType) // !! this is only for the current note!!! not a permanent tuning change !!! TODO
+				{
+					//const auto timestamp_oversampled = voiceState->voiceControlContainer_->CalculateOversampledTimestamp(Container(), timestamp);
+
+					info.pitch = note.attributeValue;
+					//// _RPTN(0, "      ..pitch = %f\n", semitones);
+
+					//voiceState->SetKeyTune(note.noteNumber, semitones);
+					//voiceState->OnKeyTuningChangedA(timestamp_oversampled, note.noteNumber, 0);
+				}
+				else
+				{
+					info.pitch = static_cast<float>(note.noteNumber);
+				}
+
+				for (int i = 0; i < unisonCount; ++i)
+				{
+					// find oldest outgoing key.
+					int64_t oldest = INT64_MAX;
+					int outKey = 0;
+					for (int j = 0; j < keyCount; ++j)
+					{
+						if (outNotes[header.channel][j].noteSequence < oldest)
+						{
+							outKey = j;
+							oldest = outNotes[header.channel][j].noteSequence;
+						}
+					}
+
+//					outNotes[header.channel][oldestIdx].inputKeyNumber = note.noteNumber;
+					outNotes[header.channel][outKey].noteSequence = info.noteSequence;
+
+					const auto out = gmpi::midi_2_0::makeNoteOnMessageWithPitch(
+						outKey,
+						note.velocity,
+						info.pitch,
+						header.channel
+					);
+
+					sendMidi(out.m);
+				}
+			}
+		}
+		break;
+
+		case gmpi::midi_2_0::NoteOff:
+		{
+			sendThrough = false;
+			const auto note = gmpi::midi_2_0::decodeNote(msg);
+
+			auto& info = noteIds[header.channel][note.noteNumber];
+
+			if (info.held)
+			{
+				info.held = false;
+
+				for (int outKey = 0; outKey < keyCount; ++outKey)
+				{
+					auto& outNote = outNotes[header.channel][outKey];
+					if (outNote.noteSequence == info.noteSequence)
+					{
+						const auto out = gmpi::midi_2_0::makeNoteOffMessage(
+							outKey,
+							note.velocity,
+							header.channel
+						);
+
+						sendMidi(out);
+					}
+				}
+			}
+		}
+		break;
+		};
+
+		if (sendThrough)
+		{
+			sendMidi(msg);
+		}
 	}
 };
 
@@ -39,7 +170,7 @@ struct Unison final : public Processor
 	IntInPin pinVelocityHi;
 	IntInPin pinProgramChange;
 
-	MidiNoteTracker noteTracker;
+	MidiUnison noteTracker;
 
 	Unison()
 	{
@@ -52,6 +183,11 @@ struct Unison final : public Processor
 		init( pinVelocityLo );
 		init( pinVelocityHi );
 		init( pinProgramChange );
+
+		noteTracker.sendMidi = [this](midi::message_view msg)
+		{
+			pinMIDIOut.send(msg.begin(), msg.size());
+		};
 	}
 
 	void onSetPins() override
@@ -59,6 +195,7 @@ struct Unison final : public Processor
 		// Check which pins are updated.
 		if( pinVoiceCount.isUpdated() )
 		{
+			noteTracker.unisonCount = pinVoiceCount;
 		}
 		if( pinSpread.isUpdated() )
 		{
@@ -83,8 +220,6 @@ struct Unison final : public Processor
 	void onMidiMessage(int pin, const uint8_t* midiMessage, int size) override
 	{
 		noteTracker.onMidiMessage({ midiMessage, size });
-
-		pinMIDIOut.send(midiMessage, size);
 	}
 };
 

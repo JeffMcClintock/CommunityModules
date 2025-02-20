@@ -26,13 +26,16 @@
                 <panelRect l="280" r="280" t="120" b="120"/>
             </module>
             <module type="SE Unison" handle="56628700">
+                <plugs>
+                    <plug default="2" idx="2"/>
+                </plugs>
                 <structRect l="288" r="396" t="72" b="180"/>
                 <panelRect l="0" r="0" t="0" b="0"/>
             </module>
         </modules>
         <lines>
-            <line type="Line" handle="113412581" lineType="1" fMod="1924778716" tMod="56628700" fPlg="1"/>
-            <line type="Line" handle="129112469" lineType="1" fMod="56628700" tMod="602881248" fPlg="1" tPlg="1"/>
+            <line type="Line" handle="197083714" lineType="1" fMod="1924778716" tMod="56628700" fPlg="1"/>
+            <line type="Line" handle="75402284" lineType="1" fMod="56628700" tMod="602881248" fPlg="1" tPlg="1"/>
         </lines>
         <PanelWndPosition l="0" r="0" t="0" b="0"/>
         <PanelLocation l="30" r="530" t="30" b="330"/>
@@ -80,8 +83,8 @@
             <Audio>
                 <Pin name="MIDI In" datatype="midi"/>
                 <Pin name="MIDI Out" datatype="midi" direction="out"/>
-                <Pin name="Channel Lo" datatype="enum" default="1" metadata="range 1,16"/>
-                <Pin name="Channel Hi" datatype="enum" default="16" metadata="range 1,16"/>
+                <Pin name="Unison Count" datatype="enum" default="1" metadata="range 1,16"/>
+                <Pin name="Spread (cents)" datatype="float" default="5" metadata="range 1,20"/>
                 <Pin name="Note Lo" datatype="enum" metadata="range 0,127"/>
                 <Pin name="Note Hi" datatype="enum" default="127" metadata="range 0,127"/>
                 <Pin name="Velocity Lo" datatype="enum" metadata="range 0,127"/>
