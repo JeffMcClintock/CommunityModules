@@ -126,7 +126,8 @@ int32_t Ebu128LoudnessMeter::open()
 //                --------------------------------
 // exactly every 0.1 second a gating block needs to be measured
 // (for the integrated loudness measurement).
-const int expectedRequestRate = 20; // not sure what's best.
+    
+const int expectedRequestRate = (static_cast<int>(host.getSampleRate()) % 20) == 0 ? 20 : 10;
 assert(expectedRequestRate >= 10 && (expectedRequestRate % 10) == 0);
 
 // It also needs to be a divisor of the samplerate for accurate

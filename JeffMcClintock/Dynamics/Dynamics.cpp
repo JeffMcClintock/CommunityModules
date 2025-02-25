@@ -1,6 +1,5 @@
 #include "mp_sdk_audio.h"
-#include "xp_simd.h"
-#include <math.h>
+#include <cmath>
 
 SE_DECLARE_INIT_STATIC_FILE(HardKnee)
 SE_DECLARE_INIT_STATIC_FILE(Peak)
@@ -227,7 +226,7 @@ public:
 
 		for (int s = sampleFrames; s > 0; --s)
 		{
-			delay[delayIndex] = FastRealToIntFloor(0.5f + *input * scaleUp);
+			delay[delayIndex] = static_cast<int>(std::round(*input * scaleUp));
 
 			int64_t sum =
 				  delay[delayIndex]		// implicit first tap

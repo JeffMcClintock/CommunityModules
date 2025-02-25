@@ -1,6 +1,7 @@
 #include "../shared/FilterBase.h"
 #include "../shared/xp_simd.h"
 
+SE_DECLARE_INIT_STATIC_FILE(JMCrusher)
 using namespace gmpi;
 
 class Crusher final : public FilterBase

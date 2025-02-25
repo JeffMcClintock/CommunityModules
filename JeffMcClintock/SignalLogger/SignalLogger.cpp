@@ -4,6 +4,8 @@
 #include "PinIterator.h"
 
 // C:\SE\SE15\SynthEdit\bin\x64\Debug\SynthEdit.exe
+SE_DECLARE_INIT_STATIC_FILE(SignalLogger)
+SE_DECLARE_INIT_STATIC_FILE(PhaseScope)
 
 using namespace gmpi;
 
