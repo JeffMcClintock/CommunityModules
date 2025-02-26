@@ -73,7 +73,8 @@ public:
 	void DrawAlignmentCrossHairs(GmpiDrawing::Graphics& g);
 	void drawShittyText(GmpiDrawing::Graphics& g);
 	void drawBitmapBrush(GmpiDrawing::Graphics& g);
-	
+	void drawBitmapPixels(GmpiDrawing::Graphics& g);
+
 	void drawTextTestFIXED(GmpiDrawing::Graphics& g, bool useFixedBoundingbox);
 
 	void drawTextTest(GmpiDrawing::Graphics& g);
