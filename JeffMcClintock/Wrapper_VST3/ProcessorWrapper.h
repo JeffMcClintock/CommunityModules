@@ -169,6 +169,7 @@ class ProcessorWrapper : public MpBase2
 #endif
 	enum { ST_PROCESS, ST_PRIME_BUFFERS, ST_FADING, ST_BYPASS };
 	gmpi::midi_2_0::MidiConverter2 midiConverter;
+	gmpi::midi_2_0::MidiConverter1 midiConverter_1_0;
 
 public:
 	ProcessorWrapper();

@@ -1,13 +1,38 @@
 #pragma once
 #include <optional>
+#include "pluginterfaces/base/ftypes.h"
+#include "pluginterfaces/base/funknown.h"
 
 // ivstmidi2extension.h
-// https://forum.juce.com/t/proposal-extension-for-native-vst3-midi-support/65277/8
 
 namespace vst3_ext_midi
 {
     namespace sb = Steinberg;
     namespace sbv = sb::Vst;
+
+    /** Extended IAudioProcessor interface for a component: IProcessMidiProtocol
+
+    To receive MIDI events, it is now required to implement this interface and
+    return the desired constant which your audio effect needs.
+
+    The host asks for this information once between initialize and setActive. It cannot be changed afterwards.
+
+    */
+    class IProcessMidiProtocol : public Steinberg::FUnknown
+    {
+    public:
+        enum Flags
+        {
+            kMIDIProtocol_1_0 = 1 << 0,
+            kMIDIProtocol_2_0 = 1 << 1,
+        };
+        virtual Steinberg::uint32 PLUGIN_API getProcessMidiProtocol() = 0;
+        //------------------------------------------------------------------------
+        static const Steinberg::FUID iid;
+    };
+
+    DECLARE_CLASS_IID(IProcessMidiProtocol, 0x61C7B395, 0xC49643B4, 0x93DCEB01, 0x603E29EA)
+
 
     /// An event representing a Universal MIDI Packet.
     /// This is intended to be passed between host and client using the IEventQueue

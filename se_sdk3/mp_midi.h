@@ -424,10 +424,66 @@ namespace gmpi
 			hdr.messageType = static_cast<uint8_t>(msg[0] >> 4);
 			hdr.group = static_cast<uint8_t>(msg[0] & 0x0f);
 
-			if (msg.size() > 1)
+			size_t expectedSize = 0;
+
+			switch (hdr.messageType)
+			{
+			case 0: //  32 bits Utility Messages 
+			case 1: //  32 bits System Real Time and System Common Messages (except System Exclusive)
+			case 2: //  32 bits MIDI 1.0 Channel Voice Messages
+				expectedSize = 4;
+				break;
+
+			case 3: //  64 bits Data Messages (including System Exclusive)
+			case 4: //  64 bits MIDI 2.0 Channel Voice Messages
+				expectedSize = 8;
+				break;
+
+			case 5: // 128 bits Data Messages
+				expectedSize = 16;
+				break;
+
+			case 6:
+			case 7:
+				expectedSize = 4; //  32 bits Reserved for future definition by MMA/AME
+				break;
+
+			case 8:
+			case 9:
+			case 0xA:
+				expectedSize = 8; //  64 bits Reserved for future definition by MMA/AME
+				break;
+
+			case 0xB:
+			case 0xC:
+				expectedSize = 12; //  64 bits Reserved for future definition by MMA/AME
+				break;
+
+			case 0xD:
+			case 0xE:
+			case 0xF:
+				expectedSize = 16; //  128 bits Reserved for future definition by MMA/AME
+				break;
+
+			default:
+				break;
+			}
+
+			const bool valid = expectedSize == msg.size();
+			if(!valid)
+			{
+				hdr.messageType = 0xff; // not recognized
+				return hdr;
+			}
+
+			if (ChannelVoice64 == hdr.messageType)
 			{
 				hdr.channel = static_cast<uint8_t>(msg[1] & 0x0f);
 				hdr.status = static_cast<uint8_t>(msg[1] >> 4);
+			}
+			else
+			{
+				hdr.messageType = 0xff; // not handled
 			}
 
 			return hdr;
@@ -769,6 +825,7 @@ namespace gmpi
 				{
 					if (noteIds[i].noteId == noteId)
 					{
+						// _RPTN(0, "MPE found note %d\n", i);
 						return &noteIds[i];
 					}
 				}
@@ -875,7 +932,7 @@ namespace gmpi
 		// Convert MIDI 1.0 to MIDI 2.0
 		class MidiConverter2
 		{
-			std::function<void(const midi::message_view, int timestamp)> sink;
+			std::function<void(const midi::message_view, int timestamp)> sink_;
 
 			// RPN
 			unsigned short incoming_rpn[16] = {};
@@ -894,13 +951,18 @@ namespace gmpi
 
 		public:
 			MidiConverter2(std::function<void(const midi::message_view, int)> psink) :
-				sink(psink)
+				sink_(psink)
 			{
 				std::fill(std::begin(incoming_rpn), std::end(incoming_rpn), NULL_RPN);
 				std::fill(std::begin(incoming_nrpn), std::end(incoming_nrpn), NULL_RPN);
 			}
 
 			void processMidi(const midi::message_view msg, int timestamp)
+			{
+				processMidi(msg, timestamp, sink_);
+			}
+
+			void processMidi(const midi::message_view msg, int timestamp, std::function<void(const midi::message_view, int timestamp)> sink)
 			{
 				// MIDI 2.0 messages need no conversion
 				if (gmpi::midi_2_0::isMidi2Message(msg))
@@ -1124,7 +1186,7 @@ namespace gmpi
 
 			void setSink(std::function<void(const midi::message_view, int)> psink)
 			{
-				sink = psink;
+				sink_ = psink;
 			}
 		};
 
@@ -1185,8 +1247,8 @@ namespace gmpi
 
 					//			_RPTN(0, "MPE Note-on %d => %d\n", note.noteNumber, keyInfo.MidiKeyNumber);
 
-					// MIDI 2.0 does not automatically reset per-note controls. MPE is expected to.
-					// reset per-note bender
+					// Values for per-note controls	must be tracked and stored on all Member Channels,
+					// even when no note is playing, to provide an initial state for a new note
 					{
 						const auto msgout = gmpi::midi_2_0::makePolyBender(
 							keyInfo.MidiKeyNumber,
@@ -1259,6 +1321,9 @@ namespace gmpi
 				{
 					auto note = midi_1_0::decodeNote(msg);
 					const auto MpeId = note.noteNumber | (header.channel << 7);
+
+					// _RPTN(0, "MPE Note-off %d\n", note.noteNumber);
+
 					auto keyInfo = findNote(MpeId);
 
 					if (keyInfo)
@@ -1270,7 +1335,6 @@ namespace gmpi
 							note.velocity
 						);
 
-						//pinMIDIOut.send(out.begin(), out.size());
 						sink({ msgout.m }, timestamp);
 					}
 				}
@@ -1360,6 +1424,7 @@ namespace gmpi
 
 		// Convert 'fat' MPE to MIDI 2.0
 		// i.e. MPE that has already been naively converted into MIDI 2.0
+		// see also MPEToMIDI2 module
 		class FatMpeConverter : public gmpi::midi_2_0::NoteMapper
 		{
 			std::function<void(const midi::message_view, int timestamp)> sink;
@@ -1393,6 +1458,9 @@ namespace gmpi
 				assert(gmpi::midi_2_0::isMidi2Message(msg));
 
 				const auto header = midi_2_0::decodeHeader(msg);
+
+				if (header.messageType != gmpi::midi_2_0::ChannelVoice64 || header.channel > 15)
+					return;
 
 				// Handle MPE Configuration messages. (MCM)
 				if (gmpi::midi_2_0::Status::RPN == header.status && (header.channel == 0 || header.channel == 15))
@@ -1579,11 +1647,10 @@ namespace gmpi
 				{
 					channelPressure[header.channel] = gmpi::midi_2_0::decodeController(msg).value;
 
-					// find whatever note is playing on this channel. Assumption is only held notes can receive benders etc.
-					// might not hold true for DAW automation which is drawn-on after note-off time
+					// find whatever note/s are playing on this channel.
 					for (auto& info : noteIds)
 					{
-						if (info.held && header.channel == (info.noteId >> 7))
+						if (/*info.held &&*/ header.channel == (info.noteId >> 7))
 						{
 							//					_RPTN(0, "MPE: Pressure %d %f\n", info.MidiKeyNumber, normalised);
 							const auto msgout = gmpi::midi_2_0::makePolyPressure(
@@ -1607,11 +1674,10 @@ namespace gmpi
 
 					channelBrightness[header.channel] = controller.value;
 
-					// find whatever note is playing on this channel. Assumption is only held notes can receive benders etc.
-					// might not hold true for DAW automation which is drawn-on after note-off time
+					// find whatever note/s are playing on this channel.
 					for (auto& info : noteIds)
 					{
-						if (info.held && header.channel == (info.noteId >> 7))
+						if (/*info.held &&*/ header.channel == (info.noteId >> 7))
 						{
 							const auto msgout = gmpi::midi_2_0::makePolyController(
 								info.MidiKeyNumber,
@@ -1661,7 +1727,7 @@ namespace gmpi
 		// Convert MIDI 2.0 to MIDI 1.0
 		class MidiConverter1
 		{
-			std::function<void(const midi::message_view, int timestamp)> sink;
+			std::function<void(const midi::message_view, int timestamp)> sink_;
 			float midi2NoteTune[256];
 			uint8_t midi2NoteToKey[256];
 
@@ -1674,7 +1740,7 @@ namespace gmpi
 
 		public:
 			MidiConverter1(std::function<void(const midi::message_view, int)> psink) :
-				sink(psink)
+				sink_(psink)
 			{
 				for (size_t i = 0; i < std::size(midi2NoteToKey); ++i)
 				{
@@ -1690,7 +1756,13 @@ namespace gmpi
 				}
 			}
 
+
 			void processMidi(const midi::message_view msg, int timestamp)
+			{
+				processMidi(msg, timestamp, sink_);
+			}
+			
+			void processMidi(const midi::message_view msg, int timestamp, std::function<void(const midi::message_view, int timestamp)> sink)
 			{
 				// MIDI 1.0 messages need no conversion
 				if (!gmpi::midi_2_0::isMidi2Message(msg))
@@ -1729,7 +1801,7 @@ namespace gmpi
 					};
 
 					sink({ msgout }, timestamp);
-			}
+				}
 				break;
 
 				case gmpi::midi_2_0::NoteOff:

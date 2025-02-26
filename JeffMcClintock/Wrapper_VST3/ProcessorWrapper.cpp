@@ -15,8 +15,16 @@
 #include <iomanip>
 #endif
 
+#ifdef _DEBUG
+#define VST3_USE_MIDI_EXTENSION 1
+#else
 #define VST3_USE_MIDI_EXTENSION 0
-// #include "ivstmidi2extension.h"
+#endif
+
+#if	VST3_USE_MIDI_EXTENSION
+#include "ivstmidi2extension.h"
+DEF_CLASS_IID(vst3_ext_midi::IProcessMidiProtocol)
+#endif
 
 using namespace std;
 using namespace gmpi;
@@ -27,6 +35,7 @@ using namespace Steinberg::Vst;
 
 ProcessorWrapper::ProcessorWrapper() :
 	currentVstSubProcess(&ProcessorWrapper::subProcessNotLoaded)
+	,midiConverter_1_0(nullptr)
 	,midiConverter(
 		// provide a lambda to accept converted MIDI 2.0 messages
 		[this](const midi::message_view& msg, int offset)
@@ -281,10 +290,63 @@ void ProcessorWrapper::onMidi2Message(const midi::message_view msg, int timeDelt
 
 #if	VST3_USE_MIDI_EXTENSION
 
-	m.type = vst3_ext_midi::UMPEvent::kType;
-	auto& midi2event = *reinterpret_cast<vst3_ext_midi::UMPEvent*>(&m.noteOn);
+	// determine what MIDI protocol the plugin requires. (you could cache this part).
+	int pluginsMidiProtocol = -1; // none.
 
-	memcpy(&midi2event.words, msg.begin(), msg.size());
+	vst3_ext_midi::IProcessMidiProtocol* midi2Processor = nullptr;
+	vstEffect_->queryInterface(vst3_ext_midi::IProcessMidiProtocol::iid, (void**)&midi2Processor);
+
+	if (midi2Processor)
+	{
+		pluginsMidiProtocol = midi2Processor->getProcessMidiProtocol();
+	}
+
+	if (pluginsMidiProtocol == 1) // MIDI 1.0
+	{
+		// This DAW uses MIDI 2.0 by default, so we need to convert the message to MIDI 1.0
+		// If you are using MIDI 1.0 already you can skip this step.
+		uint8_t midiBytes[3]{};
+
+		midiConverter_1_0.processMidi(
+			msg,
+			timeDelta,
+			// this lambda accepts the MIDI 1.0 messages.
+			[&midiBytes](const midi::message_view& msg, int offset)
+			{
+				memcpy(midiBytes, msg.begin(), msg.size());
+			}
+		);
+
+		// Wrap your MIDI 1.0 message in a UMP packet.
+		// 'ChannelVoice32' = means MIDI 1.0 Message
+		constexpr int channelGroup = 0;
+
+		uint8_t wrappedMidi_1_0_message[4] =
+		{
+			static_cast<uint8_t>((gmpi::midi_2_0::ChannelVoice32 << 4) | (channelGroup & 0x0f)),
+			midiBytes[0],
+			midiBytes[1],
+			midiBytes[2],
+		};
+
+		// tag the Steinberg event as a UMP event.
+		m.type = vst3_ext_midi::UMPEvent::kType;
+		auto& midi2event = *reinterpret_cast<vst3_ext_midi::UMPEvent*>(&m.noteOn);
+
+		// copy the MIDI message into the Steinberg VST3 event.
+		memcpy(&midi2event.words, &wrappedMidi_1_0_message, sizeof(wrappedMidi_1_0_message));
+	}
+	else if (pluginsMidiProtocol == 2) // MIDI 2.0
+	{
+		// DAW already uses MIDI 2.0, so we can pass a simple copy of the message.
+
+		// tag the Steinberg event as a UMP event.
+		m.type = vst3_ext_midi::UMPEvent::kType;
+		auto& midi2event = *reinterpret_cast<vst3_ext_midi::UMPEvent*>(&m.noteOn);
+
+		// copy the MIDI message into the Steinberg VST3 event.
+		memcpy(&midi2event.words, msg.begin(), msg.size());
+	}
 
 #else // convert to VST3 note events
 

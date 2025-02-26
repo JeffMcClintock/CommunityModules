@@ -2976,7 +2976,7 @@ namespace GmpiDrawing
 	{
 		Graphics& graphics;
 	public:
-		ClipDrawingToBounds(Graphics& g, GmpiDrawing_API::MP1_RECT clipRect) :
+		[[nodiscard]] ClipDrawingToBounds(Graphics& g, GmpiDrawing_API::MP1_RECT clipRect) :
 			graphics(g)
 		{
 			graphics.PushAxisAlignedClip(clipRect);
