@@ -2034,11 +2034,13 @@ void DrawingTestGui::drawBitmapPixels(GmpiDrawing::Graphics& g)
 
 	int x = 10;
 	int y = 10;
+	int dx = 76;
+
 	g.DrawBitmap(bitmapMem, GmpiDrawing_API::MP1_POINT_L{ x, y }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
 	g.DrawTextU("from Mem\nWrite", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 16), textBrush);
 
 	// bitmap from memory, modified programatically.
-	x += 80;
+	x += dx;
 	{
 		auto pixelsSource = bitmapMem.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		const auto imageSize = bitmapMem.GetSize();
@@ -2060,7 +2062,7 @@ void DrawingTestGui::drawBitmapPixels(GmpiDrawing::Graphics& g)
 	g.DrawTextU("from Mem\nRead/Write", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 20), textBrush);
 
 	// Bitmap from disk
-	x += 80;
+	x += dx;
 	gmpi_sdk::MpString fullUri;
 	getHost()->RegisterResourceUri("knob_med", "Image", &fullUri);
 	auto bitmap2 = g.GetFactory().LoadImageU(fullUri.c_str());
@@ -2069,7 +2071,7 @@ void DrawingTestGui::drawBitmapPixels(GmpiDrawing::Graphics& g)
 	g.DrawTextU("from Disk", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 16), textBrush);
 
 	// bitmap from disk, modified programatically.
-	x += 80;
+	x += dx;
 	{
 		auto pixelsSource = bitmap2.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
 		const auto imageSize = bitmap2.GetSize();
@@ -2090,12 +2092,14 @@ void DrawingTestGui::drawBitmapPixels(GmpiDrawing::Graphics& g)
 	g.DrawBitmap(bitmap2, GmpiDrawing_API::MP1_POINT_L{ x, y }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
 	g.DrawTextU("from Disk\nRead/Write", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 20), textBrush);
 
-	// drawing on in-memory bitmap.
-	x += 80;
+	// drawing on GPU in-memory bitmap.
+	x += dx;
 	Bitmap bitmap4;
 	{
 		auto dc = g.CreateCompatibleRenderTarget({ 64, 64 });
 		dc.BeginDraw();
+
+		dc.Clear(Color(0x00000000u));
 
 		auto brush = dc.CreateSolidColorBrush(Color(0xFFD700u, 0.2f));
 		for (float i = 64; i > 1; i -= 8)
@@ -2106,40 +2110,127 @@ void DrawingTestGui::drawBitmapPixels(GmpiDrawing::Graphics& g)
 		dc.EndDraw();
 
 		bitmap4 = dc.GetBitmap();
-
-		g.DrawBitmap(bitmap4, GmpiDrawing_API::MP1_POINT_L{ x, y }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
-		g.DrawTextU("from DC\nDrawn on", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 20), textBrush);
 	}
+	g.DrawBitmap(bitmap4, GmpiDrawing_API::MP1_POINT_L{ x, y }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
+	g.DrawTextU("from GPU DC\nDrawn on", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 20), textBrush);
 
-	// bitmap from drawing, modified programatically.
-	x += 80;
+	Bitmap bitmap5;
+#if 1
+	// drawing on WIC in-memory bitmap.
+	x += dx;
 	{
-		auto pixelsSource = bitmap4.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
-		if (pixelsSource.isNull())
+		gmpi_sdk::mp_shared_ptr<GmpiDrawing_API::IMpDeviceContextExt> extendedContext;
+		if (gmpi::MP_OK == g.Get()->queryInterface(GmpiDrawing_API::IMpDeviceContextExt::guid, extendedContext.asIMpUnknownPtr()))
 		{
-			g.DrawTextU("FAIL!", textFormat, GmpiDrawing::Rect(x + 6, y + 50, x + 100, y + 70), textBrush);
-		}
-		else
-		{
-			const auto imageSize = bitmap4.GetSize();
-			const int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+			gmpi_sdk::mp_shared_ptr<GmpiDrawing_API::IMpBitmapRenderTarget> bitmapRenderTarget;
 
-			uint8_t* sourcePixels = pixelsSource.getAddress();
+			extendedContext->CreateBitmapRenderTarget({ 64, 64 }, true, bitmapRenderTarget.getAddressOf());
 
-			for (float y = 0; y < imageSize.height; y++)
+			GmpiDrawing::Graphics dc(bitmapRenderTarget);
+			dc.BeginDraw();
+			dc.Clear(Color(0x00000000u));
+
+			auto brush = dc.CreateSolidColorBrush(Color(0xFFD700u, 0.2f));
+			for (float i = 64; i > 1; i -= 8)
 			{
-				float alpha = 1.0f;
-				for (float x = 0; x < imageSize.width; x++)
-				{
-					std::swap(sourcePixels[0], sourcePixels[2]);
-					sourcePixels += 4;
-			
-					}
+				dc.FillRectangle({ 0, 0, i, i }, brush);
 			}
-			g.DrawBitmap(bitmap4, GmpiDrawing_API::MP1_POINT_L{ x, y }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
+
+			dc.EndDraw();
+
+			bitmapRenderTarget->GetBitmap(bitmap5.GetAddressOf());
+			// RIAA here to release the DC.
 		}
 	}
-	g.DrawTextU("from DC\nRead/Write", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 20), textBrush);
+	g.DrawBitmap(bitmap5, GmpiDrawing_API::MP1_POINT_L{ x, y }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
+	g.DrawTextU("from WIC DC\nDrawn on", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 20), textBrush);
+#endif
+
+#if 1
+	// device bitmap from drawing, modified programatically.
+	x = 10;
+	y += dx;
+	{
+		bool result = false;
+		{
+			auto pixelsSource = bitmap4.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+			if (pixelsSource.isNull())
+			{
+				g.DrawTextU("FAIL!", textFormat, GmpiDrawing::Rect(x + 6, y + 50, x + 100, y + 70), textBrush);
+			}
+			else
+			{
+				result = true;
+				const auto imageSize = bitmap4.GetSize();
+				const int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+
+				uint8_t* sourcePixels = pixelsSource.getAddress();
+
+				for (float y = 0; y < imageSize.height; y++)
+				{
+					float alpha = 1.0f;
+					for (float x = 0; x < imageSize.width; x++)
+					{
+						std::swap(sourcePixels[0], sourcePixels[2]);
+						sourcePixels += 4;
+					}
+				}
+			}
+		}
+		if(result)
+			g.DrawBitmap(bitmap4, GmpiDrawing_API::MP1_POINT_L{ x, y }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
+		g.DrawTextU("from GPU DC\nRead/Write", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 20), textBrush);
+	}
+
+	// WIC bitmap from drawing, modified programatically.
+	// will look weird on SE 1.6 since WIC device context is half-float pixels not 8-bit as is assumed by the following.
+	x += dx;
+	{
+		std::string error_msg;
+
+		bool result = false;
+		{
+			auto pixelsSource = bitmap5.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+			if (pixelsSource.isNull())
+			{
+				error_msg = "FAIL!";
+			}
+			else
+			{
+				result = true;
+				const auto imageSize = bitmap5.GetSize();
+				const int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
+
+				if (pixelsSource.getBytesPerRow() != imageSize.width * 4)
+				{
+					error_msg = "FAIL (not 8-bit)!";
+				}
+				else
+				{
+					uint8_t* sourcePixels = pixelsSource.getAddress();
+
+					for (float y = 0; y < imageSize.height; y++)
+					{
+						float alpha = 1.0f;
+						for (float x = 0; x < imageSize.width; x++)
+						{
+							std::swap(sourcePixels[1], sourcePixels[2]);
+							sourcePixels += 4;
+						}
+					}
+				}
+			}
+		}
+		if (result)
+			g.DrawBitmap(bitmap5, GmpiDrawing_API::MP1_POINT_L{ x, y }, GmpiDrawing_API::MP1_RECT_L{ 0,0,64,64 });
+		g.DrawTextU("from WIC DC\nRead/Write", textFormat, GmpiDrawing::Rect(x + 6, y + 6, x + 100, y + 20), textBrush);
+
+		if (!error_msg.empty())
+		{
+			g.DrawTextU(error_msg.c_str(), textFormat, GmpiDrawing::Rect(x + 2, y + 50, x + 100, y + 70), textBrush);
+		}
+	}
+#endif
 }
 
 void DrawingTestGui::drawShittyText(GmpiDrawing::Graphics& g)

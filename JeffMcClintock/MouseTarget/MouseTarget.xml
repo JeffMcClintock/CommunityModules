@@ -79,14 +79,16 @@
 		<GUI graphicsApi="GmpiGui">
 			<Pin name="Toggle" datatype="bool" isMinimised="true"/>
 			<Pin name="Click" datatype="bool"/>
-			<Pin name="Value" datatype="bool"/>
-		</GUI>
+        <Pin name="Mouse Down" datatype="bool"/>
+        <Pin name="Mouse Down" datatype="bool" direction="out"/>
+    </GUI>
 	</Plugin>
-	<Plugin id="SE MT2PMF" name="Mouse Target to PatchMem Float" category="Experimental/Sub-Controls">
+	<Plugin id="SE MT2PMF" name="Value Dragger" category="Experimental/Sub-Controls">
 		<GUI graphicsApi="GmpiGui">
 			<Pin name="Drag" datatype="float"/>
-			<Pin name="Animation Position" datatype="float"/>
-		</GUI>
+        <Pin name="Normalized" datatype="float"/>
+        <Pin name="Normalized" datatype="float" direction="out"/>
+    </GUI>
 	</Plugin>
 	<Plugin id="SE MathGui Multiply" name="Multiply (int)" category="Experimental/Sub-Controls">
 		<GUI>

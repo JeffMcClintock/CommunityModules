@@ -17,16 +17,22 @@
 			<Pin name="HD" datatype="bool"/>
 		</GUI>
 	</Plugin>
-	<Plugin id="SE DentB" name="DentB" category="Experimental/Sub-Controls">
-		<GUI graphicsApi="GmpiGui">
-			<Pin name="Corner Radius" datatype="float" default="10" isMinimised="true"/>
-			<Pin name="Top Left" datatype="bool" default="1" isMinimised="true"/>
-			<Pin name="Top Right" datatype="bool" default="1" isMinimised="true"/>
-			<Pin name="Bottom Left" datatype="bool" default="1" isMinimised="true"/>
-			<Pin name="Bottom Right" datatype="bool" default="1" isMinimised="true"/>
-			<Pin name="Blur" datatype="int" default="6"/>
-			<Pin name="Color" datatype="string" default="FF000000"/>
-			<Pin name="Intensity" datatype="float" default="0.5"/>
-		</GUI>
-	</Plugin>
+    <Plugin id="SE DentB" name="DentB" category="Experimental/Sub-Controls">
+        <GUI graphicsApi="GmpiGui">
+            <Pin name="Corner Radius" datatype="float" default="10" isMinimised="true"/>
+            <Pin name="Top Left" datatype="bool" default="1" isMinimised="true"/>
+            <Pin name="Top Right" datatype="bool" default="1" isMinimised="true"/>
+            <Pin name="Bottom Left" datatype="bool" default="1" isMinimised="true"/>
+            <Pin name="Bottom Right" datatype="bool" default="1" isMinimised="true"/>
+            <Pin name="Blur" datatype="int" default="6"/>
+            <Pin name="Color" datatype="string" default="FF000000"/>
+            <Pin name="Intensity" datatype="float" default="0.5"/>
+        </GUI>
+    </Plugin>
+    <Plugin id="SE FastBlurDemo" name="Fast Blur Demo" category="Experimental/Sub-Controls">
+        <GUI graphicsApi="GmpiGui">
+            <Pin name="Radius" datatype="int" default="5" isMinimised="true"/>
+            <Pin name="Color" datatype="string" default="FF5555ff"/>
+        </GUI>
+    </Plugin>
 </PluginList>

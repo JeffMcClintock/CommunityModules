@@ -7,7 +7,7 @@
     </Parameters>
     <Audio>
       <Pin name="PM Value Out" direction="out" datatype="blob" parameterId="0" private ="true"/>
-      <Pin name="Signal" direction="in" datatype="float" rate="audio" autoDuplicate="true"/>
+      <Pin name="Signal" direction="in" datatype="float" rate="audio" autoDuplicate="true" autoRename="true"/>
 		</Audio>
     <GUI graphicsApi="GmpiGui">
       <Pin name="PM Value In" direction="in" datatype="blob" parameterId="0" />

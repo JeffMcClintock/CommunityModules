@@ -97,13 +97,15 @@ class MT2PMB final : public SeGuiInvisibleBase
 	BoolGuiPin pinToggle;
 	BoolGuiPin pinClick;
 	BoolGuiPin pinPatchMem;
+	BoolGuiPin pinPatchMem2;
 
 public:
 	MT2PMB()
 	{
 		initializePin(pinToggle);
 		initializePin(pinClick, static_cast<MpGuiBaseMemberPtr2>(&MT2PMB::recalc));
-		initializePin(pinPatchMem);
+		initializePin(pinPatchMem, static_cast<MpGuiBaseMemberPtr2>(&MT2PMB::passThrough));
+		initializePin(pinPatchMem2);
 	}
 
 	void recalc()
@@ -112,13 +114,19 @@ public:
 		{
 			if (pinClick)
 			{
-				pinPatchMem = !pinPatchMem;
+//				pinPatchMem = !pinPatchMem;
+				pinPatchMem2 = !pinPatchMem;
 			}
 		}
 		else
 		{
-			pinPatchMem = pinClick;
+//			pinPatchMem = pinClick;
+			pinPatchMem2 = pinClick;
 		}
+	}
+	void passThrough()
+	{
+		pinPatchMem2 = pinPatchMem;
 	}
 };
 
@@ -133,20 +141,27 @@ class MT2PMF final : public SeGuiInvisibleBase
 {
 	FloatGuiPin pinDrag;
 	FloatGuiPin pinPatchMem;
-	float lastDrag = 0.0f;
+	FloatGuiPin pinPatchMem2;
+	float lastDrag = 0.0f; // TODO calc per-frame, make pinDrag a delta that needs no mutable memory to recal the prev val.
 
 public:
 	MT2PMF()
 	{
 		initializePin(pinDrag, static_cast<MpGuiBaseMemberPtr2>(&MT2PMF::recalc));
-		initializePin(pinPatchMem);
+		initializePin(pinPatchMem, static_cast<MpGuiBaseMemberPtr2>(&MT2PMF::passThrough));
+		initializePin(pinPatchMem2);
 	}
 
 	void recalc()
 	{
 		const float newNormalized = pinPatchMem + 0.005f * (pinDrag - lastDrag);
-		pinPatchMem = std::clamp(newNormalized, 0.0f, 1.0f);
+		//		pinPatchMem = std::clamp(newNormalized, 0.0f, 1.0f);
+		pinPatchMem2 = std::clamp(newNormalized, 0.0f, 1.0f);
 		lastDrag = pinDrag;
+	}
+	void passThrough()
+	{
+		pinPatchMem2 = pinPatchMem;
 	}
 };
 
@@ -154,3 +169,4 @@ namespace
 {
 	auto r4 = Register<MT2PMF>::withId(L"SE MT2PMF");
 }
+

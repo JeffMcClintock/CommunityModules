@@ -8,4 +8,5 @@ build_gmpi_plugin(
     SOURCE_FILES 
         ${PROJECT_NAME}BGui.cpp
         ShadowGui.cpp
+        FastBlurDemo.cpp
 )
