@@ -77,3 +77,10 @@ endif()
 
 # TODO need this set on mac dll, else SE can't scan it.
 set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
+
+add_custom_command(TARGET ${PROJECT_NAME}
+POST_BUILD
+COMMAND copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\$(TargetName)$(TargetExt)"
+COMMENT "Copy to modules folder"
+VERBATIM
+)

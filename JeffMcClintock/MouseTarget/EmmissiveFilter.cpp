@@ -170,6 +170,10 @@ int32_t EmmissiveFilter::filterImage(Bitmap& image, float intensity)
 	std::vector<rgb_f> pixels_emmisive(totalSourcePixels, rgb_f{});
 
 	auto pixelsSource = image.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+	
+	if (pixelsSource.isNull())
+		return gmpi::MP_FAIL;
+
 	{
 		const auto imageSize = image.GetSize();
 		const int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);

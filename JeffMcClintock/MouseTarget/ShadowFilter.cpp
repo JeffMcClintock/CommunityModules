@@ -73,6 +73,9 @@ int32_t ShadowFilter::filterImage(Bitmap& bitmap, float intensity, int offsetX, 
 	blurRadius *= hd ? 2 : 1; // modify *after* we calced the border.
 
 	auto pixelsSource = bitmap.lockPixels(GmpiDrawing_API::MP1_BITMAP_LOCK_READ | GmpiDrawing_API::MP1_BITMAP_LOCK_WRITE);
+	if (pixelsSource.isNull())
+		return gmpi::MP_FAIL;
+
 	int totalPixels = (int)imageSize.height * pixelsSource.getBytesPerRow() / sizeof(uint32_t);
 
 	int32_t* sourcePixels = (int32_t*)pixelsSource.getAddress();

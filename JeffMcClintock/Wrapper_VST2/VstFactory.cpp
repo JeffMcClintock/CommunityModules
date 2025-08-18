@@ -226,9 +226,10 @@ struct backgroundData
 
 void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path, const char* shellName)
 {
+	const auto fullPath_u = WStringToUtf8(full_path);
+
 	try
 	{
-		const auto fullPath_u = WStringToUtf8(full_path);
 
 		AEffectWrapper plugin;
 		plugin.LoadDll(full_path);
@@ -294,6 +295,7 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path, cons
 	}
 	catch (...)
 	{
+		_RPTN(0, "Exception while scanning: %s", fullPath_u.c_str());
 		return;
 	}
 }

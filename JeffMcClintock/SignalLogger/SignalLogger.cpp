@@ -3,9 +3,8 @@
 #include "mp_sdk_audio.h"
 #include "PinIterator.h"
 
-// C:\SE\SE15\SynthEdit\bin\x64\Debug\SynthEdit.exe
-SE_DECLARE_INIT_STATIC_FILE(SignalLogger)
 SE_DECLARE_INIT_STATIC_FILE(PhaseScope)
+SE_DECLARE_INIT_STATIC_FILE(SignalLogger)
 
 using namespace gmpi;
 
@@ -30,7 +29,7 @@ public:
 	int32_t open() override
 	{
 		const int assumedGuiUpdateRateHz = 20;
-		recordingBufferSize_ = host.getSampleRate() / assumedGuiUpdateRateHz;
+		recordingBufferSize_ = static_cast<int>(host.getSampleRate()) / assumedGuiUpdateRateHz;
 
 		// Register pins.
 		PinIterator it(this);
@@ -57,7 +56,7 @@ public:
 
 	void subProcess( int sampleFrames )
 	{
-		for (int i = 0; i < pinSignal.size(); ++i) // auto it = pinSignal.begin(); it != pinSignal.end(); ++it)//, ++it2 )
+		for (int i = 0; i < pinSignal.size(); ++i)
 		{
 			ins[i] = getBuffer(*pinSignal[i]);
 		}
@@ -96,6 +95,6 @@ public:
 
 namespace
 {
-	auto r = Register<SignalLogger>::withId(L"SE Signal Logger");
-	auto r2 = Register<SignalLogger>::withId(L"SE Phase Scope");
+auto r = Register<SignalLogger>::withId(L"SE Signal Logger");
+auto r2 = Register<SignalLogger>::withId(L"SE Phase Scope");
 }

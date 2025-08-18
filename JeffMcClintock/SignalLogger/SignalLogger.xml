@@ -3,7 +3,7 @@
 <PluginList>
 	<Plugin id="SE Signal Logger" name="Signal Logger" category="Diagnostic">
     <Parameters>
-      <Parameter id="0" datatype="blob" persistant="false" />
+      <Parameter id="0" name="Scrolling Waveform" datatype="blob" persistant="false" />
     </Parameters>
     <Audio>
       <Pin name="PM Value Out" direction="out" datatype="blob" parameterId="0" private ="true"/>
@@ -20,7 +20,7 @@
 
   <Plugin id="SE Phase Scope" name="Phase Scope" category="Controls">
     <Parameters>
-      <Parameter id="0" datatype="blob" persistant="false" />
+      <Parameter id="0" name="Phase Scope" datatype="blob" persistant="false" />
     </Parameters>
     <Audio>
       <Pin name="PM Value Out" direction="out" datatype="blob" parameterId="0" private ="true"/>
