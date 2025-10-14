@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
+set(CMAKE_CXX_STANDARD 20)
+
 # fix warning on macOS about importing choc library
 cmake_policy(SET CMP0114 NEW)
 
@@ -14,7 +16,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(choc)
-include_directories(${choc_SOURCE_DIR})
+include_directories(${choc_SOURCE_DIR}/choc)
 
 gmpi_plugin(
     PROJECT_NAME ${PROJECT_NAME}

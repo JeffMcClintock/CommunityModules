@@ -5,6 +5,8 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment ve
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for MacOS" FORCE)
 set(SE_LOCAL_BUILD FALSE CACHE BOOL "Execute extra build steps for developers machine")
 
+set(CMAKE_CXX_STANDARD 17)
+
 # This is for macOS commandline only, because it uses a single-target generator. for other targets, ref: target_compile_definitions
 # this point of this is to ensure NDEBUG macro is set
 if(NOT GENERATOR_IS_MULTI_CONFIG)
@@ -39,9 +41,8 @@ set(se_shared_folder
 
 set(sdk_folder ${se_sdk_folder})
 
-set(gmpi_sdk_folder
-    ${gmpi_SOURCE_DIR}
-    )
+set(gmpi_sdk_folder ${gmpi_SOURCE_DIR})
+set(GMPI_SDK ${gmpi_SOURCE_DIR})
 	
 include_directories(
     ${gmpi_sdk_folder}
@@ -49,8 +50,6 @@ include_directories(
     se_sdk3
     shared
     )
-
-set(CMAKE_CXX_STANDARD 17)
 
 add_definitions(-D_UNICODE)
 add_definitions(-DSE_TARGET_SEM)

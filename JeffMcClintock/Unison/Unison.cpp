@@ -143,7 +143,7 @@ struct MidiUnison
 							header.channel
 						);
 
-						sendMidi(out);
+						sendMidi(out.m);
 					}
 				}
 			}
@@ -186,7 +186,7 @@ struct Unison final : public Processor
 
 		noteTracker.sendMidi = [this](midi::message_view msg)
 		{
-			pinMIDIOut.send(msg.begin(), msg.size());
+			pinMIDIOut.send(msg);
 		};
 	}
 
@@ -217,9 +217,9 @@ struct Unison final : public Processor
 		}
 	}
 
-	void onMidiMessage(int pin, const uint8_t* midiMessage, int size) override
+	void onMidiMessage(int pin, std::span<const uint8_t> midiMessage) override
 	{
-		noteTracker.onMidiMessage({ midiMessage, size });
+		noteTracker.onMidiMessage(midiMessage);
 	}
 };
 

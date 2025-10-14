@@ -180,7 +180,7 @@ public:
 					}
 
 					readPosition = sourceBuffers[currentPlayBuffer][0].size(); // trigger a buffer refill.
-					readIncrement = (double)props.sampleRate / (double)host.getSampleRate();
+					readIncrement = props.sampleRate / (double) host->getSampleRate();
 					SwitchBuffers();
 				}
 			}
