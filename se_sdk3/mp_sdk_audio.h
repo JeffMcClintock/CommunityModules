@@ -63,7 +63,7 @@ namespace GmpiSdk
 
 		/*
 				// Backdoor to GUI. Not recommended. Use Parameters instead to support proper automation.
-				virtual int32_t MP_STDCALL sendMessageToGui(int32_t id, int32_t size, const void* messageData) = 0;
+				virtual int32_t sendMessageToGui(int32_t id, int32_t size, const void* messageData) = 0;
 		*/
 		// Query audio buffer size.
 		inline int32_t getBlockSize() const
@@ -302,7 +302,7 @@ public:
 	{
 		return variableRawData<T>(value_);
 	}
-	virtual int getDatatype() const override
+	int getDatatype() const override
 	{
 		return pinDatatype; //MpTypeTraits<T>::PinDataType;
 	}
@@ -361,7 +361,7 @@ public:
 	MpControlPin( T initialValue ) : MpControlPinBase< T, pinDatatype >( initialValue )
 	{
 	}
-	virtual int getDirection() const override
+	int getDirection() const override
 	{
 		return pinDirection_;
 	}
@@ -406,7 +406,7 @@ public:
 	{
 		assert(false && "Audio-rate pins_ don't support setValueRaw");
 	}
-	virtual int getDatatype() const override
+	int getDatatype() const override
 	{
 		return gmpi::MP_AUDIO;
 	}
@@ -554,7 +554,10 @@ public:
 			}
 			else
 			{
-				value_ = *reinterpret_cast<gmpi::ISharedBlob**>(const_cast<int32_t*>(&(e->parm3)));
+				// 8 byte pointer stored in parm3/parm4.
+				// value_ = *reinterpret_cast<gmpi::ISharedBlob**>(const_cast<int32_t*>(&(e->parm3)));
+				const void* ptr = &(e->parm3);
+				value_ = *(gmpi::ISharedBlob**)ptr;
 			}
 
 			freshValue_ = true;
@@ -643,12 +646,13 @@ public:
 	}
 
 	virtual void send(const unsigned char* data, int size, int blockPosition = -1);
+	void send(const unsigned char* data, size_t size, int blockPosition = -1);
 
 	// convenience method (pass uint8_t array, deduce size). can't pass block position, else compiler chooses other overload.
 	template <int N>
 	void send(const uint8_t(&data)[N]) //, int blockPosition = -1)
 	{
-		send((const unsigned char*)&data, static_cast<int>(N));// , blockPosition);
+		send((const unsigned char*)&data, N);// , blockPosition);
 	}
 };
 
@@ -670,13 +674,13 @@ public:
 	virtual ~MpPluginBase() {}
 
 	// IMpUnknown methods
-	int32_t MP_STDCALL queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override;
+	int32_t queryInterface(const gmpi::MpGuid& iid, void** returnInterface) override;
 	GMPI_REFCOUNT
 
-	int32_t MP_STDCALL open() override;
+	int32_t open() override;
 
 	// IMpPlugin methods, forwarded to IMpPlugin2 equivalent.
-	int32_t MP_STDCALL receiveMessageFromGui( int32_t id, int32_t size, void* messageData ) override
+	int32_t receiveMessageFromGui( int32_t id, int32_t size, void* messageData ) override
 	{
 		int32_t r = gmpi::MP_OK;
 		if( !recursionFix )
@@ -689,17 +693,17 @@ public:
 		return r;
 	}
 
-	void MP_STDCALL process( int32_t count, gmpi::MpEvent* events ) override
+	void process( int32_t count, gmpi::MpEvent* events ) override
 	{
 		// When hosted as IMpPlugin, forward call to IMpPlugin2 version.
 		process(count, ( const gmpi::MpEvent* ) events);
 	}
 
 	// IMpPlugin2 methods
-	int32_t MP_STDCALL setHost(IMpUnknown* host) override;
-	int32_t MP_STDCALL setBuffer(int32_t pinId, float* buffer) override;
-	virtual void MP_STDCALL process( int32_t count, const gmpi::MpEvent* events ) override = 0;
-	int32_t MP_STDCALL receiveMessageFromGui( int32_t id, int32_t size, const void* messageData ) override
+	int32_t setHost(IMpUnknown* host) override;
+	int32_t setBuffer(int32_t pinId, float* buffer) override;
+	virtual void process( int32_t count, const gmpi::MpEvent* events ) override = 0;
+	int32_t receiveMessageFromGui( int32_t id, int32_t size, const void* messageData ) override
 	{
 		int32_t r = gmpi::MP_OK;
 		if( !recursionFix )
@@ -758,7 +762,7 @@ public:
 		return host.getSampleRate();
 	}
 	void resetSleepCounter();
-	void wakeSubProcessAtLeastOnce();
+//	void wakeSubProcessAtLeastOnce();
 	void nudgeSleepCounter()
 	{
 		sleepCount_ = (std::max)(sleepCount_, 1);
@@ -826,7 +830,7 @@ public:
 	{
 	}
 
-	virtual void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events);
+	virtual void process(int32_t count, const gmpi::MpEvent* events);
 	void setSubProcess(SubProcess_ptr func);
 	inline int blockPosition() // wrong coding standard, retained for backward compatibility. Use getBlockPosition() instead.
 	{
@@ -877,7 +881,7 @@ public:
 	{
 	}
 
-	virtual void MP_STDCALL process(int32_t count, const gmpi::MpEvent* events);
+	virtual void process(int32_t count, const gmpi::MpEvent* events);
 	// TODO: Should return const float* for input pins to prevent inadvertant modification of input buffer.
 	inline float* getBuffer( const MpAudioPinBase& pin ) const
 	{

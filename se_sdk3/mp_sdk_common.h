@@ -722,6 +722,8 @@ enum FieldType {
 	, MP_FT_DEFAULT					// same type as parameter
 	, MP_FT_GRAB						// (mouse down) bool
 	, MP_FT_NORMALIZED				// float
+	, MP_FT_STATEFUL				// bool
+	, MP_FT_HINT					// std::string
 };
 
 class IMpParameterObserver : public IMpUnknown
@@ -1280,6 +1282,7 @@ inline void VariableFromRaw<bool>( int size, const void* data, bool& returnValue
 	}
 	else
 	{
+		// GMPI passes bool as 1 byte
 		assert( size == 1 );
 		returnValue = *((bool*) data);
 	}
