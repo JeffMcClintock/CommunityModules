@@ -29,10 +29,10 @@ using namespace gmpi;
 
 class AudioPlayer final : public Processor
 {
+	StringInPin pinFileName;
 	BoolInPin pinGate;
 	AudioOutPin pinLeftOut;
 	AudioOutPin pinRightOut;
-	StringInPin pinFileName;
 
 	// chock playback
 	std::unique_ptr<choc::audio::AudioFileFormat> audioFile;
@@ -49,14 +49,6 @@ class AudioPlayer final : public Processor
 	std::vector<float> coefs;
 
 public:
-	AudioPlayer()
-	{
-		init( pinFileName );
-		init( pinGate );
-		init( pinLeftOut );
-		init( pinRightOut );
-	}
-
 	void subProcess( int sampleFrames )
 	{
 		auto leftOut = getBuffer(pinLeftOut);
