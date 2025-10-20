@@ -175,6 +175,18 @@ public:
 					readIncrement = props.sampleRate / (double) host->getSampleRate();
 					SwitchBuffers();
 				}
+				else
+				{
+#ifdef _WIN32
+					_RPT1(0, "AudioPlayer: Failed to open file '%s'\n", fullFilename.c_str());
+#endif
+				}
+			}
+			else
+			{
+#ifdef _WIN32
+				_RPT0(0, "AudioPlayer: Unsupported file type.\n");
+#endif
 			}
 		}
 
