@@ -26,8 +26,8 @@ steps:
     inputs:
       SourceFolder: '$(agent.builddirectory)/s/build'
       Contents: |
-        '**/*.sem/**'
-        '**/*.gmpi/**'
+        **/*.sem/**
+        **/*.gmpi/**
       TargetFolder: '$(build.artifactstagingdirectory)'
 
 
