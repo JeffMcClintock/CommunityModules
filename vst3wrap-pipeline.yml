@@ -9,6 +9,7 @@ trigger:
 pool:
   vmImage: windows-latest
 
+steps:
 - task: VSBuild@1
   inputs:
     solution: '**\Wrapper_vst3.sln'
