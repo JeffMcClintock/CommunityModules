@@ -6,6 +6,7 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for
 set(SE_LOCAL_BUILD FALSE CACHE BOOL "Execute extra build steps for developers machine")
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdeprecated-declarations") # for annoying codecvt warnings
 
 # This is for macOS commandline only, because it uses a single-target generator. for other targets, ref: target_compile_definitions
 # this point of this is to ensure NDEBUG macro is set
