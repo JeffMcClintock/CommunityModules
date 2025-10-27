@@ -13,6 +13,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
+#include <iostream>
 #include "Core/Processor.h"
 #include "../Extensions/EmbeddedFile.h"
 #include "../Extensions/EmbeddedFileHelper.h"
@@ -123,6 +124,13 @@ public:
 			fileHost.Init(host.get());
 
 			const auto fullFilename = fileHost.resolveFilename(pinFileName);
+
+#ifdef _WIN32
+			{
+				auto msg = "AudioPlayer:" + fullFilename;
+				std::cout << msg << std::endl;
+			}
+#endif
 
 			// determine file type
 			std::string fileextension("wav");
