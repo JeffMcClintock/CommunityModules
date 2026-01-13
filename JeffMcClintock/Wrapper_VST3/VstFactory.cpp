@@ -206,7 +206,7 @@ R"xml(
 </Plugin>
 </PluginList>
 )xml"; 
-		plugins.push_back({ PARAM_SET_PLUGIN_ID, "Info", xml, L"" });
+		plugins.push_back({ PARAM_SET_PLUGIN_ID, "Param Set", xml, L"" });
 	}
 
 	ShallowScanVsts();
@@ -568,9 +568,13 @@ void VstFactory::savePluginInfo()
 	{
 		for( auto& p : plugins )
 		{
+			auto xml = p.xmlBrief_;
+			// need to strip out newlines for single-line storage.
+			xml.erase(std::remove(xml.begin(), xml.end(), '\n'), xml.end());
+
 			myfile << p.name_ << "\n";
 			myfile << p.uuid_ << "\n";
-			myfile << p.xmlBrief_ << "\n";
+			myfile << xml << "\n";
 			myfile << WStringToUtf8(p.shellPath_) << "\n";
 		}
 		myfile.close();
@@ -598,7 +602,7 @@ void VstFactory::loadPluginInfo()
 		}
 		myfile.close();
 		scannedPlugins = true;
-		ShallowScanVsts();
+// no, otherwise loading only one VST3 ends up scanning them all:		ShallowScanVsts();
 	}
 	else
 	{
