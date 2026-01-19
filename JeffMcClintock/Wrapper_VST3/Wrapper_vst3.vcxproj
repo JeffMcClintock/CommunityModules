@@ -197,6 +197,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="JeffMcClintock\Wrapper_VST3\CMAKE_BUILD.md" />
     <None Include="Wrapper_vst3.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -275,6 +276,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Wrapper_vst3.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="JeffMcClintock\Wrapper_VST3\CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

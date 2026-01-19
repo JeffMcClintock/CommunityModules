@@ -176,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Wrapper_vst3.xml" />
+    <None Include="JeffMcClintock\Wrapper_VST3\CMAKE_BUILD.md" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="sdk">
@@ -192,5 +193,8 @@
     <ResourceCompile Include="Wrapper_vst3.rc">
       <Filter>Resources</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="JeffMcClintock\Wrapper_VST3\CMakeLists.txt" />
   </ItemGroup>
 </Project>
