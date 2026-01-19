@@ -38,35 +38,35 @@ struct MidiUnison
 
 	keyInfo noteIds[channelCount][keyCount];
 
-	std::function<void(midi::message_view)> sendMidi = [](midi::message_view) {};
+	std::function<void(midi2::message_view)> sendMidi = [](midi2::message_view) {};
 
 	int64_t noteSequence = 0;
 	int unisonCount = 1;
 
 	outkeysInfo outNotes[channelCount][keyCount];
 
-	void onMidiMessage(midi::message_view msg)
+	void onMidiMessage(midi2::message_view msg)
 	{
-		auto header = midi_2_0::decodeHeader(msg);
+		auto header = midi2::decodeHeader(msg);
 
-		if (header.messageType != gmpi::midi_2_0::ChannelVoice64)
+		if (header.messageType != gmpi::midi2::ChannelVoice64)
 			return;
 
 		bool sendThrough = true;
 
 		switch (header.status)
 		{
-		case gmpi::midi_2_0::ControlChange:
+		case gmpi::midi2::ControlChange:
 		{
-			const auto controller = gmpi::midi_2_0::decodeController(msg);
+			const auto controller = gmpi::midi2::decodeController(msg);
 //			const auto unified_controller_id = (ControllerType::CC << 24) | controller.type;
 		}
 		break;
 
-		case gmpi::midi_2_0::NoteOn:
+		case gmpi::midi2::NoteOn:
 		{
 			sendThrough = false;
-			const auto note = gmpi::midi_2_0::decodeNote(msg);
+			const auto note = gmpi::midi2::decodeNote(msg);
 
 			auto& info = noteIds[header.channel][note.noteNumber];
 
@@ -76,7 +76,7 @@ struct MidiUnison
 				info.noteSequence = noteSequence++;
 
 				// _RPTN(0, "PM Note-on %d\n", note.noteNumber);
-				if (gmpi::midi_2_0::attribute_type::Pitch == note.attributeType) // !! this is only for the current note!!! not a permanent tuning change !!! TODO
+				if (gmpi::midi2::attribute_type::Pitch == note.attributeType) // !! this is only for the current note!!! not a permanent tuning change !!! TODO
 				{
 					//const auto timestamp_oversampled = voiceState->voiceControlContainer_->CalculateOversampledTimestamp(Container(), timestamp);
 
@@ -108,7 +108,7 @@ struct MidiUnison
 //					outNotes[header.channel][oldestIdx].inputKeyNumber = note.noteNumber;
 					outNotes[header.channel][outKey].noteSequence = info.noteSequence;
 
-					const auto out = gmpi::midi_2_0::makeNoteOnMessageWithPitch(
+					const auto out = gmpi::midi2::makeNoteOnMessageWithPitch(
 						outKey,
 						note.velocity,
 						info.pitch,
@@ -121,10 +121,10 @@ struct MidiUnison
 		}
 		break;
 
-		case gmpi::midi_2_0::NoteOff:
+		case gmpi::midi2::NoteOff:
 		{
 			sendThrough = false;
-			const auto note = gmpi::midi_2_0::decodeNote(msg);
+			const auto note = gmpi::midi2::decodeNote(msg);
 
 			auto& info = noteIds[header.channel][note.noteNumber];
 
@@ -137,7 +137,7 @@ struct MidiUnison
 					auto& outNote = outNotes[header.channel][outKey];
 					if (outNote.noteSequence == info.noteSequence)
 					{
-						const auto out = gmpi::midi_2_0::makeNoteOffMessage(
+						const auto out = gmpi::midi2::makeNoteOffMessage(
 							outKey,
 							note.velocity,
 							header.channel
@@ -184,7 +184,7 @@ struct Unison final : public Processor
 		init( pinVelocityHi );
 		init( pinProgramChange );
 
-		noteTracker.sendMidi = [this](midi::message_view msg)
+		noteTracker.sendMidi = [this](midi2::message_view msg)
 		{
 			pinMIDIOut.send(msg);
 		};
