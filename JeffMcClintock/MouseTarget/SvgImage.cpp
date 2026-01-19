@@ -616,7 +616,7 @@ public:
 						points2.push_back(pt);
 					}
 
-					g.DrawLines(points2.data(), points.size(), strokeBrush);
+					g.DrawLines(points2.data(), static_cast<int32_t>(points.size()), strokeBrush);
 				}
 			}
 		}

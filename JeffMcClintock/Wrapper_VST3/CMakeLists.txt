@@ -258,6 +258,27 @@ else()
     )
 endif()
 
+# Enable ARC for Objective-C/Objective-C++ files on Apple platforms
+if(APPLE)
+    # Apply -fobjc-arc only when compiling Objective-C or Objective-C++ sources
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        $<$<COMPILE_LANGUAGE:OBJC>:-fobjc-arc>
+        $<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc>
+    )
+
+    # Ensure ARC is enabled on Objective-C++ implementation files explicitly
+    # (some generators/compilers may not honor the generator expression above for OBJCXX)
+    set(OBJCXX_ARC_SOURCES
+        ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/platform.mm
+        ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.mm
+    )
+    foreach(src ${OBJCXX_ARC_SOURCES})
+        if(EXISTS "${src}")
+            set_source_files_properties(${src} PROPERTIES COMPILE_FLAGS "-fobjc-arc")
+        endif()
+    endforeach()
+endif()
+
 # Linker options
 if(WIN32)
     target_link_options(${PROJECT_NAME} PRIVATE
@@ -299,3 +320,6 @@ source_group("VST3_SDK\\Header Files" FILES ${VST3_HEADER_FILES})
 source_group("Source Files" FILES ${MAIN_SOURCE_FILES})
 source_group("Header Files" FILES ${MAIN_HEADER_FILES})
 source_group("Resource Files" FILES ${RESOURCE_FILES})
+
+
+

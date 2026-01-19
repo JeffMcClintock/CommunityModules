@@ -239,7 +239,7 @@ void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::ws
 		}
 		else
 		{
-			if ((*it).filename.find(L".vst3") == (*it).filename.size() - 5)
+			if ((*it).filename.find(_T(".vst3")) == (*it).filename.size() - 5)
 			{
 				// handle universal bundles
 				const bool isMacBinary = fullFilename.find(L"Contents") != std::string::npos && fullFilename.find(L"MacOS") != std::string::npos;

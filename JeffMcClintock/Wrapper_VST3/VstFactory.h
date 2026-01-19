@@ -12,7 +12,7 @@
 #include "public.sdk/source/vst/hosting/module.h"
 #endif
 
-#include "public.sdk/source/vst/hosting\hostclasses.h"
+#include "public.sdk/source/vst/hosting/hostclasses.h"
 
 using namespace gmpi;
 
@@ -41,7 +41,7 @@ public:
 	virtual ~VstFactory(void) {}
 
 	/* IMpUnknown methods */
-	virtual int32_t MP_STDCALL queryInterface(const MpGuid& iid, void** returnInterface);
+	virtual int32_t MP_STDCALL queryInterface(const MpGuid& iid, void** returnInterface) override;
 	GMPI_REFCOUNT_NO_DELETE
 
 	/* IMpFactory methods */
@@ -49,14 +49,14 @@ public:
 		const wchar_t* uniqueId,
 		int32_t subType,
 		IMpUnknown* host,
-		void** returnInterface);
+		void** returnInterface) override;
 
 	virtual int32_t MP_STDCALL createInstance2(
 		const wchar_t* uniqueId,
 		int32_t subType,
-		void** returnInterface);
+		void** returnInterface) override;
 
-	virtual int32_t MP_STDCALL getSdkInformation(int32_t& returnSdkVersion, int32_t maxChars, wchar_t* returnCompilerInformation);
+	virtual int32_t MP_STDCALL getSdkInformation(int32_t& returnSdkVersion, int32_t maxChars, wchar_t* returnCompilerInformation) override;
 
 	// IMpShellFactory: Query a plugin's info.
 	virtual int32_t MP_STDCALL getPluginIdentification(int32_t index, IMpUnknown* iReturnXml) override;	// ID and name only.
@@ -81,3 +81,4 @@ private:
 	void savePluginInfo();
 	void loadPluginInfo();
 };
+

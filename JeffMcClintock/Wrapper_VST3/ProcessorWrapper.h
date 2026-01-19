@@ -417,7 +417,7 @@ private:
 	FloatInPin pinHostBarStart;
 	IntInPin pinOfflineRenderMode;
 
-	int firstParameterPinIndex = {};
+//	int firstParameterPinIndex = {};
 	int parameterAccessPinIndex = {};
 
 	float fadeLevel = 1.0f;
@@ -427,7 +427,7 @@ private:
 
 class Vst3ParamSet : public MpBase2
 {
-	bool initialUpdateDone = false;
+//	bool initialUpdateDone = false;
 
 	FloatInPin pinFloatIn;
 	IntInPin pinParamIdx;

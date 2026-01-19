@@ -116,7 +116,7 @@ public:
 		}
 
 		const int traceCount = channelCount;
-		const int framesPerChunk = chunk.size() / traceCount;
+		const int framesPerChunk = static_cast<int>(chunk.size()) / traceCount;
 
 		Color traceColors[] =
 		{

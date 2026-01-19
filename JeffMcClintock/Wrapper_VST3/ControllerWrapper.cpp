@@ -8,7 +8,7 @@
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 #endif
-#include "pluginterfaces\base\ibstream.h"
+#include "pluginterfaces/base/ibstream.h"
 
 using namespace gmpi;
 using namespace Steinberg;
@@ -43,7 +43,6 @@ public:
 ControllerWrapper::ControllerWrapper(const wchar_t* filename, const std::string& uuid) :
 	filename_(filename)
 	, shellPluginId_(uuid)
-	, handle_(0)
 	, m_message_que_dsp_to_ui(4000)
 {
 	componentHandler = std::make_unique<VstComponentHandler>();
@@ -325,7 +324,9 @@ int ControllerWrapper::LoadPlugin(std::string path, std::string uuid)
 	if(!dll)
 	{
 		// Could not create Module for file
+#ifdef _WIN32
         _RPT1(0, "Failed to load VST3 child plugin. UUID:%s\n", uuid.c_str());
+#endif
         return gmpi::MP_FAIL;
 	}
 
@@ -434,7 +435,7 @@ tresult VstComponentHandler::restartComponent (int32 flags)
 
 	if ((kIoChanged | kLatencyChanged | kReloadComponent) & flags)
 	{
-		_RPT0(0, "restartComponent\n");
+//		_RPT0(0, "restartComponent\n");
 		controller_->host_->setLatency(-1);
 	}
 

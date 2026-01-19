@@ -133,7 +133,7 @@ public:
 		}
 
 		const int traceCount = chunks.back().channelCount;
-		const int framesPerChunk = chunks.back().data.size() / traceCount;
+		const int framesPerChunk = static_cast<int>(chunks.back().data.size()) / traceCount;
 
 		Color traceColors[] =
 		{

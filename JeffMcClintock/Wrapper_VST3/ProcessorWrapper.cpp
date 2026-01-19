@@ -35,7 +35,6 @@ using namespace Steinberg::Vst;
 
 ProcessorWrapper::ProcessorWrapper() :
 	currentVstSubProcess(&ProcessorWrapper::subProcessNotLoaded)
-	,midiConverter_1_0(nullptr)
 	,midiConverter(
 		// provide a lambda to accept converted MIDI 2.0 messages
 		[this](const midi::message_view& msg, int offset)
@@ -43,6 +42,7 @@ ProcessorWrapper::ProcessorWrapper() :
 			onMidi2Message(msg, offset);
 		}
 	) 
+    ,midiConverter_1_0(nullptr)
 {
 	memset(&vstTime_, 0, sizeof(vstTime_));
 	vstTime_.state =
@@ -235,7 +235,7 @@ void ProcessorWrapper::initVst()
 		delay.resize(bypassDelaysize);
 	}
 
-	_RPT1(0, "LATENCY INITAL: %d\n", latency);
+//	_RPT1(0, "LATENCY INITAL: %d\n", latency);
 	host.SetLatency(latency);
 
 	currentVstSubProcess = &ProcessorWrapper::subProcess2<ST_PROCESS>;

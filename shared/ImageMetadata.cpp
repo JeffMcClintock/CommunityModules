@@ -11,7 +11,7 @@ int StringToInt(const string& string)
 	const int p_base = 10;
 	assert(string.size() < 11 || string.find(L',') != wstring::npos); // else too many digits overflows sizeof int
 	char* temp;
-	return strtol(string.c_str(), &temp, p_base);
+	return static_cast<int>(strtol(string.c_str(), &temp, p_base));
 }
 
 void SplitString(const char* pText, std::vector<std::string>& returnValue)
@@ -359,12 +359,12 @@ void SkinMetadata::Serialise(mp_shared_ptr<gmpi::IProtectedFile2> stream)
 
 					if( words[0] == "font-color" )
 					{
-						uint32_t c;
+						int c;
 						if (words[1][0] == '#')
 						{
 							const int p_base = 16;
 							char* temp;
-							c = strtol(words[1].c_str() + 1, &temp, p_base);
+							c = static_cast<int>(strtol(words[1].c_str() + 1, &temp, p_base));
 						}
 						else
 						{
@@ -380,12 +380,12 @@ void SkinMetadata::Serialise(mp_shared_ptr<gmpi::IProtectedFile2> stream)
 						//{
 						//	current->backgroundColor_ = 0; // transparent black.
 						//}
-						uint32_t c;
+						int c;
 						if (words[1][0] == '#')
 						{
 							const int p_base = 16;
 							char* temp;
-							c = strtol(words[1].c_str() + 1, &temp, p_base);
+							c = static_cast<int>(strtol(words[1].c_str() + 1, &temp, p_base));
 						}
 						else
 						{
