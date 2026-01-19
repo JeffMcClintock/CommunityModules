@@ -259,28 +259,9 @@ endif()
 
 # Enable ARC for Objective-C/Objective-C++ files on Apple platforms
 if(APPLE)
-    # Apply -fobjc-arc only when compiling Objective-C or Objective-C++ sources
-    target_compile_options(${PROJECT_NAME} PRIVATE
-        $<$<COMPILE_LANGUAGE:OBJC>:-fobjc-arc>
-        $<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc>
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        OBJC_ARC ON
     )
-
-    # Ensure ARC is enabled on Objective-C++ implementation files explicitly
-    # (some generators/compilers may not honor the generator expression above for OBJCXX)
-    set(OBJCXX_ARC_SOURCES
-        ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_mac.mm
-        ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_mac.mm
-        ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/platform.mm
-        ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.mm
-    )
-    foreach(src ${OBJCXX_ARC_SOURCES})
-        if(EXISTS "${src}")
-            set_source_files_properties(${src} PROPERTIES COMPILE_FLAGS "-fobjc-arc")
-        endif()
-    endforeach()
-endif()
-
-if(APPLE)
     find_library(APPKIT_FRAMEWORK AppKit)
     find_library(FOUNDATION_FRAMEWORK Foundation)
     target_link_libraries(${PROJECT_NAME} PRIVATE
