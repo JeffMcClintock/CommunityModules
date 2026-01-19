@@ -27,5 +27,6 @@ add_subdirectory("Unison")
 if(WIN32)
 	add_subdirectory(Wrapper_VST2)
 # don't build on macOS yet
-#	add_subdirectory(Wrapper_VST3)
+#	
 endif(WIN32)
+add_subdirectory(Wrapper_VST3)
