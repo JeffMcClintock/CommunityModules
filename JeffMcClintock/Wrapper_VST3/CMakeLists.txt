@@ -127,7 +127,6 @@ set(VST3_SOURCE_FILES
     ${VST3_SDK_PATH}/public.sdk/source/common/commonstringconvert.h
     ${VST3_SDK_PATH}/public.sdk/source/common/commonstringconvert.cpp
     ${VST3_SDK_PATH}/pluginterfaces/base/coreiids.cpp
-    ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_win32.cpp
     ${VST3_SDK_PATH}/base/source/fobject.cpp
     ${VST3_SDK_PATH}/public.sdk/source/vst/vstinitiids.cpp
     ${VST3_SDK_PATH}/pluginterfaces/base/funknown.cpp
@@ -137,10 +136,7 @@ set(VST3_SOURCE_FILES
     ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/hostclasses.cpp
     ${VST3_SDK_PATH}/base/source/fstring.cpp
     ${VST3_SDK_PATH}/public.sdk/source/common/commoniids.cpp
-    ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_win32.cpp
     ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/pluginterfacesupport.cpp
-    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/platform.cpp
-    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/window.cpp
     ${VST3_SDK_PATH}/base/source/baseiids.cpp
     ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/processdata.cpp
     ${VST3_SDK_PATH}/base/source/updatehandler.cpp
@@ -156,10 +152,35 @@ set(VST3_HEADER_FILES
     ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/hostclasses.h
     ${VST3_SDK_PATH}/base/source/fstring.h
     ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/pluginterfacesupport.h
-    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/window.h
     ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/processdata.h
     ${VST3_SDK_PATH}/base/source/updatehandler.h
 )
+
+if(WIN32)
+set(VST3_SOURCE_FILES VST3_SOURCE_FILES
+    ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_win32.cpp
+    ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_win32.cpp
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/platform.cpp
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/window.cpp
+)
+
+set(VST3_HEADER_FILES VST3_HEADER_FILES
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/window.h
+)
+endif()
+
+if(APPLE)
+set(VST3_SOURCE_FILES VST3_SOURCE_FILES
+    ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_mac.cpp
+    ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_mac.cpp
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/platform.cpp
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.cpp
+)
+set(VST3_HEADER_FILES VST3_HEADER_FILES
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.h
+endif()
+endif()
+
 
 # Combine all files for library target
 set(SOURCE_FILES
