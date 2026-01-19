@@ -218,13 +218,23 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 # Compiler options
-target_compile_options(${PROJECT_NAME} PRIVATE
-    /W3                          # Warning level 3
-    /fp:fast                     # Fast floating point model
-    /GS-                         # Disable buffer security checks
-    $<$<CONFIG:Debug>:/Od /RTC1> # Debug: No optimization, runtime checks
-    $<$<CONFIG:Release>:/O2 /Ob2> # Release: Full optimization, inline expansion
-)
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        /W3                          # Warning level 3
+        /fp:fast                     # Fast floating point model
+        /GS-                         # Disable buffer security checks
+        $<$<CONFIG:Debug>:/Od /RTC1> # Debug: No optimization, runtime checks
+        $<$<CONFIG:Release>:/O2 /Ob2> # Release: Full optimization, inline expansion
+    )
+else()
+    # Clang/GCC options
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -Wall                        # Enable most warnings
+        -ffast-math                  # Fast floating point model
+        $<$<CONFIG:Debug>:-O0 -g>    # Debug: No optimization, debug info
+        $<$<CONFIG:Release>:-O2>     # Release: Full optimization
+    )
+endif()
 
 # Linker options
 if(WIN32)
@@ -235,9 +245,11 @@ if(WIN32)
 endif()
 
 # Runtime library settings
-set_property(TARGET ${PROJECT_NAME} PROPERTY
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
-)
+if(MSVC)
+    set_property(TARGET ${PROJECT_NAME} PROPERTY
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+    )
+endif()
 
 # Post-build event - copy to SEM modules folder (optional)
 # Uncomment and adjust path as needed
