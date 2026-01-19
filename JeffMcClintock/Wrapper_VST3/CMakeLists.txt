@@ -157,28 +157,29 @@ set(VST3_HEADER_FILES
 )
 
 if(WIN32)
-set(VST3_SOURCE_FILES VST3_SOURCE_FILES
+set(VST3_SOURCE_FILES ${VST3_SOURCE_FILES}
     ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_win32.cpp
     ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_win32.cpp
     ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/platform.cpp
     ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/window.cpp
 )
 
-set(VST3_HEADER_FILES VST3_HEADER_FILES
+set(VST3_HEADER_FILES ${VST3_HEADER_FILES}
     ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/win32/window.h
 )
 endif()
 
+#    ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_mac.cpp
+#    ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_mac.cpp
+
 if(APPLE)
-set(VST3_SOURCE_FILES VST3_SOURCE_FILES
-    ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_mac.cpp
-    ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_mac.cpp
-    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/platform.cpp
-    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.cpp
+set(VST3_SOURCE_FILES ${VST3_SOURCE_FILES}
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/platform.mm
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.mm
 )
-set(VST3_HEADER_FILES VST3_HEADER_FILES
+set(VST3_HEADER_FILES ${VST3_HEADER_FILES}
     ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.h
-endif()
+)
 endif()
 
 
