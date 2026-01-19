@@ -169,11 +169,10 @@ set(VST3_HEADER_FILES ${VST3_HEADER_FILES}
 )
 endif()
 
-#    ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_mac.cpp
-#    ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_mac.cpp
-
 if(APPLE)
 set(VST3_SOURCE_FILES ${VST3_SOURCE_FILES}
+    ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_mac.mm
+    ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_mac.mm
     ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/platform.mm
     ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.mm
 )
@@ -269,6 +268,8 @@ if(APPLE)
     # Ensure ARC is enabled on Objective-C++ implementation files explicitly
     # (some generators/compilers may not honor the generator expression above for OBJCXX)
     set(OBJCXX_ARC_SOURCES
+        ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_mac.mm
+        ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_mac.mm
         ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/platform.mm
         ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.mm
     )
@@ -277,6 +278,15 @@ if(APPLE)
             set_source_files_properties(${src} PROPERTIES COMPILE_FLAGS "-fobjc-arc")
         endif()
     endforeach()
+endif()
+
+if(APPLE)
+    find_library(APPKIT_FRAMEWORK AppKit)
+    find_library(FOUNDATION_FRAMEWORK Foundation)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${APPKIT_FRAMEWORK}
+        ${FOUNDATION_FRAMEWORK}
+    )
 endif()
 
 # Linker options
@@ -320,6 +330,8 @@ source_group("VST3_SDK\\Header Files" FILES ${VST3_HEADER_FILES})
 source_group("Source Files" FILES ${MAIN_SOURCE_FILES})
 source_group("Header Files" FILES ${MAIN_HEADER_FILES})
 source_group("Resource Files" FILES ${RESOURCE_FILES})
+
+
 
 
 

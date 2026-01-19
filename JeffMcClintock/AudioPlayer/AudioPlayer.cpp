@@ -99,7 +99,7 @@ public:
 		};
 
 		// read fresh samples into buffers
-		auto sampleFrames = sourceBuffers[0][0].size() - overlap * 2;
+		auto sampleFrames = static_cast<int>(sourceBuffers[0][0].size()) - overlap * 2;
 		auto lbufferview = choc::buffer::createChannelArrayView<float>(chans, 2, sampleFrames);
 		audioFileReader->readFrames(frameIndex, lbufferview);
 
