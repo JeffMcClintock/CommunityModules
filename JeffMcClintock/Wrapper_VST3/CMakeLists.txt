@@ -179,6 +179,15 @@ set(VST3_SOURCE_FILES ${VST3_SOURCE_FILES}
 set(VST3_HEADER_FILES ${VST3_HEADER_FILES}
     ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.h
 )
+
+# Ensure ARC for Objective-C++ sources
+set(OBJC_ARC_SOURCES
+    ${VST3_SDK_PATH}/public.sdk/source/vst/hosting/module_mac.mm
+    ${VST3_SDK_PATH}/public.sdk/source/common/threadchecker_mac.mm
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/platform.mm
+    ${VST3_SDK_PATH}/public.sdk/samples/vst-hosting/editorhost/source/platform/mac/window.mm
+)
+set_source_files_properties(${OBJC_ARC_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 endif()
 
 
