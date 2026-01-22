@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.30)
 project(Wrapper_vst3 VERSION 1.0.0)
 
-# Set C++ standard
-set(CMAKE_CXX_STANDARD 20)
+# Set C++ standard, Steinberg VST3 SDK fails to build on C++20 (module_win32.cpp(439))
+set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
