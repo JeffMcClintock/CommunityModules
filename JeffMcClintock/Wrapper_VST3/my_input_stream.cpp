@@ -7,7 +7,7 @@
 
 my_input_stream& my_input_stream::operator>>(struct MpBlob& val)
 {
-    int size;
+    int size{};
     Read(&size,sizeof(size));
     char* dat = new char[size];
     Read(dat,size);

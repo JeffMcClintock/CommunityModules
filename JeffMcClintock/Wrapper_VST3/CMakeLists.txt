@@ -203,7 +203,7 @@ set(RESOURCE_FILES
 )
 
 # Create the library
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME} MODULE
     ${SOURCE_FILES}
     ${HEADER_FILES}
     ${RESOURCE_FILES}
@@ -220,8 +220,9 @@ add_library(${PROJECT_NAME} SHARED
 
 if(APPLE)
 set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
-set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE_EXTENSION vst3)
+set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE_EXTENSION sem)
 endif()
+set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".sem")
 
 # Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
