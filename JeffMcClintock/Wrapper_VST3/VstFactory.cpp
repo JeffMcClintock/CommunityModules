@@ -230,12 +230,8 @@ void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::ws
 		{
 			if (p.is_directory()) // handle bundles.
 			{
-				path = path / "Contents" /
 #ifdef _WIN32
-					"x86_64-win";
-#else
-					"MacOS";
-#endif
+				path = path / "Contents" / "x86_64-win";
 
 				// scan fist file in there.
 				for (auto& exe_path : std::filesystem::directory_iterator(path))
@@ -246,7 +242,10 @@ void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::ws
 					ScanDll(exe_path.path().wstring());
 					break;
 				}
-			}
+#else
+                ScanDll(path.wstring());
+#endif
+            }
 #ifdef _WIN32
 			else // handle standalone dlls on Windows.
 			{
