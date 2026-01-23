@@ -275,6 +275,11 @@ if(APPLE)
         ${APPKIT_FRAMEWORK}
         ${FOUNDATION_FRAMEWORK}
     )
+
+  # Place xml file in bundle 'Resources' folder.
+  set(xml_path "${PROJECT_NAME}.xml")
+  target_sources(${PROJECT_NAME} PUBLIC ${xml_path})
+  set_source_files_properties(${xml_path} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
 # Linker options
@@ -319,7 +324,15 @@ source_group("Source Files" FILES ${MAIN_SOURCE_FILES})
 source_group("Header Files" FILES ${MAIN_HEADER_FILES})
 source_group("Resource Files" FILES ${RESOURCE_FILES})
 
+if(WIN32 AND SE_LOCAL_BUILD)
 
+add_custom_command(TARGET ${PROJECT_NAME}
+POST_BUILD
+COMMAND copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\$(TargetName)$(TargetExt)"
+COMMENT "Copy to modules folder"
+VERBATIM
+)
 
+endif()
 
 

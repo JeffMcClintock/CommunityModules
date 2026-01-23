@@ -1,4 +1,5 @@
 #include "VstFactory.h"
+#include <filesystem>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -218,43 +219,49 @@ R"xml(
 
 void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::wstring& excludePath)
 {
-#if !defined(SE_TARGET_WAVES)
 	if(searchPath.find(excludePath) != std::string::npos)
-	{
 		return;
-	}
 
-	auto searchMask = combinePathAndFile(searchPath, std::wstring(L"*.*"));
-	for (FileFinder it = toPlatformString( searchMask ).c_str(); !it.done(); ++it)
+	for (auto& p : std::filesystem::directory_iterator(searchPath))
 	{
-		if((*it).isDots())
-		{
-			continue;
-		}
+		auto path = p.path();
 
-		const auto fullFilename = combinePathAndFile(searchPath, toWstring((*it).filename));
-		if ((*it).isFolder)
+		if (path.extension().string() == ".vst3")
 		{
-			RecursiveScanVsts(fullFilename, excludePath);
+			if (p.is_directory()) // handle bundles.
+			{
+				path = path / "Contents" /
+#ifdef _WIN32
+					"x86_64-win";
+#else
+					"MacOS";
+#endif
+
+				// scan fist file in there.
+				for (auto& exe_path : std::filesystem::directory_iterator(path))
+				{
+					//if (exe_path. .is_dots())
+					//	continue;
+
+					ScanDll(exe_path.path().wstring());
+					break;
+				}
+			}
+#ifdef _WIN32
+			else // handle standalone dlls on Windows.
+			{
+				ScanDll(path.wstring());
+			}
+#endif
 		}
 		else
 		{
-			if ((*it).filename.find(_T(".vst3")) == (*it).filename.size() - 5)
+			if (p.is_directory())
 			{
-				// handle universal bundles
-				const bool isMacBinary = fullFilename.find(L"Contents") != std::string::npos && fullFilename.find(L"MacOS") != std::string::npos;
-#ifdef _WIN32
-				const bool scanit = !isMacBinary; // scan anything not specifically mac
-#else
-				const bool isWinBinary = fullFilename.find(L"Contents") != std::string::npos && fullFilename.find(L"x86_64-win") != std::string::npos;
-				const bool scanit = isMacBinary && !isWinBinary; // scan only if specifically mac
-#endif
-				if(scanit)
-					ScanDll(fullFilename);
+				RecursiveScanVsts(path.wstring(), excludePath);
 			}
 		}
 	}
-#endif
 }
 
 struct backgroundData
