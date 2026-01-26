@@ -155,8 +155,8 @@ vector< std::wstring >getSearchPaths()
 	// "C:\Program Files (x86)\Common Files\VST3
 	searchPaths.push_back(commonFilesFolder + L"\\VST3");
 #else
-    searchPaths.push_back(L"/Library/Audio/Plug-ins/VST3");
-    searchPaths.push_back(L"~/Library/Audio/Plug-ins/VST3");
+    searchPaths.push_back(L"/Library/Audio/Plug-Ins/VST3");
+    searchPaths.push_back(L"~/Library/Audio/Plug-Ins/VST3");
 #endif
     
 	return searchPaths;
