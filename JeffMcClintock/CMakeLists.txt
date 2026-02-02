@@ -9,7 +9,6 @@ add_subdirectory(Dent)
 add_subdirectory(DrawingTest)
 add_subdirectory(Dynamics)
 add_subdirectory("Environment Detect")
-add_subdirectory(EnvironmentVariable)
 add_subdirectory("IDE Print Value")
 add_subdirectory(Logic)
 add_subdirectory(Loudness)
@@ -21,12 +20,11 @@ add_subdirectory(RepaintDiag)
 add_subdirectory(SignalLogger)
 add_subdirectory("test")
 add_subdirectory("Unison")
-# add_subdirectory(WaveformScroller)
+add_subdirectory(Wrapper_VST3)
+
 # sample player 3 has it's own independant cmake: add_subdirectory(SamplePlayer3)
 
+# don't build on macOS yet
 if(WIN32)
 	add_subdirectory(Wrapper_VST2)
-# don't build on macOS yet
-#	
 endif(WIN32)
-add_subdirectory(Wrapper_VST3)
