@@ -324,15 +324,23 @@ source_group("Source Files" FILES ${MAIN_SOURCE_FILES})
 source_group("Header Files" FILES ${MAIN_HEADER_FILES})
 source_group("Resource Files" FILES ${RESOURCE_FILES})
 
-if(WIN32 AND SE_LOCAL_BUILD)
-
-add_custom_command(TARGET ${PROJECT_NAME}
-POST_BUILD
-COMMAND copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\$(TargetName)$(TargetExt)"
-COMMENT "Copy to modules folder"
-VERBATIM
-)
-
+if(SE_LOCAL_BUILD)
+    if(WIN32)
+        add_custom_command(TARGET ${PROJECT_NAME}
+            POST_BUILD
+            COMMAND copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\$(TargetName)$(TargetExt)"
+            COMMENT "Copy to modules folder"
+            VERBATIM
+        )
+    elseif(APPLE)
+        add_custom_command(TARGET ${PROJECT_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory 
+                "$<TARGET_BUNDLE_DIR:${PROJECT_NAME}>" 
+                "/Library/Audio/Plug-Ins/GMPI/$<TARGET_BUNDLE_DIR_NAME:${PROJECT_NAME}>"
+            COMMENT "Copy to GMPI plugins folder"
+        )
+    endif()
 endif()
 
 

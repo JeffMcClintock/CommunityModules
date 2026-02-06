@@ -50,7 +50,7 @@
             </module>
             <module type="SE Audio Player" handle="144385526">
                 <plugs>
-                    <plug default="Ableton\Krisis\Anymore-10-3 Project\Samples\Imported\Goldfrapp - Anymore.mp3"/>
+                    <plug default="Ableton\Krisis\Anymore-10-3 Project\Samples\Imported\Goldfrapp_Anymore.mp3"/>
                     <plug default="10" idx="1"/>
                 </plugs>
                 <structRect l="120" r="192" t="96" b="144"/>
