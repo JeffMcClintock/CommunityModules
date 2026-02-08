@@ -502,21 +502,25 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 // Determine settings file: C:\Users\Jeff\AppData\Local\SeVst3Wrapper\ScannedPlugins.xml
 std::wstring VstFactory::getSettingFilePath()
 {
-#if !defined(SE_TARGET_WAVES) && defined(_WIN32)
-	wchar_t mySettingsPath[MAX_PATH];
-	SHGetFolderPathW( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, &(mySettingsPath[0]) );
-	std::wstring meSettingsFile( &(mySettingsPath[0]) );
-	meSettingsFile += L"\\SeVst3Wrapper";
+	std::filesystem::path settingsDir;
+
+#if defined(_WIN32)
+	wchar_t appDataPath[MAX_PATH];
+	SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appDataPath);
+	settingsDir = std::filesystem::path(appDataPath);
+#else // macOS
+	const char* home = getenv("HOME");
+	if (!home)
+		return {};
+	settingsDir = std::filesystem::path(home) / "Library" / "Application Support";
+#endif
+
+	settingsDir /= "SeVst3Wrapper";
 
 	// Create folder if not already.
-	_wmkdir(meSettingsFile.c_str());
+	std::filesystem::create_directories(settingsDir);
 
-	meSettingsFile += L"\\ScannedPlugins.xml";
-
-	return meSettingsFile;
-#else
-	return {};
-#endif
+	return (settingsDir / "ScannedPlugins.xml").wstring();
 }
 
 #if !defined(SE_TARGET_WAVES)
@@ -568,7 +572,6 @@ std::string VstFactory::getDiagnostics()
 
 void VstFactory::savePluginInfo()
 {
-#if !defined(SE_TARGET_WAVES) && defined(_WIN32)
 	ofstream myfile(getSettingFilePath());
 	if( myfile.is_open() )
 	{
@@ -585,12 +588,11 @@ void VstFactory::savePluginInfo()
 		}
 		myfile.close();
 	}
-#endif
 }
 
 void VstFactory::loadPluginInfo()
 {
-#if !defined(SE_TARGET_WAVES) && defined(_WIN32)
+#if !defined(SE_TARGET_WAVES)
 	ifstream myfile(getSettingFilePath());
 	if( myfile.is_open() )
 	{
