@@ -165,7 +165,6 @@ vector< std::wstring >getSearchPaths()
 
 void VstFactory::ShallowScanVsts()
 {
-#if !defined(SE_TARGET_WAVES)
 	std::wstring excludeMyself = StripFilename(gmpi_dynamic_linking::MP_GetDllFilename());
 
 	auto searchPaths = getSearchPaths();
@@ -173,14 +172,12 @@ void VstFactory::ShallowScanVsts()
 	{
 		RecursiveScanVsts(*itSp, excludeMyself);
 	}
-#endif
 }
 
 void VstFactory::ScanVsts()
 {
 	scannedPlugins = true;
 
-#if !defined(SE_TARGET_WAVES)
 	// Time to re-scan VSTs.
 	plugins.clear();
 	duplicates.clear();
@@ -213,14 +210,15 @@ R"xml(
 	ShallowScanVsts();
 
 	savePluginInfo();
-
-#endif
 }
 
 void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::wstring& excludePath)
 {
 	if(searchPath.find(excludePath) != std::string::npos)
 		return;
+    
+    if(!std::filesystem::exists(searchPath))
+        return;
 
 	for (auto& p : std::filesystem::directory_iterator(searchPath))
 	{
@@ -270,15 +268,13 @@ struct backgroundData
 	const char* shellName;
 };
 
-#if !defined(SE_TARGET_WAVES)
-
 void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 {
 	const auto path = WStringToUtf8(full_path);
-
-	VST3::Hosting::Module::Ptr module = {};
+    cout << "VstFactory scanning: " << path << endl;
 	try
 	{
+        VST3::Hosting::Module::Ptr module = {};
 		std::string error;
 		module = VST3::Hosting::Module::create(path, error);
 		if (!module)
@@ -318,7 +314,6 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 		return;
 	}
 }
-#endif
 
 // For shallow scan, just record name and id.
 void VstFactory::AddPluginName(const char* category, std::string uuid, const std::string& name, const std::wstring& shellPath)
