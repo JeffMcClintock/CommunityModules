@@ -7,6 +7,7 @@
 #include "../shared/xplatform.h"
 #include <map>
 #include <vector>
+#include <filesystem>
 
 #if !defined(SE_TARGET_WAVES)
 #include "public.sdk/source/vst/hosting/module.h"
@@ -76,7 +77,7 @@ private:
 
 	void RecursiveScanVsts(const std::wstring& searchPath, const std::wstring& excludePath);
 
-	std::wstring getSettingFilePath();
+	std::filesystem::path getSettingFilePath();
 
 	void savePluginInfo();
 	void loadPluginInfo();

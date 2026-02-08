@@ -531,7 +531,6 @@ std::string VstFactory::getDiagnostics()
 
 void VstFactory::savePluginInfo()
 {
-#if defined(_WIN32)
 	ofstream myfile(getSettingFilePath());
 	if( myfile.is_open() )
 	{
@@ -544,12 +543,10 @@ void VstFactory::savePluginInfo()
 		}
 		myfile.close();
 	}
-#endif
 }
 
 void VstFactory::loadPluginInfo()
 {
-#if defined(_WIN32)
 	ifstream myfile(getSettingFilePath());
 	if( myfile.is_open() )
 	{
@@ -574,7 +571,6 @@ void VstFactory::loadPluginInfo()
 	{
 		ScanVsts();
 	}
-#endif
 }
 
 #ifdef _WIN32

@@ -500,7 +500,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 }
 
 // Determine settings file: C:\Users\Jeff\AppData\Local\SeVst3Wrapper\ScannedPlugins.xml
-std::wstring VstFactory::getSettingFilePath()
+std::filesystem::path VstFactory::getSettingFilePath()
 {
 	std::filesystem::path settingsDir;
 
@@ -520,7 +520,7 @@ std::wstring VstFactory::getSettingFilePath()
 	// Create folder if not already.
 	std::filesystem::create_directories(settingsDir);
 
-	return (settingsDir / "ScannedPlugins.xml").wstring();
+	return settingsDir / "ScannedPlugins.xml";
 }
 
 #if !defined(SE_TARGET_WAVES)
