@@ -125,12 +125,10 @@ public:
 
 			const auto fullFilename = fileHost.resolveFilename(pinFileName);
 
-#ifdef _WIN32
 			{
 				auto msg = "AudioPlayer:" + fullFilename;
 				std::cout << msg << std::endl;
 			}
-#endif
 
 			// determine file type
 			std::string fileextension("wav");
