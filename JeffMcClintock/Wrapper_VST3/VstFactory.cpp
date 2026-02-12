@@ -271,7 +271,7 @@ struct backgroundData
 void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 {
 	const auto path = WStringToUtf8(full_path);
-    cout << "VstFactory scanning: " << path << endl;
+    cout << "  VST3 scan: " << path << endl;
 	try
 	{
         VST3::Hosting::Module::Ptr module = {};
