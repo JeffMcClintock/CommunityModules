@@ -271,13 +271,17 @@ struct backgroundData
 void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 {
 	const auto path = WStringToUtf8(full_path);
+
+	const std::string fuckOffBuggyShit("SpectraLayers.vst3");
+	if (path.find(fuckOffBuggyShit) != std::string::npos)
+		return;
+
     cout << "  VST3 scan: " << path << endl;
 	try
 	{
-        VST3::Hosting::Module::Ptr module = {};
 		std::string error;
-		module = VST3::Hosting::Module::create(path, error);
-		if (!module)
+		auto module_ptr = VST3::Hosting::Module::create(path, error);
+		if (!module_ptr)
 		{
 			// Could not create Module for file
 			return;
@@ -300,8 +304,8 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 			category = path.c_str() + lastSlash + 1;
 		}
 
-		auto factory = module->getFactory ();
-		for (auto& classInfo : factory.classInfos ())
+		auto factory = module_ptr->getFactory();
+		for (auto& classInfo : factory.classInfos())
 		{
 			if (classInfo.category () == kVstAudioEffectClass)
 			{

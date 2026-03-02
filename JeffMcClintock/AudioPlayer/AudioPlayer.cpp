@@ -125,10 +125,7 @@ public:
 
 			const auto fullFilename = fileHost.resolveFilename(pinFileName);
 
-			{
-				auto msg = "AudioPlayer:" + fullFilename;
-				std::cout << msg << std::endl;
-			}
+			std::cout << "AudioPlayer:" << fullFilename << std::endl;
 
 			// determine file type
 			std::string fileextension("wav");
@@ -183,6 +180,8 @@ public:
 				}
 				else
 				{
+					std::cout << "AudioPlayer: Failed to open file:" << fullFilename << std::endl;
+
 #ifdef _WIN32
 					_RPT1(0, "AudioPlayer: Failed to open file '%s'\n", fullFilename.c_str());
 #endif
@@ -190,6 +189,7 @@ public:
 			}
 			else
 			{
+				std::cout << "AudioPlayer: Unsupported file type." << std::endl;
 #ifdef _WIN32
 				_RPT0(0, "AudioPlayer: Unsupported file type.\n");
 #endif
