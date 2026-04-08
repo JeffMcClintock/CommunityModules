@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  VERSION: 1.0.${{ github.run_number }}
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Platform builds
+  # ──────────────────────────────────────────────
+  build-macos:
+    name: Build (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Upload macOS modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: modules_mac
+          path: |
+            build/**/*.sem
+            build/**/*.gmpi
+          if-no-files-found: error
+
+  build-windows:
+    name: Build (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configure CMake
+        run: cmake -S . -B build -A x64
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Run unit tests
+        working-directory: build
+        run: ctest --verbose -C Release -T test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/Testing/*/Test.xml
+          if-no-files-found: ignore
+
+      - name: Upload Windows modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: modules_windows
+          path: |
+            build/**/*.sem
+            build/**/*.gmpi
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────
+  # macOS installer  (.pkg)
+  # ──────────────────────────────────────────────
+  package-macos:
+    name: Package (macOS)
+    needs: [build-macos, build-windows]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download macOS modules
+        uses: actions/download-artifact@v4
+        with:
+          name: modules_mac
+          path: mac-artifacts
+
+      - name: Download Windows modules
+        uses: actions/download-artifact@v4
+        with:
+          name: modules_windows
+          path: win-artifacts
+
+      - name: Merge into universal bundles
+        run: python3 .github/scripts/merge_bundles.py mac-artifacts win-artifacts universal-bundles
+
+      - name: Build .pkg installer
+        run: |
+          pkgbuild \
+            --root universal-bundles \
+            --install-location "/Library/Audio/Plug-Ins/GMPI/Community" \
+            --identifier com.synthedit.community-modules \
+            --version "${{ env.VERSION }}" \
+            community_modules.pkg
+
+      - name: Upload macOS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer_mac
+          path: community_modules.pkg
+
+  # ──────────────────────────────────────────────
+  # Windows installer (.msi) + FTP upload
+  # ──────────────────────────────────────────────
+  package-windows:
+    name: Package (Windows)
+    needs: [build-macos, build-windows]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download macOS modules
+        uses: actions/download-artifact@v4
+        with:
+          name: modules_mac
+          path: mac-artifacts
+
+      - name: Download Windows modules
+        uses: actions/download-artifact@v4
+        with:
+          name: modules_windows
+          path: win-artifacts
+
+      - name: Merge into universal bundles
+        run: python3 .github/scripts/merge_bundles.py mac-artifacts win-artifacts universal-bundles
+
+      - name: Install WiX Toolset v4
+        run: |
+          dotnet tool install --global wix
+          wix extension add WixToolset.UI.wixext
+
+      - name: Build .msi installer
+        run: >
+          wix build installer/windows/community_modules.wxs
+          -d BundleDir="${{ github.workspace }}\universal-bundles"
+          -d Version="${{ env.VERSION }}"
+          -arch x64
+          -o community_modules.msi
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer_windows
+          path: community_modules.msi
+
+      - name: Create distribution zip
+        if: github.event_name == 'push'
+        run: 7z a community_modules.zip .\universal-bundles\*
+
+      - name: FTP upload
+        if: github.event_name == 'push'
+        run: |
+          curl -T community_modules.zip `
+            --ftp-ssl `
+            --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" `
+            "ftp://ftp.synthedit.com/domains/synthedit.com/public_html/modules/community_modules.zip"

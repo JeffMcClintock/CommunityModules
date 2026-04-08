@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WiX v4 installer for SynthEdit Community Modules.
+
+  Build via CI (see .github/workflows/ci.yml), or locally:
+
+    wix build community_modules.wxs ^
+      -d BundleDir=C:\path\to\universal-bundles ^
+      -d Version=1.0.0 ^
+      -arch x64 ^
+      -o community_modules.msi
+
+  Installs universal .sem/.gmpi bundles to:
+    C:\Program Files\Common Files\SynthEdit\modules\Community\
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Package
+    Name="SynthEdit Community Modules"
+    Manufacturer="SynthEdit Community"
+    Version="$(var.Version)"
+    UpgradeCode="6F8E2A4B-D312-4C89-B7F1-3A5D9E012C48"
+    Scope="perMachine">
+
+    <!-- Silently remove any older version before installing -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of SynthEdit Community Modules is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="ProductFeature" Title="Community Modules" Level="1">
+      <ComponentGroupRef Id="ModuleFiles" />
+    </Feature>
+
+    <!--
+      Install to: C:\Program Files\Common Files\SynthEdit\modules\Community\
+      CommonFilesFolder resolves to the 64-bit Common Files when built with -arch x64.
+    -->
+    <StandardDirectory Id="CommonFilesFolder">
+      <Directory Id="SECOMMONDIR" Name="SynthEdit">
+        <Directory Id="MODULESDIR" Name="modules">
+          <Directory Id="INSTALLDIR" Name="Community" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+  </Package>
+
+  <!--
+    Harvest all files from BundleDir (the universal-bundles output directory)
+    recursively into INSTALLDIR.  WiX v4 generates one Component per file.
+  -->
+  <Fragment>
+    <ComponentGroup Id="ModuleFiles" Directory="INSTALLDIR">
+      <Files Include="$(var.BundleDir)\**\*" />
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>
