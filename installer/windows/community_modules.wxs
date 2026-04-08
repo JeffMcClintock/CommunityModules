@@ -4,8 +4,8 @@
 
   Build via CI (see .github/workflows/ci.yml), or locally:
 
-    wix build community_modules.wxs ^
-      -d BundleDir=C:\path\to\universal-bundles ^
+    wix harvest dir universal-bundles -cg ModuleFiles -dr INSTALLDIR -srd -o harvested.wxs
+    wix build community_modules.wxs harvested.wxs ^
       -d Version=1.0.0 ^
       -arch x64 ^
       -o community_modules.msi
@@ -46,13 +46,9 @@
   </Package>
 
   <!--
-    Harvest all files from BundleDir (the universal-bundles output directory)
-    recursively into INSTALLDIR.  WiX v4 generates one Component per file.
+    ModuleFiles ComponentGroup is generated at build time by:
+      wix harvest dir universal-bundles -cg ModuleFiles -dr INSTALLDIR -srd -o harvested.wxs
+    harvested.wxs is then passed alongside this file to wix build.
   -->
-  <Fragment>
-    <ComponentGroup Id="ModuleFiles" Directory="INSTALLDIR">
-      <Files Include="$(var.BundleDir)\**\*" />
-    </ComponentGroup>
-  </Fragment>
 
 </Wix>
