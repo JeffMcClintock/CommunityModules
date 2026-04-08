@@ -142,8 +142,8 @@ jobs:
 
       - name: Install WiX Toolset v4
         run: |
-          dotnet tool install --global wix
-          wix extension add WixToolset.UI.wixext
+          dotnet tool install --global wix --version 4.0.5
+          wix extension add WixToolset.UI.wixext/4.0.5
 
       - name: Build .msi installer
         run: >
