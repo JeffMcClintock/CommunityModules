@@ -113,6 +113,14 @@ jobs:
           name: installer_mac
           path: community_modules.pkg
 
+      - name: FTP upload
+        if: github.event_name == 'push'
+        run: |
+          curl -T community_modules.pkg \
+            --ftp-ssl \
+            --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
+            "ftp://ftp.synthedit.com/domains/synthedit.com/public_html/modules/community_modules.pkg"
+
   # ──────────────────────────────────────────────
   # Windows installer (.msi) + FTP upload
   # ──────────────────────────────────────────────
