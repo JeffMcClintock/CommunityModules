@@ -297,9 +297,7 @@ void ProcessorWrapper::onMidi2Message(const midi::message_view msg, int timeDelt
 	vstEffect_->queryInterface(vst3_ext_midi::IProcessMidiProtocol::iid, (void**)&midi2Processor);
 
 	if (midi2Processor)
-	{
 		pluginsMidiProtocol = midi2Processor->getProcessMidiProtocol();
-	}
 
 	if (pluginsMidiProtocol == 1) // MIDI 1.0
 	{
@@ -347,51 +345,51 @@ void ProcessorWrapper::onMidi2Message(const midi::message_view msg, int timeDelt
 		// copy the MIDI message into the Steinberg VST3 event.
 		memcpy(&midi2event.words, msg.begin(), msg.size());
 	}
-
-#else // convert to VST3 note events
-
-	switch (header.status)
-	{
-
-	case gmpi::midi_2_0::NoteOn:
-	{
-		const auto note = gmpi::midi_2_0::decodeNote(msg);
-
-		m.type = Event::kNoteOnEvent;
-		m.noteOn.channel = header.channel;
-		m.noteOn.noteId = -1;
-		m.noteOn.pitch = note.noteNumber;
-		m.noteOn.velocity = note.velocity;
-	}
-	break;
-
-	case gmpi::midi_2_0::NoteOff:
-	{
-		const auto note = gmpi::midi_2_0::decodeNote(msg);
-
-		m.type = Event::kNoteOffEvent;
-		m.noteOff.channel = header.channel;
-		m.noteOff.noteId = -1;
-		m.noteOff.pitch = note.noteNumber;
-		m.noteOff.velocity = note.velocity;
-	}
-	break;
-
-	case gmpi::midi_2_0::PolyAfterTouch:
-	{
-		const auto aftertouch = gmpi::midi_2_0::decodePolyController(msg);
-		m.type = Event::kPolyPressureEvent;
-		m.polyPressure.channel = header.channel;
-		m.polyPressure.noteId = -1;
-		m.polyPressure.pitch = aftertouch.noteNumber;
-		m.polyPressure.pressure = aftertouch.value;
-	}
-	break;
-
-	default:
-		break;
-	};
+	else // 'normal' VST events.
 #endif
+	{
+		switch(header.status)
+		{
+
+		case gmpi::midi_2_0::NoteOn:
+		{
+			const auto note = gmpi::midi_2_0::decodeNote(msg);
+
+			m.type = Event::kNoteOnEvent;
+			m.noteOn.channel = header.channel;
+			m.noteOn.noteId = -1;
+			m.noteOn.pitch = note.noteNumber;
+			m.noteOn.velocity = note.velocity;
+		}
+		break;
+
+		case gmpi::midi_2_0::NoteOff:
+		{
+			const auto note = gmpi::midi_2_0::decodeNote(msg);
+
+			m.type = Event::kNoteOffEvent;
+			m.noteOff.channel = header.channel;
+			m.noteOff.noteId = -1;
+			m.noteOff.pitch = note.noteNumber;
+			m.noteOff.velocity = note.velocity;
+		}
+		break;
+
+		case gmpi::midi_2_0::PolyAfterTouch:
+		{
+			const auto aftertouch = gmpi::midi_2_0::decodePolyController(msg);
+			m.type = Event::kPolyPressureEvent;
+			m.polyPressure.channel = header.channel;
+			m.polyPressure.noteId = -1;
+			m.polyPressure.pitch = aftertouch.noteNumber;
+			m.polyPressure.pressure = aftertouch.value;
+		}
+		break;
+
+		default:
+			break;
+		};
+	}
 
 	if(m.type != unusedType)
 	{
