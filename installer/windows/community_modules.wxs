@@ -4,7 +4,7 @@
 
   Build via CI (see .github/workflows/ci.yml), or locally:
 
-    wix harvest dir universal-bundles -cg ModuleFiles -dr INSTALLDIR -srd -o harvested.wxs
+    python3 .github/scripts/generate_wxs.py universal-bundles harvested.wxs
     wix build community_modules.wxs harvested.wxs ^
       -d Version=1.0.0 ^
       -arch x64 ^
@@ -47,7 +47,7 @@
 
   <!--
     ModuleFiles ComponentGroup is generated at build time by:
-      wix harvest dir universal-bundles -cg ModuleFiles -dr INSTALLDIR -srd -o harvested.wxs
+      python3 .github/scripts/generate_wxs.py universal-bundles harvested.wxs
     harvested.wxs is then passed alongside this file to wix build.
   -->
 
