@@ -177,6 +177,6 @@ jobs:
         if: github.event_name == 'push'
         run: |
           curl -T community_modules.zip `
-            --ftp-ssl `
+            --ssl-reqd --insecure `
             --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" `
             "ftp://ftp.synthedit.com/domains/synthedit.com/public_html/modules/community_modules.zip"
