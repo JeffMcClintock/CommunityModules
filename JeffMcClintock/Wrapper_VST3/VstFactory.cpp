@@ -140,6 +140,25 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 	return gmpi::MP_FAIL;
 }
 
+#if __APPLE__
+
+//#include <cstdlib>
+//#include <filesystem>
+
+std::filesystem::path expand_home(const std::string& path) {
+    if (!path.empty() && path[0] == '~') {
+        const char* home = std::getenv("HOME");
+        if (home) {
+            return std::filesystem::path(home) / path.substr(2); // skip "~/"
+        }
+    }
+    return path;
+}
+
+// Usage:
+
+#endif
+
 #if !defined(SE_TARGET_WAVES)
 
 vector< std::wstring >getSearchPaths()
@@ -155,8 +174,10 @@ vector< std::wstring >getSearchPaths()
 	// "C:\Program Files (x86)\Common Files\VST3
 	searchPaths.push_back(commonFilesFolder + L"\\VST3");
 #else
+    auto userFolder = expand_home("~/Library/") / "Audio/Plug-Ins/VST3";
+
     searchPaths.push_back(L"/Library/Audio/Plug-Ins/VST3");
-    searchPaths.push_back(L"~/Library/Audio/Plug-Ins/VST3");
+    searchPaths.push_back(userFolder.wstring());
 #endif
     
 	return searchPaths;
@@ -283,7 +304,7 @@ void VstFactory::ScanDll(const std::wstring /*platform_string*/& full_path)
 		auto module_ptr = VST3::Hosting::Module::create(path, error);
 		if (!module_ptr)
 		{
-			// Could not create Module for file
+            cout << "  Could not create Module for file\n";
 			return;
 		}
 
