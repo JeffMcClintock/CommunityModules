@@ -275,7 +275,7 @@ int32_t ControllerWrapper::open()
 			plugin->controller->setComponentState(&s3);
 		}
 
-		// Test if host has a valid chunk preset.
+		// populate preset from the hosts stored preset.
 		isSynthEditPresetEmpty = false;
 		host_->updateParameter(host_->getParameterHandle(handle_, chunkParamId), MP_FT_VALUE, voiceId);
 
