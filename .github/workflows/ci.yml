@@ -18,7 +18,7 @@ jobs:
     name: Build (macOS)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -29,7 +29,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Upload macOS modules
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: modules_mac
           path: |
@@ -41,7 +41,7 @@ jobs:
     name: Build (Windows)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -57,14 +57,14 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: build/Testing/*/Test.xml
           if-no-files-found: ignore
 
       - name: Upload Windows modules
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: modules_windows
           path: |
@@ -80,18 +80,18 @@ jobs:
     needs: [build-macos, build-windows]
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: Download macOS modules
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: modules_mac
           path: mac-artifacts
 
       - name: Download Windows modules
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: modules_windows
           path: win-artifacts
@@ -109,7 +109,7 @@ jobs:
             community_modules.pkg
 
       - name: Upload macOS installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: installer_mac
           path: community_modules.pkg
@@ -130,18 +130,18 @@ jobs:
     needs: [build-macos, build-windows]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: Download macOS modules
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: modules_mac
           path: mac-artifacts
 
       - name: Download Windows modules
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: modules_windows
           path: win-artifacts
@@ -166,7 +166,7 @@ jobs:
           -o community_modules.msi
 
       - name: Upload Windows installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: installer_windows
           path: community_modules.msi
