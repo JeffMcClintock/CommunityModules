@@ -13,7 +13,8 @@
   Installs universal .sem/.gmpi bundles to:
     C:\Program Files\Common Files\SynthEdit\modules\Community\
 -->
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Package
     Name="SynthEdit Community Modules"
@@ -30,6 +31,23 @@
     <Feature Id="ProductFeature" Title="Community Modules" Level="1">
       <ComponentGroupRef Id="ModuleFiles" />
     </Feature>
+
+    <!--
+      Setup wizard: Welcome -> install -> Finish.
+
+      We base it on WixUI_InstallDir (which provides the standard dialog
+      chrome) but reroute the navigation to skip BOTH the license-agreement
+      page and the install-folder page: SynthEdit only finds modules in the
+      fixed Common Files location below, so the folder must not be user-editable.
+      WIXUI_INSTALLDIR is still required by the dialog set even though we never
+      show its dialog.
+    -->
+    <ui:WixUI Id="WixUI_InstallDir" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <UI>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="2" Condition="NOT Installed" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" Condition="NOT Installed" />
+    </UI>
 
     <!--
       Install to: C:\Program Files\Common Files\SynthEdit\modules\Community\
