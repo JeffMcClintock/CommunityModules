@@ -51,9 +51,12 @@
 
     <!--
       Install to: C:\Program Files\Common Files\SynthEdit\modules\Community\
-      CommonFilesFolder resolves to the 64-bit Common Files when built with -arch x64.
+      Use CommonFiles64Folder (the 64-bit Common Files = C:\Program Files\Common Files)
+      so the x64 modules land where 64-bit SynthEdit/SynthEditCL scans. CommonFilesFolder
+      (no "64") is the 32-bit property: it resolves to C:\Program Files (x86)\Common Files
+      even in an x64 package, which is the wrong place and SynthEdit never looks there.
     -->
-    <StandardDirectory Id="CommonFilesFolder">
+    <StandardDirectory Id="CommonFiles64Folder">
       <Directory Id="SECOMMONDIR" Name="SynthEdit">
         <Directory Id="MODULESDIR" Name="modules">
           <Directory Id="INSTALLDIR" Name="Community" />
