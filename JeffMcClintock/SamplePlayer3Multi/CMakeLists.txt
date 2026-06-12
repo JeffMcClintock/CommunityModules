@@ -65,6 +65,26 @@ set(SFIZZ_RENDER OFF CACHE INTERNAL "")
 FetchContent_MakeAvailable(sfizz)
 
 # -----------------------------------------------------------------------------
+# Patch sfizz's vendored atomic_queue for newer (Xcode 16+) Apple Clang, which
+# rejects the redundant 'template' disambiguator on these non-template member
+# calls. Removing it is standard-conforming. Applied to the fetched source before
+# it is compiled; idempotent (only rewrites when something actually changed).
+# -----------------------------------------------------------------------------
+if(APPLE)
+    set(_atomic_queue_h "${sfizz_SOURCE_DIR}/external/atomic_queue/include/atomic_queue/atomic_queue.h")
+    if(EXISTS "${_atomic_queue_h}")
+        file(READ "${_atomic_queue_h}" _aq_orig)
+        set(_aq_text "${_aq_orig}")
+        string(REPLACE "Base::template do_pop_any"  "Base::do_pop_any"  _aq_text "${_aq_text}")
+        string(REPLACE "Base::template do_push_any" "Base::do_push_any" _aq_text "${_aq_text}")
+        if(NOT _aq_text STREQUAL _aq_orig)
+            file(WRITE "${_atomic_queue_h}" "${_aq_text}")
+            message(STATUS "Patched sfizz atomic_queue.h for strict Apple Clang")
+        endif()
+    endif()
+endif()
+
+# -----------------------------------------------------------------------------
 # Tuck sfizz's ~80 sub-targets (abseil, wavpack, aiff, kissfft, ...) into IDE
 # solution folders so they don't clutter the Solution Explorer. Walk every
 # target defined under the sfizz source tree and force its FOLDER (this overrides
