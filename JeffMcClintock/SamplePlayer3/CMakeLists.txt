@@ -74,6 +74,34 @@ FetchContent_Declare(
 set(SFIZZ_RENDER OFF CACHE INTERNAL "")
 FetchContent_MakeAvailable(sfizz)
 
+# -----------------------------------------------------------------------------
+# Tuck sfizz's ~80 sub-targets (abseil, wavpack, aiff, kissfft, ...) into IDE
+# solution folders so they don't clutter the Solution Explorer. Walk every
+# target defined under the sfizz source tree and force its FOLDER (this overrides
+# any folder the sub-projects set themselves).
+# -----------------------------------------------------------------------------
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+function(group_sfizz_targets dir)
+    get_property(_targets DIRECTORY "${dir}" PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(_t IN LISTS _targets)
+        if(_t MATCHES "^absl")
+            set_target_properties(${_t} PROPERTIES FOLDER "Dependencies/abseil")
+        elseif(_t MATCHES "^sfizz")
+            set_target_properties(${_t} PROPERTIES FOLDER "Dependencies/sfizz")
+        else()
+            set_target_properties(${_t} PROPERTIES FOLDER "Dependencies/sfizz/3rdparty")
+        endif()
+    endforeach()
+
+    get_property(_subdirs DIRECTORY "${dir}" PROPERTY SUBDIRECTORIES)
+    foreach(_sub IN LISTS _subdirs)
+        group_sfizz_targets("${_sub}")
+    endforeach()
+endfunction()
+
+group_sfizz_targets("${sfizz_SOURCE_DIR}")
+
 set(sdk_folder
 ../../se_sdk3
 )

@@ -1,0 +1,1 @@
+CI will now download the latest from synthedit.com

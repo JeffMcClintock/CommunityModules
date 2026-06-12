@@ -23,6 +23,8 @@ add_subdirectory("Unison")
 add_subdirectory(Wrapper_VST3)
 
 # sample player 3 has it's own independant cmake: add_subdirectory(SamplePlayer3)
+add_subdirectory(SamplePlayer3Multi)
+
 
 # don't build on macOS yet
 if(WIN32)
