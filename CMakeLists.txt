@@ -32,6 +32,12 @@ project(CommunityModules)
 
 enable_testing()
 
+# Don't build/run tests from fetched third-party dependencies (e.g. wavpack's
+# 'wvtest', pulled in transitively by sfizz). They register CTest tests gated on
+# BUILD_TESTING, which would otherwise fail our CI test step. Our own tests
+# (test/) call catch_discover_tests() unconditionally, so they still run.
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
 set(se_sdk_folder
     ${CMAKE_SOURCE_DIR}/se_sdk3
     )
