@@ -328,7 +328,7 @@ if(SE_LOCAL_BUILD)
     if(WIN32)
         add_custom_command(TARGET ${PROJECT_NAME}
             POST_BUILD
-            COMMAND copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\$(TargetName)$(TargetExt)"
+            COMMAND copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "C:\\Program Files\\Common Files\\SynthEdit\\modules\\community_modules\\$(TargetName)$(TargetExt)\\Contents\\x86_64-win\\$(TargetName)$(TargetExt)"
             COMMENT "Copy to modules folder"
             VERBATIM
         )
