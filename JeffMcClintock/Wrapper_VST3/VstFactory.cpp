@@ -251,15 +251,17 @@ void VstFactory::RecursiveScanVsts(const std::wstring& searchPath, const std::ws
 			{
 #ifdef _WIN32
 				path = path / "Contents" / "x86_64-win";
-
-				// scan fist file in there.
-				for (auto& exe_path : std::filesystem::directory_iterator(path))
+				if(std::filesystem::exists(path))
 				{
-					//if (exe_path. .is_dots())
-					//	continue;
+					// scan fist file in there.
+					for(auto& exe_path : std::filesystem::directory_iterator(path))
+					{
+						//if (exe_path. .is_dots())
+						//	continue;
 
-					ScanDll(exe_path.path().wstring());
-					break;
+						ScanDll(exe_path.path().wstring());
+						break;
+					}
 				}
 #else
                 ScanDll(path.wstring());
