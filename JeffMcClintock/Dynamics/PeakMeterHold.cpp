@@ -13,6 +13,7 @@ class PeakMeterHold final : public MpBase2
 	int chunkSize{};
 	std::vector<float> peaks;
 	int delayIndex = 0;
+	int sleepCount = 0;
 
 public:
 	PeakMeterHold()
@@ -24,16 +25,21 @@ public:
 
 	int32_t open() override
 	{
-		sampleCount = chunkSize = getSampleRate() / 100; // 10ms chunks.
+		chunkSize = getSampleRate() / 100; // 10ms chunks.
 		return MpBase2::open();
 	}
 
 	void subProcess( int sampleFrames )
 	{
+		auto input = getBuffer(pinInput);
+
 		sampleCount -= sampleFrames;
 
 		if(sampleCount < 0)
 		{
+			// cope nicely with very first sample.
+			peak = (std::max)(*input, peak);
+
 			peaks[delayIndex] = peak;
 			peak = -10000.f;
 			if(++delayIndex >= peaks.size())
@@ -42,15 +48,15 @@ public:
 			sampleCount = (std::max)( 0, sampleCount + chunkSize);
 
 			const float maxPeak = *std::max_element(peaks.begin(), peaks.end());
-			pinOutput.setValue(maxPeak, 0);
-		}
+			pinOutput.setValue(10.0f * maxPeak, 0);
 
-		auto input = getBuffer(pinInput);
+			if(sleepCount-- < 0 && !pinInput.isStreaming())
+				setSleep(true); // sleep when no input, or constant input level.
+		}
 
 		for(int s = sampleFrames; s > 0; --s)
 		{
 			peak = (std::max)(*input, peak);
-
 			++input;
 		}
 	}
@@ -60,9 +66,9 @@ public:
 		if(pinTimeS.isUpdated())
 			peaks.assign(static_cast<int64_t>(pinTimeS * 100.f), -10000.f);
 
-		// TODO sleep when delay line empty
-
 		setSubProcess(&PeakMeterHold::subProcess);
+		setSleep(false);
+		sleepCount = peaks.size();
 	}
 };
 
