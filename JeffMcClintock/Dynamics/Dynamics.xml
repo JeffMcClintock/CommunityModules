@@ -51,4 +51,12 @@
       <Pin name="Gain Out" datatype="float" rate="audio" direction="out" />
     </Audio>
   </Plugin>
+
+    <Plugin id="SE PeakMeterHold" name="Max Hold" category="Community/Dynamics">
+        <Audio>
+            <Pin name="Time (s)" datatype="float" default="2.0"/>
+            <Pin name="In" datatype="float" rate="audio"/>
+            <Pin name="Peak Out" datatype="float" direction="out"/>
+        </Audio>
+    </Plugin>
 </PluginList>

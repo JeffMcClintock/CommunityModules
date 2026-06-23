@@ -7,4 +7,5 @@ build_gmpi_plugin(
     HAS_DSP
     SOURCE_FILES 
         ${PROJECT_NAME}.cpp
+        PeakMeterHold.cpp
 )
