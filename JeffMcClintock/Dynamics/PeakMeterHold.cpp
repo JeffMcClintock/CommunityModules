@@ -1,5 +1,7 @@
 #include "mp_sdk_audio.h"
 
+SE_DECLARE_INIT_STATIC_FILE(PeakMeterHold)
+
 using namespace gmpi;
 
 class PeakMeterHold final : public MpBase2
