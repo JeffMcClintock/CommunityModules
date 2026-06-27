@@ -3,8 +3,8 @@
 	<Plugin id="SE SVG Image(glow)" name="SVG Glow" category="Experimental/Sub-Controls">
 		<GUI>
 			<Pin name="SVG File" datatype="string" isFilename="true" metadata="svg"/>
-			<Pin name="Fill" datatype="struct:SE::Color"/>
-			<Pin name="Stroke" datatype="struct:SE::Color"/>
+			<Pin name="Fill" datatype="struct:color"/>
+			<Pin name="Stroke" datatype="struct:color"/>
 			<Pin name="Effect Intensity" datatype="float" default="-0.5" isMinimised="true"/>
 			<Pin name="Visible" datatype="bool" default="1"/>
 			<Pin name="HD" datatype="bool"/>
@@ -13,8 +13,8 @@
 	<Plugin id="SE SVG Image(shadow)" name="SVG Shadow" category="Experimental/Sub-Controls">
 		<GUI>
 			<Pin name="SVG File" datatype="string" isFilename="true" metadata="svg"/>
-			<Pin name="Fill" datatype="struct:SE::Color"/>
-			<Pin name="Stroke" datatype="struct:SE::Color"/>
+			<Pin name="Fill" datatype="struct:color"/>
+			<Pin name="Stroke" datatype="struct:color"/>
 			<Pin name="Blur" datatype="int" default="6" isMinimised="true"/>
 			<Pin name="Intensity" datatype="float" default="-0.5" isMinimised="true"/>
 			<Pin name="OffsetX" datatype="int" default="6" isMinimised="true"/>
@@ -27,8 +27,8 @@
 	</Plugin>
 	<Plugin id="SE Color Lag" name="Color Lag" category="Experimental/Sub-Controls/Conversion">
 		<GUI>
-			<Pin name="In" datatype="struct:SE::Color"/>
-			<Pin name="Out" datatype="struct:SE::Color" direction="out"/>
+			<Pin name="In" datatype="struct:color"/>
+			<Pin name="Out" datatype="struct:color" direction="out"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Floats to Color" name="Floats to Color" category="Experimental/Sub-Controls/Conversion">
@@ -37,13 +37,13 @@
 			<Pin name="G" datatype="float" default="1"/>
 			<Pin name="B" datatype="float" default="1"/>
 			<Pin name="A" datatype="float" default="1"/>
-			<Pin name="Color" datatype="blob" direction="out"/>
+			<Pin name="Color" datatype="struct:color" direction="out"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Hex to Color" name="Hex to Color" category="Experimental/Sub-Controls/Conversion">
 		<GUI>
 			<Pin name="Hex Color" datatype="string" default="ffff00"/>
-			<Pin name="Color" datatype="struct:SE::Color" direction="out"/>
+			<Pin name="Color" datatype="struct:color" direction="out"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Blob Switch" name="Blob Switch" category="Experimental/Sub-Controls">
@@ -55,15 +55,15 @@
 	</Plugin>
 	<Plugin id="SE Color Switch" name="Color Switch" category="Experimental/Sub-Controls">
 		<GUI>
-			<Pin name="Out" datatype="int64" direction="out"/>
+			<Pin name="Out" datatype="struct:color" direction="out"/>
 			<Pin name="Select" datatype="int"/>
-			<Pin name="In" datatype="int64" autoDuplicate="true" autoRename="true"/>
+			<Pin name="In" datatype="struct:color" autoDuplicate="true" autoRename="true"/>
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Dumb Label" name="Label" category="Experimental/Sub-Controls">
 		<GUI graphicsApi="GmpiGui">
 			<Pin name="Text" datatype="string" default="&#x2660;"/> <!-- unicode char number 2660 (hex) -->
-			<Pin name="Color" datatype="struct:SE::Color" default="4278190080" />
+			<Pin name="Color" datatype="struct:color" default="4278190080" />
 		</GUI>
 	</Plugin>
 	<Plugin id="SE Mouse Target" name="Mouse Target" category="Experimental/Sub-Controls">
