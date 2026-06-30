@@ -12,17 +12,18 @@ add_subdirectory("Environment Detect")
 add_subdirectory("IDE Print Value")
 add_subdirectory(Logic)
 add_subdirectory(Loudness)
-add_subdirectory(MouseTarget)
+# not 1.5 compatible add_subdirectory(MouseTarget)
 add_subdirectory(OscillatorHD)
 add_subdirectory("OverSampling Detect")
-# not 1.5 compatible add_subdirectory(PeakFollower)
+add_subdirectory(PeakFollower)
 add_subdirectory(RepaintDiag)
 add_subdirectory(SignalLogger)
 add_subdirectory("test")
 add_subdirectory("Unison")
 add_subdirectory(Wrapper_VST3)
 
-# sample player 3 has it's own independant cmake: add_subdirectory(SamplePlayer3)
+# sample player 3 has it's own independant cmake:
+add_subdirectory(SamplePlayer3)
 add_subdirectory(SamplePlayer3Multi)
 
 
