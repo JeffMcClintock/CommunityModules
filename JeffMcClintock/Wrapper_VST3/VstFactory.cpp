@@ -207,7 +207,7 @@ void VstFactory::ScanVsts()
 	{
 		ostringstream oss;
 		oss << "<PluginList><Plugin id=\"" << INFO_PLUGIN_ID << "\" name=\"Wrapper Info\" category=\"VST3 Plugins\" >"
-			"<GUI graphicsApi=\"GmpiGui\"><Pin/></GUI>"
+			"<GUI graphicsApi=\"GmpiGui\"/>"
 			"</Plugin></PluginList>";
 
 		plugins.push_back({ INFO_PLUGIN_ID, "Info", oss.str(), L"" });
