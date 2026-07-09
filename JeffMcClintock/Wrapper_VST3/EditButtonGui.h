@@ -23,9 +23,6 @@ public:
 	int32_t MP_STDCALL onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
 	int32_t MP_STDCALL onPointerUp(int32_t flags, GmpiDrawing_API::MP1_POINT point) override;
 
-	int32_t MP_STDCALL populateContextMenu(float x, float y, gmpi::IMpUnknown* contextMenuItemsSink) override;
-	int32_t MP_STDCALL onContextMenu(int32_t selection) override;
-
 	GmpiDrawing::TextFormat& getTextFormat();
 };
 

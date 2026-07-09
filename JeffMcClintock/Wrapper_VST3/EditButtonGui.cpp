@@ -110,27 +110,3 @@ int32_t EditButtonGui::measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDraw
 	return gmpi::MP_OK;
 }
 
-int32_t EditButtonGui::populateContextMenu(float x, float y, gmpi::IMpUnknown* contextMenuItemsSink)
-{
-	gmpi::IMpContextItemSink* sink;
-	contextMenuItemsSink->queryInterface(gmpi::MP_IID_CONTEXT_ITEMS_SINK, ( void**) &sink );
-	std::string info("WavesShell: ");
-//	info += WStringToUtf8(GetVstFactory()->getWavesShellLocation());
-
-	sink->AddItem(info.c_str(), 0 );
-
-	{
-		char buffer[50] = "";
-		sprintf(buffer, "%s", shellPluginId_.c_str());
-
-		std::string info2("Shell ID: ");
-		info2 += buffer;
-		sink->AddItem(info2.c_str(), 1);
-	}
-	return gmpi::MP_OK;
-}
-
-int32_t EditButtonGui::onContextMenu(int32_t selection)
-{
-	return gmpi::MP_OK;
-}
