@@ -7,6 +7,8 @@
 #include "mp_sdk_audio.h"
 #include "OscMipmaps.h"
 
+// NOTE: !!! This module has been moved to ship with SynthEdit 1.6
+
 typedef double phasor_t;
 
 class ModulatedPinPolicy
