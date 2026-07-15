@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document file_format="150000" vst_latencyCompensation="1" vst_user_email="Jeff McClintock" vst_preset_count="64">
+    <master_container type="Container" handle="548158108" name="Main" ViewOpenFlags="768" skin="default">
+        <plugs>
+            <plug idx="7"/>
+        </plugs>
+        <structRect l="0" r="0" t="0" b="0"/>
+        <PatchManager>
+            <ProgramNames/>
+            <Parameters>
+                <param type="10" private="true" hostControl="49">
+                    <patch-list>
+                        <s repeat="128"></s>
+                    </patch-list>
+                </param>
+                <param type="6" handle="67079494" shortName="ADSR Attack Curve" module="1736398845" moduleParamId="0" RangeMinimum="-5" RangeMaximum="5">
+                    <patch-list>
+                        <s>-5</s>
+                        <s repeat="127">3</s>
+                    </patch-list>
+                </param>
+                <param type="10" handle="69066163" shortName="Capture Data B" ignorePC="true" private="true" stateful="false" isPolyphonic="true" module="2132093414" moduleParamId="1"/>
+                <param type="4" handle="78620865" shortName="polyDetect" ignorePC="true" private="true" stateful="false" module="471236826" moduleParamId="2"/>
+                <param type="6" handle="79012133" shortName="ADSR Attack" module="576300101" moduleParamId="0" RangeMinimum="-1" RangeMaximum="0.1">
+                    <patch-list>
+                        <s>-0.0198991</s>
+                        <s repeat="127">0.75</s>
+                    </patch-list>
+                </param>
+                <param type="1" handle="408084378" stateful="false" module="2145579114" moduleParamId="0"/>
+                <param type="10" handle="926038822" shortName="Capture Data A" ignorePC="true" private="true" stateful="false" isPolyphonic="true" module="471236826" moduleParamId="0"/>
+                <param type="6" handle="933547592" shortName="ADSR Release" module="478964784" moduleParamId="0">
+                    <patch-list>
+                        <s>0.599999</s>
+                        <s repeat="127">4</s>
+                    </patch-list>
+                </param>
+                <param type="10" handle="947864457" shortName="Capture Data B" ignorePC="true" private="true" stateful="false" isPolyphonic="true" module="471236826" moduleParamId="1"/>
+                <param type="4" handle="998134029" shortName="polyDetect" ignorePC="true" private="true" stateful="false" module="2132093414" moduleParamId="2"/>
+                <param type="10" handle="1141787758" shortName="Capture Data A" ignorePC="true" private="true" stateful="false" isPolyphonic="true" module="2132093414" moduleParamId="0"/>
+                <param type="6" handle="1848003943" shortName="Oscillator Pitch" module="871959976" moduleParamId="0">
+                    <patch-list>
+                        <s>4.61</s>
+                        <s repeat="127">5</s>
+                    </patch-list>
+                </param>
+            </Parameters>
+        </PatchManager>
+        <modules>
+            <module type="Slider" handle="478964784">
+                <plugs>
+                    <plug default="0" idx="4"/>
+                    <plug default="0"/>
+                    <plug default="0" idx="7"/>
+                    <plug default="0" idx="12"/>
+                    <plug parameterId="-1" default="0.599999"/>
+                    <plug parameterId="-1"/>
+                </plugs>
+                <structRect l="160" r="244" t="155" b="243"/>
+                <panelRect l="278" r="278" t="174" b="174"/>
+            </module>
+            <module type="SE Monitor" handle="2145579114">
+                <structRect l="119" r="275" t="400" b="606"/>
+                <panelRect l="232" r="232" t="133" b="133"/>
+            </module>
+            <module type="SE ADSR4" handle="139914942">
+                <plugs>
+                    <plug default="5" idx="4"/>
+                    <plug default="" idx="7"/>
+                    <plug default=""/>
+                </plugs>
+                <structRect l="15" r="111" t="300" b="420"/>
+                <panelRect l="318" r="318" t="232" b="232"/>
+            </module>
+            <module type="Slider" handle="871959976">
+                <plugs>
+                    <plug default="0" idx="4"/>
+                    <plug default="0"/>
+                    <plug default="0" idx="7"/>
+                    <plug default="0" idx="12"/>
+                    <plug parameterId="-1" default="4.61"/>
+                    <plug parameterId="-1"/>
+                </plugs>
+                <structRect l="42" r="126" t="53" b="141"/>
+                <panelRect l="263" r="263" t="140" b="140"/>
+            </module>
+            <module type="Oscillator" handle="1892777563">
+                <plugs>
+                    <plug default="0" idx="2"/>
+                </plugs>
+                <structRect l="66" r="150" t="159" b="243"/>
+            </module>
+            <module type="SE Scope3 XP" handle="2132093414">
+                <structRect l="444" r="816" t="347" b="666"/>
+                <panelRect l="306" r="306" t="240" b="240"/>
+            </module>
+            <module type="SE ADSR3c" handle="587161076">
+                <plugs>
+                    <plug default="5" idx="4"/>
+                    <plug default="0"/>
+                </plugs>
+                <structRect l="320" r="416" t="336" b="480"/>
+                <panelRect l="253" r="253" t="165" b="165"/>
+            </module>
+            <module type="Slider" handle="1736398845">
+                <plugs>
+                    <plug default="0" idx="4"/>
+                    <plug default="0"/>
+                    <plug default="0" idx="7"/>
+                    <plug default="0" idx="12"/>
+                    <plug parameterId="-1" default="-5"/>
+                    <plug parameterId="-1"/>
+                </plugs>
+                <structRect l="251" r="335" t="49" b="137"/>
+                <panelRect l="294" r="294" t="198" b="198"/>
+            </module>
+            <module type="Slider" handle="576300101">
+                <plugs>
+                    <plug default="0" idx="4"/>
+                    <plug default="0"/>
+                    <plug default="0" idx="7"/>
+                    <plug default="0" idx="12"/>
+                    <plug parameterId="-1" default="-0.0198991"/>
+                    <plug parameterId="-1"/>
+                </plugs>
+                <structRect l="119" r="203" t="44" b="132"/>
+                <panelRect l="226" r="226" t="138" b="138"/>
+            </module>
+            <module type="SE Scope3 XP" handle="471236826">
+                <structRect l="442" r="814" t="11" b="330"/>
+                <panelRect l="222" r="222" t="165" b="165"/>
+            </module>
+            <module type="OR Gate" handle="947256530">
+                <plugs>
+                    <plug idx="2"/>
+                </plugs>
+                <structRect l="166" r="226" t="280" b="316"/>
+            </module>
+            <module type="SE ADSR4" handle="994016581">
+                <plugs>
+                    <plug default="5" idx="4"/>
+                    <plug default="" idx="7"/>
+                    <plug default=""/>
+                </plugs>
+                <structRect l="328" r="424" t="69" b="189"/>
+                <panelRect l="274" r="274" t="170" b="170"/>
+            </module>
+        </modules>
+        <lines>
+            <line type="Line" handle="1329649187" lineType="1" fMod="139914942" tMod="2145579114" fPlg="9" tPlg="3"/>
+            <line type="Line" handle="1384886297" lineType="1" fMod="994016581" tMod="471236826" fPlg="9" tPlg="7"/>
+            <line type="Line" handle="1505710096" lineType="1" fMod="947256530" tMod="994016581" tPlg="1"/>
+            <line type="Line" handle="363409752" lineType="1" fMod="947256530" tMod="994016581"/>
+            <line type="Line" handle="1707509488" lineType="1" fMod="587161076" tMod="2132093414" fPlg="10" tPlg="7"/>
+            <line type="Line" handle="1573981958" lineType="1" fMod="947256530" tMod="2132093414" tPlg="6"/>
+            <line type="Line" handle="1859147405" lineType="1" fMod="947256530" tMod="587161076" tPlg="1"/>
+            <line type="Line" handle="1710262272" lineType="1" fMod="947256530" tMod="587161076"/>
+            <line type="Line" handle="92956561" lineType="1" fMod="1892777563" tMod="947256530" fPlg="3" tPlg="1"/>
+            <line type="Line" handle="1532646784" lineType="1" fMod="947256530" tMod="471236826" tPlg="6"/>
+            <line type="Line" handle="2003029547" lineType="1" fMod="576300101" tMod="994016581" fPlg="6" tPlg="3"/>
+            <line type="Line" handle="2083024356" lineType="1" fMod="576300101" tMod="994016581" fPlg="6" tPlg="2"/>
+            <line type="Line" handle="189368642" lineType="1" fMod="576300101" tMod="587161076" fPlg="6" tPlg="3"/>
+            <line type="Line" handle="1323316350" lineType="1" fMod="576300101" tMod="587161076" fPlg="6" tPlg="2"/>
+            <line type="Line" handle="1713969290" lineType="1" fMod="1736398845" tMod="994016581" fPlg="6" tPlg="8"/>
+            <line type="Line" handle="1056613268" lineType="1" fMod="1736398845" tMod="994016581" fPlg="6" tPlg="7"/>
+            <line type="Line" handle="1042443378" lineType="1" fMod="1736398845" tMod="994016581" fPlg="6" tPlg="6"/>
+            <line type="Line" handle="2094966581" lineType="1" fMod="1736398845" tMod="587161076" fPlg="6" tPlg="9"/>
+            <line type="Line" handle="1126894221" lineType="1" fMod="1736398845" tMod="587161076" fPlg="6" tPlg="8"/>
+            <line type="Line" handle="550163381" lineType="1" fMod="1736398845" tMod="587161076" fPlg="6" tPlg="7"/>
+            <line type="Line" handle="1105071812" lineType="1" fMod="871959976" tMod="1892777563" fPlg="6"/>
+            <line type="Line" handle="448909421" lineType="1" fMod="478964784" tMod="994016581" fPlg="6" tPlg="5"/>
+            <line type="Line" handle="1196662861" lineType="1" fMod="478964784" tMod="587161076" fPlg="6" tPlg="5"/>
+        </lines>
+        <PanelWndPosition l="0" r="0" t="0" b="0"/>
+        <PanelLocation l="30" r="530" t="30" b="330"/>
+        <StructLocation l="0" r="868" t="0" b="676"/>
+        <PanelScroll x="0" y="0"/>
+        <StructScroll x="0" y="0"/>
+        <PanelWndOffset cx="-99999" cy="-99999"/>
+        <panel_rect l="12" r="312" t="12" b="216"/>
+    </master_container>
+    <PluginList>
+        <Plugin id="Container" class="1" name="Container" flags="384" category="">
+            <Audio>
+                <Pin name="Spare" datatype="float" rate="audio" autoRename="true" autoDuplicate="true" isContainerIoPlug="true"/>
+                <Pin name="Polyphony" datatype="enum" default="6" private="true" isMinimised="true" metadata="range 1,128"/>
+                <Pin name="MIDI Automation" datatype="bool" private="true" isMinimised="true"/>
+                <Pin name="Show Controls" datatype="enum" private="true" isMinimised="true" metadata="Off,On Panel,On Module"/>
+            </Audio>
+            <GUI>
+                <Pin name="Controls on Parent" datatype="bool" direction="out" isMinimised="true"/>
+                <Pin name="Controls on Module" datatype="bool" noAutomation="true"/>
+                <Pin name="Visible" datatype="bool"/>
+                <Pin name="Ignore Program Change" datatype="bool" noAutomation="true"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="OR Gate" class="1" name="OR Gate" flags="4352" category="Logic">
+            <Audio>
+                <Pin name="Output" datatype="float" rate="audio" direction="out"/>
+                <Pin name="Input" datatype="float" rate="audio" autoDuplicate="true"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="Oscillator" class="1" name="Oscillator" flags="4352" category="Waveform">
+            <Audio>
+                <Pin name="Pitch" datatype="float" rate="audio" default="0.5" metadata="100, 0, 10, 0"/>
+                <Pin name="Pulse Width" datatype="float" rate="audio" default="0.5"/>
+                <Pin name="Waveform" datatype="enum" default="1" metadata="Sine, Saw, Ramp, Triangle, Pulse,White Noise,Pink Noise"/>
+                <Pin name="Audio Out" datatype="float" rate="audio" direction="out"/>
+                <Pin name="Sync" datatype="float" rate="audio" metadata="100, 0, 5, -5"/>
+                <Pin name="Phase Mod" datatype="float" rate="audio" metadata="100, 0, 10, 0"/>
+                <Pin name="Freq Scale" datatype="enum" isMinimised="true" metadata="1 Volt/Octave, 1 Volt/kHz "/>
+                <Pin name="PM Depth" datatype="float" rate="audio" default="0.5" metadata="100, 0, 10, 0"/>
+                <Pin name="Smooth Peaks (Gibbs Effect)" datatype="bool" default="1" isMinimised="true"/>
+                <Pin name="Sync X-Fade (Anti Alias)" datatype="bool" default="1" isMinimised="true"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE ADSR3c" name="ADSR3" flags="8448" category="Waves" helpUrl="EnveloperAdsr.htm">
+            <Audio>
+                <Pin name="Trigger" datatype="float" rate="audio" default="0.1"/>
+                <Pin name="Gate" datatype="float" rate="audio" default="0.1"/>
+                <Pin name="Attack" datatype="float" rate="audio" default="0.075"/>
+                <Pin name="Decay" datatype="float" rate="audio" default="0.5"/>
+                <Pin name="Sustain" datatype="float" rate="audio" default="0.7"/>
+                <Pin name="Release" datatype="float" rate="audio" default="0.4"/>
+                <Pin name="Overall Level" datatype="float" rate="audio" default="1"/>
+                <Pin name="Attack Curve" datatype="float" rate="audio" default="0.3" metadata=",,5,-5"/>
+                <Pin name="Decay Curve" datatype="float" rate="audio" metadata=",,5,-5"/>
+                <Pin name="Release Curve" datatype="float" rate="audio" metadata=",,5,-5"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
+                <Pin name="VoiceReset" datatype="float" private="true" isPolyphonic="true" hostConnect="Voice/Active"/>
+                <Pin name="Loop" datatype="bool"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE ADSR4" name="ADSR" flags="256" category="Community/JeffMcClintock">
+            <Audio>
+                <Pin name="Trigger" datatype="bool" default="1"/>
+                <Pin name="Gate" datatype="bool" default="1"/>
+                <Pin name="Attack" datatype="float" rate="audio" default="0.075"/>
+                <Pin name="Decay" datatype="float" rate="audio" default="0.5"/>
+                <Pin name="Sustain" datatype="float" rate="audio" default="0.7"/>
+                <Pin name="Release" datatype="float" rate="audio" default="0.4"/>
+                <Pin name="Attack Curve" datatype="float" rate="audio" default="0.3" metadata=",,5,-5"/>
+                <Pin name="Decay Curve" datatype="float" rate="audio" metadata=",,5,-5"/>
+                <Pin name="Release Curve" datatype="float" rate="audio" metadata=",,5,-5"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
+                <Pin name="VoiceReset" datatype="float" private="true" isPolyphonic="true" hostConnect="Voice/Active"/>
+            </Audio>
+        </Plugin>
+        <Plugin id="SE Monitor" name="Monitor" flags="384" category="Diagnostic" voiceMonitorIgnore="true">
+            <Parameters>
+                <Parameter id="0" datatype="string" name="" ignorePatchChange="true" persistant="false"/>
+            </Parameters>
+            <Audio>
+                <Pin name="MIDI In" datatype="midi"/>
+                <Pin name="Channel" datatype="enum" default="-1" ignorePatchChange="true" metadata="All=-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"/>
+                <Pin name="Signal in" datatype="float" rate="audio" linearInput="true"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out"/>
+                <Pin name="Print Time" datatype="float" isMinimised="true"/>
+                <Pin name="Print Input Stat Changes" datatype="bool" default="1" isMinimised="true"/>
+                <Pin name="Print &apos;tick&apos; processing" datatype="bool" isMinimised="true"/>
+                <Pin name="Disp Mode" datatype="enum" default="2" metadata="Func List, Func Changes, In Voltage, Denormal Count"/>
+                <Pin name="Use Trace Window" datatype="bool" isMinimised="true"/>
+                <Pin name="Engine Overload test" datatype="bool" isMinimised="true"/>
+                <Pin name="Disp Out" datatype="string" direction="out" private="true" parameterId="0"/>
+            </Audio>
+            <GUI graphicsApi="GmpiGui">
+                <Pin name="Disp In" datatype="string" private="true" parameterId="0"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="SE Scope3 XP" name="Scope3" flags="384" category="Controls">
+            <Parameters>
+                <Parameter id="0" datatype="blob" name="Capture Data A" private="true" ignorePatchChange="true" isPolyphonic="true" persistant="false"/>
+                <Parameter id="1" datatype="blob" name="Capture Data B" private="true" ignorePatchChange="true" isPolyphonic="true" persistant="false"/>
+                <Parameter id="2" datatype="bool" name="polyDetect" private="true" ignorePatchChange="true" persistant="false"/>
+            </Parameters>
+            <Audio>
+                <Pin name="Capture Data A" datatype="blob" direction="out" private="true" isPolyphonic="true" parameterId="0"/>
+                <Pin name="Capture Data B" datatype="blob" direction="out" private="true" isPolyphonic="true" parameterId="1"/>
+                <Pin name="Signal A" datatype="float" rate="audio"/>
+                <Pin name="Signal B" datatype="float" rate="audio"/>
+                <Pin name="VoiceActive" datatype="float" private="true" isPolyphonic="true" hostConnect="Voice/Active"/>
+                <Pin name="polydetect" datatype="bool" direction="out" private="true" parameterId="2"/>
+            </Audio>
+            <GUI graphicsApi="GmpiGui">
+                <Pin name="Capture Data A" datatype="blob" private="true" isPolyphonic="true" parameterId="0"/>
+                <Pin name="Capture Data B" datatype="blob" private="true" isPolyphonic="true" parameterId="1"/>
+                <Pin id="3" name="VoiceGate" datatype="float" private="true" isPolyphonic="true" hostConnect="Voice/Gate"/>
+                <Pin name="polydetect" datatype="bool" private="true" parameterId="2"/>
+            </GUI>
+        </Plugin>
+        <Plugin id="Slider" class="1" name="Slider" flags="4480" category="Controls">
+            <Parameters>
+                <Parameter id="0" datatype="float" name="patchValue"/>
+            </Parameters>
+            <Audio>
+                <Pin name="Channel" datatype="enum" default="-1" private="true" ignorePatchChange="true" metadata="All=-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"/>
+                <Pin name="MIDI In" datatype="midi" private="true"/>
+                <Pin name="MIDI Out" datatype="midi" direction="out" private="true"/>
+                <Pin name="MIDI Controller ID" datatype="enum" default="-1" private="true"/>
+                <Pin name="Ignore Program Change" datatype="bool" private="true"/>
+                <Pin name="MIDI NRPN" datatype="enum" private="true" metadata="range 0,16255"/>
+                <Pin name="Signal Out" datatype="float" rate="audio" direction="out" autoConfigureParameter="true"/>
+                <Pin name="Lo Value" datatype="float" private="true"/>
+                <Pin name="Hi Value" datatype="float" default="10" private="true"/>
+                <Pin name="Appearance" datatype="enum" default="1" isMinimised="true" metadata="None=-1,Plain Slider, Vert Slider, Horiz Slider, Knob, Button, Button (toggle),Plain Button, Small Knob, Small Button, Small Button (Toggle)"/>
+                <Pin name="Show Readout" datatype="bool" default="1" isMinimised="true"/>
+                <Pin name="Show Title On Panel" datatype="bool" default="1" isMinimised="true"/>
+                <Pin name="patchValue" datatype="float" private="true" parameterId="0"/>
+            </Audio>
+            <GUI>
+                <Pin id="13" name="patchValue" datatype="float" direction="out" private="true" parameterId="0"/>
+                <Pin name="Hint" datatype="string" direction="out" isMinimised="true"/>
+            </GUI>
+        </Plugin>
+    </PluginList>
+</Document>
