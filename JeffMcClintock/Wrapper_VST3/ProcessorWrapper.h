@@ -15,10 +15,6 @@
 
 #include "./ControllerWrapper.h"
 
-#if defined(SE_TARGET_WAVES)
-#include "cancellation.h"
-#endif
-
 struct myParamValueQueue : public Steinberg::FObject, public Steinberg::Vst::IParamValueQueue
 {
 	myParamValueQueue(Steinberg::Vst::ParamID id) : paramId(id) {}

@@ -3,12 +3,6 @@
 #include <algorithm>
 #include "./MyViewStream.h"
 
-#if defined(SE_TARGET_WAVES)
-#include "../../ug_base.h"
-#include "../../dsp_patch_parameter_base.h"
-#include "../../dsp_patch_manager.h"
-#endif
-
 #ifdef CANCELLATION_TEST_ENABLE2
 #include <iostream>
 #include <fstream>

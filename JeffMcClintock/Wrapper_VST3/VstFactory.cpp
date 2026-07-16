@@ -46,8 +46,6 @@ const char* VstFactory::pluginIdPrefix = "wvVST3WRAP:";
 // IMpShellFactory: Query a plugin's info. Should occur only during a user-initiated re-scan.
 int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXml)
 {
-#if !defined(SE_TARGET_WAVES)
-
 	gmpi::IString* returnString = 0;
 
 	if (MP_OK != iReturnXml->queryInterface(MP_IID_RETURNSTRING, reinterpret_cast<void**>( &returnString)))
@@ -72,7 +70,6 @@ int32_t VstFactory::getPluginIdentification(int32_t index, IMpUnknown* iReturnXm
 		returnString->setData(plugins[index].xmlBrief_.data(), (int32_t)plugins[index].xmlBrief_.size());
 		return gmpi::MP_OK;
 	}
-#endif
 
 	return gmpi::MP_FAIL;
 }

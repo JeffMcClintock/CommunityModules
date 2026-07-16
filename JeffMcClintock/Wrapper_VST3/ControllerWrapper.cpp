@@ -4,10 +4,8 @@
 #include "./MyViewStream.h"
 #include "my_msg_que_output_stream.h"
 #include "my_msg_que_input_stream.h"
-#if !defined(SE_TARGET_WAVES)
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
-#endif
 #include "pluginterfaces/base/ibstream.h"
 
 using namespace gmpi;
