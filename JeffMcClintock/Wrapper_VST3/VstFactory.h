@@ -9,9 +9,7 @@
 #include <vector>
 #include <filesystem>
 
-#if !defined(SE_TARGET_WAVES)
 #include "public.sdk/source/vst/hosting/module.h"
-#endif
 
 #include "public.sdk/source/vst/hosting/hostclasses.h"
 
@@ -66,9 +64,7 @@ public:
 
 	void AddPluginName(const char* category, std::string uuid, const std::string& name, const std::wstring& shellPath);
 	std::string XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::UID& classId);
-#if !defined(SE_TARGET_WAVES)
 	std::string getDiagnostics();
-#endif
 
 private:
 	void ShallowScanVsts();

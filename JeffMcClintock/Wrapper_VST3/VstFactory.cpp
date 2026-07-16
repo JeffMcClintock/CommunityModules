@@ -15,7 +15,6 @@
 
 #include "myPluginProvider.h"
 
-#if !defined(SE_TARGET_WAVES)
 #include "FileFinder.h"
 #include "./EditButtonGui.h"
 #include "ControllerWrapper.h"
@@ -25,8 +24,6 @@
 
 #if defined(_WIN32)
 #include "shlobj.h"
-#endif
-
 #endif
 
 #define L_INFO_PLUGIN_ID L"SE: VST3 WRAPPER"
@@ -89,7 +86,6 @@ std::string VstFactory::uuidFromWrapperID(const wchar_t* uniqueId)
 
 int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iReturnXml)
 {
-#if !defined(SE_TARGET_WAVES)
 	gmpi::IString* returnXml{};
 
 	if (MP_OK != iReturnXml->queryInterface(MP_IID_RETURNSTRING, reinterpret_cast<void**>(&returnXml)))
@@ -132,9 +128,6 @@ int32_t VstFactory::getPluginInformation(const wchar_t* uniqueId, IMpUnknown* iR
 	const std::string xmlFull = XmlFromPlugin(factory, *classID);
 	returnXml->setData(xmlFull.data(), (int32_t)xmlFull.size());
 	return xmlFull.empty() ? gmpi::MP_FAIL : gmpi::MP_OK;
-#endif
-
-	return gmpi::MP_FAIL;
 }
 
 #if __APPLE__
@@ -155,8 +148,6 @@ std::filesystem::path expand_home(const std::string& path) {
 // Usage:
 
 #endif
-
-#if !defined(SE_TARGET_WAVES)
 
 vector< std::wstring >getSearchPaths()
 {
@@ -179,7 +170,6 @@ vector< std::wstring >getSearchPaths()
     
 	return searchPaths;
 }
-#endif
 
 void VstFactory::ShallowScanVsts()
 {
@@ -542,7 +532,6 @@ std::filesystem::path VstFactory::getSettingFilePath()
 	return settingsDir / "ScannedPlugins.xml";
 }
 
-#if !defined(SE_TARGET_WAVES)
 std::string VstFactory::getDiagnostics()
 {
 	std::ostringstream oss;
@@ -587,7 +576,6 @@ std::string VstFactory::getDiagnostics()
 //	oss << "Can't open VST Plugin. (not a vst plugin). (";
 	return oss.str();
 }
-#endif
 
 void VstFactory::savePluginInfo()
 {
@@ -611,7 +599,6 @@ void VstFactory::savePluginInfo()
 
 void VstFactory::loadPluginInfo()
 {
-#if !defined(SE_TARGET_WAVES)
 	ifstream myfile(getSettingFilePath());
 	if( myfile.is_open() )
 	{
@@ -635,10 +622,7 @@ void VstFactory::loadPluginInfo()
 	{
 		ScanVsts();
 	}
-#endif
 }
-
-#if !defined(SE_TARGET_WAVES) // TODO!!! try to replace this, so the wrapper is universal, mayby have runtime detection of context (in a wavesplugin of not)
 
 #ifdef _WIN32
 
@@ -669,7 +653,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 #endif
 
 #endif // _WIN32
-#endif // !SE_TARGET_WAVES
 
 //---------------FACTORY --------------------
 
@@ -682,7 +665,6 @@ VstFactory* GetVstFactory()
 	return theFactory;
 }
 
-#if !defined(SE_TARGET_WAVES)
 //  Factory lives until plugin dll is unloaded.
 //  this helper destroys the factory automatically.
 class factory_deleter_helper
@@ -722,8 +704,6 @@ int32_t MP_STDCALL MP_GetFactory(void** returnInterface)
 	return GetVstFactory()->queryInterface(MP_IID_UNKNOWN, returnInterface);
 }
 
-#endif // !SE_TARGET_WAVES
-
 int32_t VstFactory::queryInterface(const MpGuid& iid, void** returnInterface)
 {
 	if (iid == MP_IID_SHELLFACTORY || iid == MP_IID_FACTORY2 || iid == MP_IID_FACTORY || iid == MP_IID_UNKNOWN)
@@ -752,7 +732,6 @@ int32_t VstFactory::createInstance(
 
 	*returnInterface = nullptr; // if we fail for any reason, default return-val to NULL.
 
-#if !defined(SE_TARGET_WAVES)
 	if (wcscmp(uniqueId, L_INFO_PLUGIN_ID) == 0)
 	{
 		if (subType == MP_SUB_TYPE_GUI2)
@@ -770,7 +749,6 @@ int32_t VstFactory::createInstance(
 		}
 		return gmpi::MP_FAIL;
 	}
-#endif
 
 	if (wcscmp(uniqueId, L_PARAM_SET_PLUGIN_ID) == 0)
 	{
@@ -813,7 +791,6 @@ int32_t VstFactory::createInstance(
 			}
 			break;
 
-#if !defined(SE_TARGET_WAVES)
 			case MP_SUB_TYPE_CONTROLLER:
 			{
 				const auto uniqueIdU = WStringToUtf8(uniqueId); // TODO minimize all this string conversions !!!!
@@ -829,7 +806,6 @@ int32_t VstFactory::createInstance(
 				return gmpi::MP_OK;
 			}
 			break;
-#endif
 
 			case MP_SUB_TYPE_GUI2:
 			{
@@ -853,7 +829,6 @@ int32_t VstFactory::createInstance(
 		}
 	}
 
-#if !defined(SE_TARGET_WAVES)
 	if (subType == MP_SUB_TYPE_GUI2)
 	{
 		string err("Error");
@@ -873,7 +848,6 @@ int32_t VstFactory::createInstance(
 
 		return gmpi::MP_OK;
 	}
-#endif
 
 	return MP_FAIL;
 }
