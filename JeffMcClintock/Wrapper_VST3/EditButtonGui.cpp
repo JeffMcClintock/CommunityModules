@@ -2,19 +2,18 @@
 #include "../shared/unicode_conversion.h"
 #include "ControllerWrapper.h"
 #include "myPluginProvider.h"
+#include "VstFactory.h"
 
 using namespace gmpi;
 using namespace JmUnicodeConversions;
 using namespace gmpi_gui_api;
 
-int32_t EditButtonGui::setPin(int32_t pinId, int32_t voice, int32_t size, const void* data)
+int32_t EditButtonGui::initialize()
 {
-	if (controllertPtrPinId == pinId && size == sizeof(void*))
-	{
-		controller_ = *(ControllerWrapper**) data;
-	}
+	// obtain our other half (the Controller) from the factory. We share the same host-assigned handle.
+	controller_ = GetVstFactory()->getController(getHandle());
 
-	return GuiPinOwner::setPin2(pinId, voice, size, data);
+	return MpGuiBase2::initialize();
 }
 
 int32_t EditButtonGui::onPointerDown(int32_t flags, GmpiDrawing_API::MP1_POINT point)

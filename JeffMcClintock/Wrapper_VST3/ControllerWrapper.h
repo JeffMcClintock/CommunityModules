@@ -68,6 +68,9 @@ public:
 	
 	void setParameterFromProcessorUnsafe(uint32_t paramId, double valueNormalized);
 
+	// factory notification: the Processor was destroyed.
+	void onProcessorRemoved();
+
 	virtual int32_t MP_STDCALL setHost(gmpi::IMpUnknown* host) override;
 	virtual int32_t MP_STDCALL setParameter(int32_t parameterHandle, int32_t fieldId, int32_t voice, const void* data, int32_t size) override;
 	virtual int32_t MP_STDCALL preSaveState() override;

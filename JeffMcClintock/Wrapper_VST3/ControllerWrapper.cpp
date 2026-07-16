@@ -1,6 +1,7 @@
 #include "ControllerWrapper.h"
 #include "unicode_conversion.h"
 #include "myPluginProvider.h"
+#include "VstFactory.h"
 #include "./MyViewStream.h"
 #include "my_msg_que_output_stream.h"
 #include "my_msg_que_input_stream.h"
@@ -50,20 +51,21 @@ ControllerWrapper::ControllerWrapper(const wchar_t* filename, const std::string&
 
 ControllerWrapper::~ControllerWrapper()
 {
-#if 0 // wv
-    if (processor_component_ptr && processor_vstEffect__ptr)
-    {
-		// ensure the processor don't try to access the plugin.
-		*processor_component_ptr = nullptr;
-		*processor_vstEffect__ptr = nullptr;
-    }
-#endif
+	// prevent dangling pointers to us.
+	GetVstFactory()->unregisterWrapper(handle_, this);
+
 	if (windowController)
 	{
 		windowController->destroyView();
 	}
 
 	plugin->terminatePlugin();
+}
+
+// The Processor was destroyed. Drop our pointers into it.
+void ControllerWrapper::onProcessorRemoved()
+{
+	processor_component_ptr = nullptr;
 }
 
 // A MIDI message has arrived from the host to set a parameter. Event has already been scheduled on Processor. Need to update Editor.
@@ -253,12 +255,10 @@ int32_t ControllerWrapper::open()
 
 	plugin->controller->setComponentHandler(componentHandler.get());
 
-	// Pass pointer to 'this' to Process and GUI.
-	const int controllerPtrParamId = chunkParamId + 1;
-	const int voiceId = 0;
-	auto me = this;
-	host_->setParameter(host_->getParameterHandle(handle_, controllerPtrParamId), MP_FT_VALUE, voiceId, &me, sizeof(me));
+	// Make ourself available to the Processor and GUI halves via the factory.
+	GetVstFactory()->registerWrapper(handle_, this);
 
+	const int voiceId = 0;
 	{
 		// always have to pass initial state from processor to controller.
 		{

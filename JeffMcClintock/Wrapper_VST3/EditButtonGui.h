@@ -12,11 +12,10 @@ class EditButtonGui : public gmpi_gui::MpGuiGfxBase
 	std::string filename_;
 
 	class ControllerWrapper* controller_ = {};
-	static const int controllertPtrPinId = 0;
 
 public:
 	// overrides.
-	int32_t MP_STDCALL setPin(int32_t pinId, int32_t voice, int32_t size, const void* data) override;
+	int32_t MP_STDCALL initialize() override;
 
 	int32_t MP_STDCALL OnRender(GmpiDrawing_API::IMpDeviceContext* drawingContext) override;
 	int32_t MP_STDCALL measure(GmpiDrawing_API::MP1_SIZE availableSize, GmpiDrawing_API::MP1_SIZE* returnDesiredSize) override;

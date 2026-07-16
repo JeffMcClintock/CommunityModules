@@ -6,6 +6,7 @@
 #include "../se_sdk3/mp_api.h"
 #include "../shared/xplatform.h"
 #include <map>
+#include <mutex>
 #include <vector>
 #include <filesystem>
 
@@ -18,6 +19,8 @@ using namespace gmpi;
 typedef class gmpi::IMpUnknown* (*MP_CreateFunc2)();
 
 class VstFactory* GetVstFactory();
+class ProcessorWrapper;
+class ControllerWrapper;
 
 // VstFactory - a singleton object. The plugin registers it's ID with the factory.
 class VstFactory : public gmpi::IMpShellFactory
@@ -66,7 +69,23 @@ public:
 	std::string XmlFromPlugin(VST3::Hosting::PluginFactory& factory, const VST3::UID& classId);
 	std::string getDiagnostics();
 
+	// Registry connecting the two halves (Processor/Controller) of each plugin instance.
+	// Both halves share the same host-assigned handle.
+	void registerWrapper(int32_t handle, ControllerWrapper* controller);
+	ControllerWrapper* registerWrapper(int32_t handle, ProcessorWrapper* processor); // returns the controller, which registered already.
+	void unregisterWrapper(int32_t handle, ControllerWrapper* controller);
+	void unregisterWrapper(int32_t handle, ProcessorWrapper* processor);
+	ControllerWrapper* getController(int32_t handle);
+
 private:
+	struct wrapperPair
+	{
+		ProcessorWrapper* processor{};
+		ControllerWrapper* controller{};
+	};
+	std::mutex registryMutex;
+	std::map<int32_t, wrapperPair> registry;
+
 	void ShallowScanVsts();
 	void ScanVsts();
 	void ScanDll(const std::wstring& load_filename);

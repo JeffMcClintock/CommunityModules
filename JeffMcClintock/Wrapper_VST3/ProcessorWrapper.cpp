@@ -2,6 +2,7 @@
 #include "../shared/xplatform.h"
 #include <algorithm>
 #include "./MyViewStream.h"
+#include "VstFactory.h"
 
 #ifdef CANCELLATION_TEST_ENABLE2
 #include <iostream>
@@ -55,6 +56,11 @@ ProcessorWrapper::ProcessorWrapper() :
 
 ProcessorWrapper::~ProcessorWrapper()
 {
+	if (handle_ != -1)
+	{
+		GetVstFactory()->unregisterWrapper(handle_, this);
+	}
+
 	if (component_)
 	{
         component_->setActive(false);
@@ -123,7 +129,7 @@ int32_t ProcessorWrapper::open()
 					break;
 
 				case MP_BLOB:
-					initializePin(idx, pinControllerPointer);
+					// legacy 'effectptr' pin (stale cached XML) - ignored. The Controller is obtained from the factory now.
 					break;
 
 				default: // MP_AUDIO
@@ -158,6 +164,17 @@ int32_t ProcessorWrapper::open()
 
 	processData.inputEvents = &vstEventList;
 	processData.inputParameterChanges = &parameterEvents;
+
+	// Obtain our other half (the Controller) from the factory. The API contract guarantees the
+	// Controller outlives us, so (unless the VST3 failed to load) it's registered already,
+	// letting us initialise the VST3 plugin right now, *before* audio starts (important for reporting latency).
+	handle_ = host.getHandle();
+	if (controller = GetVstFactory()->registerWrapper(handle_, this); controller)
+	{
+		controller->registerProcessor(&component_, &vstEffect_);
+
+		initVst();
+	}
 
 	return MP_OK;
 }
@@ -525,15 +542,6 @@ void ProcessorWrapper::onSetPins(void)
 	if (pinDenominator.isUpdated())
 	{
 		vstTime_.timeSigDenominator = pinDenominator;
-	}
-
-	if (pinControllerPointer.isUpdated() && pinControllerPointer.getValue().getSize() == sizeof(ControllerWrapper*))
-	{
-		controller = *(ControllerWrapper**)pinControllerPointer.getValue().getData();
-
-		controller->registerProcessor(&component_, &vstEffect_);
-
-		initVst();
 	}
 
 	if (pinOfflineRenderMode.isUpdated() && vstEffect_)

@@ -154,6 +154,8 @@ class ProcessorWrapper : public MpBase2
 	int latency = 0;
 	int bufferPrimingCounter = {};
 	int bypassDelaysize = {};
+
+	int32_t handle_ = -1; // host-assigned handle, shared with our Controller.
 	ControllerWrapper* controller = {};
 
 	typedef void (ProcessorWrapper::* VstSubProcess_ptr)(int32_t count, const gmpi::MpEvent* events);
@@ -402,7 +404,6 @@ private:
 	std::vector< std::unique_ptr<AudioOutPin> > AudioOuts;
 
 	BoolInPin pinOnOffSwitch;
-	BlobInPin pinControllerPointer;
 
 	// Musical time
 	FloatInPin pinHostBpm;
