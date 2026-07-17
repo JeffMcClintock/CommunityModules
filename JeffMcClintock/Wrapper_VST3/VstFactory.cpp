@@ -396,7 +396,7 @@ std::string VstFactory::XmlFromPlugin(VST3::Hosting::PluginFactory& factory, con
 	}
 
 	ostringstream oss;
-	oss << "<PluginList><Plugin id=\"" << pluginIdPrefix << classIdString << "\" name=\"" << name << "\" category=\"VST3 (Waves)\" >";
+	oss << "<PluginList><Plugin id=\"" << pluginIdPrefix << classIdString << "\" name=\"" << name << "\" category=\"VST3\" >";
 
 	// Parameter to store state.
 	oss << "<Parameters>";
