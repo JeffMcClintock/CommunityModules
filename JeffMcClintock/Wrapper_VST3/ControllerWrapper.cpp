@@ -307,7 +307,7 @@ int32_t ControllerWrapper::setHost(gmpi::IMpUnknown* host)
 		plugin->component->queryInterface(IAudioProcessor::iid, (void**)&vstEffect);
 		if (vstEffect)
 		{
-			host_->setLatency(vstEffect->getLatencySamples()); // this should be supported on Waves.
+			host_->setLatency(vstEffect->getLatencySamples());
 			vstEffect->release();
 		}
 	}

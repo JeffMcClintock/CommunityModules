@@ -3,9 +3,6 @@
 #include <atomic>
 #include <vector>
 
-#if !defined(SE_TARGET_SEM)
-#include "BasicTypes/Waves_Disable_Warnings.h"
-#endif
 #include "pluginterfaces/base/smartpointer.h"
 #include "pluginterfaces/base/ibstream.h"
 #include "pluginterfaces/vst/ivsteditcontroller.h"
@@ -13,9 +10,6 @@
 #include "pluginterfaces/vst/ivstmessage.h"
 #include "public.sdk/source/vst/hosting/hostclasses.h"
 #include "public.sdk/source/vst/hosting/module.h"
-#if !defined(SE_TARGET_SEM)
-#include "BasicTypes/Waves_Enable_Warnings.h"
-#endif
 
 class myPluginProvider
 {

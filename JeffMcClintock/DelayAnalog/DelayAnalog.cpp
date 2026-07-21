@@ -42,7 +42,7 @@ inline void ModulationAnalogCalculate_BC(float*& modulation, int buffer_size, fl
 		targetReadOffset = 2.0f;
 	}
 
-	readOffset += 1.0f - (readOffset / targetReadOffset); // Waves tape delay effect.
+	readOffset += 1.0f - (readOffset / targetReadOffset); // tape delay effect.
 
 	read_offset_int = FastRealToIntTruncateTowardZero(readOffset);
 	read_offset_fine = readOffset - (float)read_offset_int;
@@ -74,7 +74,7 @@ inline void ModulationAnalogCalculate(float*& modulation, int buffer_size, float
 		targetReadOffset = 1.0f;
 	}
 
-	readOffset += 1.0f - (readOffset / targetReadOffset); // Waves tape delay effect.
+	readOffset += 1.0f - (readOffset / targetReadOffset); // tape delay effect.
 
 	read_offset_int = FastRealToIntTruncateTowardZero(readOffset);
 	read_offset_fine = readOffset - (float)read_offset_int;

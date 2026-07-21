@@ -140,7 +140,7 @@ int32_t Vst2Wrapper::open()
 
 	vstTime_.sampleRate = (double)getSampleRate();
 
-	// Preserve FPU state (Waves plugins trash it).
+	// Preserve FPU state (some plugins trash it).
 #if _MSC_VER >= 1600 // Not Avail in VS2005.
 	unsigned int fpState;
 	_controlfp_s(&fpState, 0, 0);

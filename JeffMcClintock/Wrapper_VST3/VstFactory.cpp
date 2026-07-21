@@ -521,42 +521,7 @@ std::string VstFactory::getDiagnostics()
 {
 	std::ostringstream oss;
 /* todo
-	if (pluginIdMap.empty())
-	{
-		oss << "Can't locate *WaveShell*.*\nSearched:\n";
 
-		auto searchPaths = getSearchPaths();
-		for (auto path : searchPaths)
-		{
-			oss << WStringToUtf8(path) << "\n";
-		}
-	}
-	else
-	{
-		oss << "WaveShells located:";
-		bool first = true;
-		for (auto& it : pluginIdMap)
-		{
-			if (!first)
-			{
-				oss << ", ";
-			}
-			oss << WStringToUtf8(it.second);
-			first = false;
-		}
-		oss << "\n";
-
-		oss << plugins.size() - 1 << " Waves plugins available.\n\n";
-
-		if (!duplicates.empty())
-		{
-			oss << "Skiped Duplicates:\n";
-			for (auto s : duplicates)
-			{
-				oss << s << "\n";
-			}
-		}
-	}
 */
 //	oss << "Can't open VST Plugin. (not a vst plugin). (";
 	return oss.str();
