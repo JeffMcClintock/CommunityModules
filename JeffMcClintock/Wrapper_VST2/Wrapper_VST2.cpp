@@ -141,23 +141,19 @@ int32_t Vst2Wrapper::open()
 	vstTime_.sampleRate = (double)getSampleRate();
 
 	// Preserve FPU state (some plugins trash it).
-#if _MSC_VER >= 1600 // Not Avail in VS2005.
 	unsigned int fpState;
 	_controlfp_s(&fpState, 0, 0);
-#endif
 
 	for (auto it = AudioOuts.begin(); it != AudioOuts.end(); ++it)
 	{
 		(*it)->setStreaming(true);
 	}
 
-#if _MSC_VER >= 1600 // Not Avail in VS2005.
 	unsigned int unused;
 #if defined (_WIN32) && !defined(_WIN64)
 	_controlfp_s(&unused, fpState, MCW_PC | _MCW_DN);
 #else
 	_controlfp_s(&unused, fpState, _MCW_DN);
-#endif
 #endif
 
 	return MP_OK;
