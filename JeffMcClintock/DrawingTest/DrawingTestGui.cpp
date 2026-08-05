@@ -913,6 +913,52 @@ void DrawingTestGui::drawGradient(GmpiDrawing::Graphics& g)
 	}
 
 	//////////////////////////////////////////////////////////////////////
+	// The same two gradients as the "GradientBrush" row above, but rendered into
+	// an offscreen render target and blitted back.
+	//
+	// This row comes out DARKER than the one above (mid grey around sRGB 128
+	// rather than 188), because a round trip through an 8-bit render target
+	// stores the rasterizer's LINEAR values and then samples them as sRGB. That
+	// is a real gamma error, and it is DELIBERATELY LEFT ALONE on this path:
+	// SynthEdit 1.5 has always done it, modules have been drawn against it, and
+	// this file is SDK3. Do not "fix" what you see here — you would change the
+	// appearance of every shipped legacy module.
+	//
+	// The new gmpi_ui SDK does not have the error. Its equivalent path
+	// (createCpuRenderTarget with SRGBPixels | CpuReadable) creates the target
+	// as B8G8R8A8_UNORM_SRGB, so the round trip is faithful and a dark ramp keeps
+	// all 64 of its levels instead of 14 — see gimpi_ui_tests
+	// CpuVsD2D.SRGBRenderTargetRoundTripIsFaithful. SDK3 never sets CpuReadable,
+	// which is exactly why that fix does not reach this row.
+	x1 = 0;
+	y1 += 50;
+	{
+		auto dc = g.CreateCompatibleRenderTarget(Size(count, height));
+		dc.BeginDraw();
+		auto brushFill = dc.CreateLinearGradientBrush(Color::Black, Color::White, { 0.0f, 0.0f }, { static_cast<float>(count), 0.0f });
+		dc.FillRectangle(Rect(0, 0, count, height), brushFill);
+		dc.EndDraw();
+
+		auto bm = dc.GetBitmap();
+		g.DrawBitmap(bm, Rect(x1, y1, x1 + count, y1 + height), Rect(0, 0, count, height));
+		g.DrawTextU("Gradient thru RenderTarget", textFormat, x1, y1, textBrush);
+	}
+	x1 = rightCol;
+	{
+		// 0..0.05 linear, not the 0..0.5 used above: banding only bites where
+		// 8-bit linear has run out of levels, and this is that range.
+		const float intensity = 0.05f;
+		auto dc = g.CreateCompatibleRenderTarget(Size(count, height));
+		dc.BeginDraw();
+		auto brushFill = dc.CreateLinearGradientBrush(Color::Black, Color(intensity, intensity, intensity), { 0.0f, 0.0f }, { static_cast<float>(count), 0.0f });
+		dc.FillRectangle(Rect(0, 0, count, height), brushFill);
+		dc.EndDraw();
+
+		auto bm = dc.GetBitmap();
+		g.DrawBitmap(bm, Rect(x1, y1, x1 + count, y1 + height), Rect(0, 0, count, height));
+	}
+
+	//////////////////////////////////////////////////////////////////////
 	x1 = 0;
 	y1 += 50;
 	{
